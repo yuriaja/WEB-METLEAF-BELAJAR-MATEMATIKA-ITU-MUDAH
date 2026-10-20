@@ -5,7 +5,7 @@ Route::view('/', 'pages.index'); Route::view('/tentang','pages.tentang');
 Route::view('/masuk','pages.auth.masuk')->name('login'); Route::view('/daftar','pages.auth.daftar');
 Route::middleware('auth')->group(function () {
     Route::view('/materi','pages.shared.materi'); Route::view('/forum','pages.shared.forum'); Route::view('/tugas','pages.shared.tugas');
-    Route::view('/dashboard','pages.siswa.dashboard'); Route::view('/video','pages.siswa.video'); Route::view('/latihan','pages.siswa.latihan'); Route::view('/kuis','pages.siswa.kuis'); Route::view('/nilai','pages.siswa.nilai'); Route::get('/guru', function () { abort_unless(in_array(auth()->user()->role,['guru','admin'],true),403); return view('pages.guru'); });
+    Route::view('/dashboard','pages.siswa.dashboard'); Route::view('/video','pages.siswa.video'); Route::view('/latihan','pages.siswa.latihan'); Route::view('/kuis','pages.siswa.kuis'); Route::view('/nilai','pages.siswa.nilai'); Route::get('/guru', [\App\Http\Controllers\ClassroomController::class, 'teacherDashboard'])->name('teacher.dashboard');
 });
 Route::prefix('api/mathleaf')->group(function () {
     Route::post('/register',[ML::class,'register'])->middleware('throttle:10,1');

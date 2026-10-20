@@ -23,6 +23,14 @@ class ClassroomController extends Controller {
   }
   return view('pages.classroom',compact('classes','materials','assessments'));
  }
+ public function teacherDashboard(){
+  $this->teacher();
+  $user=auth()->user();
+  $classes=$user->teachingClasses()->withCount('students')->latest()->get();
+  $materials=Material::where('author_id',$user->id)->latest()->get();
+  $assessments=Assessment::where('author_id',$user->id)->withCount('questions')->latest()->get();
+  return view('pages.guru',compact('classes','materials','assessments'));
+ }
  public function createClass(Request $r){$this->teacher();$v=$r->validate(['name'=>'required|string|max:100','school_year'=>'nullable|string|max:15']);
   do{$code=Str::upper(Str::random(8));}while(SchoolClass::where('join_code',$code)->exists());
   auth()->user()->teachingClasses()->create($v+['join_code'=>$code]);return back()->with('success','Kelas berhasil dibuat. Bagikan kode kepada siswa.');
