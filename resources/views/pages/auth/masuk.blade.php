@@ -2,6 +2,7 @@
 <html lang="id">
 
 <head>
+<meta name="csrf-token" content="{{ csrf_token() }}">
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>Masuk | MathLeaf</title>
@@ -105,8 +106,7 @@
                 </svg>
             </button>
             <div class="auth-note">
-                Mode demo · Gunakan email dan kata sandi contoh. Tidak ada autentikasi
-                server/database.
+                Akun tersimpan aman di database MathLeaf.
             </div>
             <p style="text-align: center; font-size: 11px">
                 Belum punya akun?

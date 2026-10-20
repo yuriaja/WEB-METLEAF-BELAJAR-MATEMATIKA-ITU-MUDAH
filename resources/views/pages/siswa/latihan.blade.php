@@ -2,6 +2,7 @@
 <html lang="id">
 
 <head>
+<meta name="csrf-token" content="{{ csrf_token() }}">
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>E-LKPD Interaktif | MathLeaf</title>
@@ -32,7 +33,7 @@
                 </svg><span>Matematika Kelas VII<small>Semester Ganjil · 2026/2027</small></span>
             </div>
             <span class="sidebar-caption">RUANG BELAJAR</span>
-            <nav>
+            <nav><a href="{{ url('/kelas') }}" style="background:rgba(255,255,255,.14);font-weight:700"><span>🏫 Kelas Saya & Konten Guru</span></a>
                 <a href="{{ url('/dashboard') }}" class=""><svg aria-hidden="true" width="18" height="18"
                         viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
                         stroke-linejoin="round" style="flex-shrink: 0">

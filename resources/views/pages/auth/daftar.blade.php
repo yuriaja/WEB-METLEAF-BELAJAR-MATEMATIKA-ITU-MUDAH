@@ -2,6 +2,7 @@
 <html lang="id">
 
 <head>
+<meta name="csrf-token" content="{{ csrf_token() }}">
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>Daftar | MathLeaf</title>
@@ -97,15 +98,9 @@
             </div>
             <div class="field">
                 <label for="password">Kata sandi</label><input id="password" type="password" name="password"
-                    placeholder="Minimal 6 karakter" minlength="6" required />
+                    placeholder="Minimal 8 karakter" minlength="8" required />
             </div>
-            <div class="field" id="class-field">
-                <label for="kelas">Kelas</label><select id="kelas">
-                    <option>VII A</option>
-                    <option>VII B</option>
-                    <option>VII C</option>
-                </select>
-            </div>
+            <p style="font-size:12px;margin-bottom:14px">Kelas diikuti nanti setelah login melalui kode dari guru.</p>
             <button class="btn btn-primary" type="submit" style="width: 100%">
                 Daftar Sekarang
                 <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none"
@@ -116,8 +111,7 @@
                 </svg>
             </button>
             <div class="auth-note">
-                Mode demo · Gunakan email dan kata sandi contoh. Tidak ada autentikasi
-                server/database.
+                Akun tersimpan aman di database MathLeaf.
             </div>
             <p style="text-align: center; font-size: 11px">
                 Sudah punya akun?

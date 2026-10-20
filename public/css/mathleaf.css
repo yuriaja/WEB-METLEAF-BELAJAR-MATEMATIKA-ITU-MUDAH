@@ -61,3 +61,27 @@ a{color:inherit}
 .inline-notice{margin-top:14px}
 .muted-sub{font-size:10px;color:var(--muted-foreground)}
 @media(max-width:560px){.app-sidebar .logo{font-size:0}.app-sidebar .logo>span:nth-child(2){display:none}.fpbl-step svg:last-child{display:none}.site-container.hero-inner{width:calc(100% - 36px)}}
+
+/* MathLeaf: sidebar scroll independen (desktop, tablet, mobile) */
+.app-sidebar {
+    height: 100vh;
+    height: 100dvh;
+    overflow-y: auto;
+    overflow-x: hidden;
+    overscroll-behavior-y: contain;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, .45) transparent;
+}
+/* Jangan sampai isi menu terkompresi ketika lebih tinggi dari layar. */
+.app-sidebar > * {
+    flex-shrink: 0;
+}
+.app-sidebar::-webkit-scrollbar { width: 6px; }
+.app-sidebar::-webkit-scrollbar-track { background: transparent; }
+.app-sidebar::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, .4);
+    border-radius: 999px;
+}
+/* Sidebar can scroll independently */
+.app-sidebar{height:100vh;height:100dvh;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;scrollbar-width:thin;}

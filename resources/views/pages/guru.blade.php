@@ -1,6 +1,7 @@
 <!doctype html>
 <html lang="id">
   <head>
+<meta name="csrf-token" content="{{ csrf_token() }}">
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>Dashboard Guru | MathLeaf</title>
@@ -56,7 +57,7 @@
           ><span>Ruang Guru<small>Bu Ratna · Pengajar</small></span>
         </div>
         <span class="sidebar-caption">PENGELOLAAN</span>
-        <nav>
+        <nav><a href="{{ url('/kelas') }}" style="background:rgba(255,255,255,.14);font-weight:700"><span>🏫 Kelas Saya & Konten Guru</span></a>
           <a href="{{ url('/guru') }}" class="selected"
             ><svg
               aria-hidden="true"

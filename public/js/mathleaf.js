@@ -38,38 +38,16 @@ if ($('[data-fpbl]')) {
 }
 
 if (page === 'masuk' || page === 'daftar') {
-    let role = 'Siswa';
-
-    $$('[data-role]').forEach(btn => {
-        btn.addEventListener('click', () => {
-            role = btn.dataset.role;
-
-            $$('[data-role]').forEach(x => {
-                x.classList.toggle('selected', x === btn);
-            });
-
-            if ($('#class-field')) {
-                $('#class-field').hidden = role === 'Guru';
-            }
-        });
-    });
-
-    $('#auth-form').addEventListener('submit', e => {
-        e.preventDefault();
-
-        if ($('#name') && $('#name').value.trim()) {
-            set('name', $('#name').value.trim());
-        }
-
-        set('role', role);
-
-        // Redirect sesuai routing Laravel
-        if (role === 'Guru') {
-            window.location.href = '/guru';
-        } else {
-            window.location.href = '/dashboard';
-        }
-    });
+ let role='Siswa';
+ $$('[data-role]').forEach(btn=>btn.addEventListener('click',()=>{role=btn.dataset.role;$$('[data-role]').forEach(x=>x.classList.toggle('selected',x===btn));}));
+ const form=$('#auth-form');
+ form.addEventListener('submit',async e=>{
+  e.preventDefault();const btn=form.querySelector('[type="submit"]');btn.disabled=true;
+  const payload={email:$('#email').value.trim(),password:$('#password').value,role:role.toLowerCase()};
+  if(page==='daftar')payload.name=$('#name').value.trim();
+  let notice=form.querySelector('#auth-server-notice');if(!notice){notice=document.createElement('div');notice.id='auth-server-notice';notice.className='inline-notice';form.appendChild(notice);}notice.textContent='Memproses...';
+  try{const response=await fetch('/api/mathleaf/'+(page==='daftar'?'register':'login'),{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json','Accept':'application/json','X-CSRF-TOKEN':document.querySelector('meta[name="csrf-token"]').content},body:JSON.stringify(payload)});const data=await response.json();if(!response.ok)throw new Error(Object.values(data.errors||{}).flat().join(' ')||data.message||'Gagal masuk.');location.assign(data.redirect||'/kelas');}catch(err){notice.textContent=err.message;notice.classList.add('error-notice');btn.disabled=false;}
+ });
 }
 if(page==='materi'){
  let tab='Semua Materi';const filter=()=>{const query=($('#material-search')?.value||'').toLowerCase();let count=0;$$('.material-item').forEach(item=>{const art=item.querySelector('[data-material-title]');const pr=Number(art.dataset.materialProgress);const ok=art.dataset.materialTitle.includes(query)&&(tab==='Semua Materi'||tab==='Sedang Dipelajari'&&pr>0||tab==='Belum Dimulai'&&pr===0);item.hidden=!ok;if(ok)count++});$('#no-material').hidden=count!==0};
