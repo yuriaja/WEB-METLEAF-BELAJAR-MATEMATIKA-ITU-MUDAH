@@ -33,3 +33,43 @@ document.addEventListener('DOMContentLoaded', () => {
     holder.appendChild(fieldset);
   });
 });
+
+
+
+/* Navigasi aktif sidebar guru */
+document.addEventListener('DOMContentLoaded', () => {
+    const nav = document.querySelector('.guru-navigation');
+    if (!nav) return;
+
+    const links = [...nav.querySelectorAll('a')];
+
+    function updateActiveMenu() {
+        const hash = window.location.hash;
+
+        const activeAnchor = hash
+            ? links.find(link =>
+                link.getAttribute('href') === hash
+            )
+            : null;
+
+        links.forEach(link => {
+            const active = activeAnchor
+                ? link === activeAnchor
+                : link.hasAttribute('data-guru-dashboard');
+
+            link.classList.toggle('selected', active);
+
+            if (active) {
+                link.setAttribute(
+                    'aria-current',
+                    activeAnchor ? 'location' : 'page'
+                );
+            } else {
+                link.removeAttribute('aria-current');
+            }
+        });
+    }
+
+    window.addEventListener('hashchange', updateActiveMenu);
+    updateActiveMenu();
+});

@@ -17,3 +17,192 @@
 .teacher-empty{padding:22px;background:var(--muted);border-radius:13px;color:var(--primary);font-size:11px;line-height:1.7}.teacher-flash{padding:15px 18px;margin-bottom:19px;border-radius:12px;font-size:12px}.teacher-flash-success{background:#e4f6e8;color:#176336}.teacher-flash-error{background:#ffefea;color:#9b2f20}.teacher-flash ul{margin:8px 0 0;padding-left:18px}.teacher-footnote{margin:22px 0;font-size:11px}.teacher-footnote a{color:var(--primary);font-weight:700;text-decoration:underline}
 @media(max-width:1100px){.teacher-quick-actions{grid-template-columns:1fr}.teacher-two-cols{grid-template-columns:1fr}}
 @media(max-width:650px){.teacher-form-grid{grid-template-columns:1fr}.teacher-item{align-items:flex-start;flex-direction:column}.teacher-page-heading{align-items:flex-start}.teacher-hub .stats-grid{grid-template-columns:repeat(2,1fr)}.teacher-stats .stat-card{padding:13px}.teacher-page-heading h1{font-size:22px}.teacher-section{padding:18px}.teacher-class-top{flex-wrap:wrap}}
+
+
+
+/* =========================================
+   METLEAF - PERAPIAN DASHBOARD GURU
+   Branch Hakim
+   ========================================= */
+
+body[data-page="guru"] {
+    font-family: "Plus Jakarta Sans", Arial, sans-serif;
+}
+
+/* Area konten */
+.teacher-hub {
+    width: 100%;
+    max-width: 1450px;
+    padding: clamp(20px, 3vw, 42px);
+}
+
+/* Judul dashboard */
+.teacher-page-heading h1 {
+    font-size: clamp(26px, 2.5vw, 36px);
+    line-height: 1.3;
+    margin-bottom: 12px;
+}
+
+.teacher-page-heading p {
+    font-size: 14px;
+    line-height: 1.7;
+}
+
+/* Kartu dashboard */
+.teacher-hub .panel,
+.teacher-quick-actions a,
+.teacher-stats .stat-card {
+    border-radius: 18px;
+    box-shadow: 0 5px 24px rgba(25, 90, 50, 0.06);
+}
+
+/* Tindakan cepat */
+.teacher-quick-actions {
+    gap: 18px;
+}
+
+.teacher-quick-actions a {
+    padding: 20px;
+}
+
+.teacher-quick-actions strong {
+    font-size: 15px;
+}
+
+.teacher-quick-actions small {
+    font-size: 12px;
+    line-height: 1.6;
+}
+
+/* Statistik */
+.teacher-stats .stat-label {
+    font-size: 12px;
+}
+
+.teacher-stats .stat-card small {
+    font-size: 11px;
+}
+
+/* Judul dan deskripsi bagian */
+.teacher-section-heading h2 {
+    font-size: 20px;
+    margin: 8px 0;
+}
+
+.teacher-section-heading p {
+    font-size: 13px;
+    line-height: 1.7;
+}
+
+/* Formulir */
+.teacher-form label {
+    font-size: 13px;
+}
+
+.teacher-form input:not([type="checkbox"]),
+.teacher-form select,
+.teacher-form textarea {
+    font-size: 14px;
+    padding: 12px 14px;
+    min-height: 46px;
+    border-radius: 10px;
+}
+
+.teacher-form textarea {
+    min-height: 100px;
+}
+
+.teacher-form small {
+    font-size: 12px;
+}
+
+/* Sidebar */
+body[data-page="guru"] .app-sidebar nav a {
+    font-size: 13px;
+}
+
+/* Responsive */
+@media (max-width: 650px) {
+    .teacher-hub {
+        padding: 20px 14px;
+    }
+
+    .teacher-section {
+        padding: 18px;
+    }
+
+    .teacher-page-heading h1 {
+        font-size: 24px;
+    }
+}
+
+
+
+/* SIDEBAR GURU - FIX BRANCH HAKIM */
+
+body[data-page="guru"] .app-sidebar {
+    overflow-y: auto;
+    overflow-x: hidden;
+    scrollbar-width: thin;
+}
+
+/* Ikon selalu terlihat */
+body[data-page="guru"]
+.app-sidebar nav.guru-navigation
+.guru-nav-icon {
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 23px;
+    min-width: 23px;
+    font-size: 18px;
+}
+
+/* Label menu */
+body[data-page="guru"]
+.guru-navigation .guru-nav-label {
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1.5;
+}
+
+/* Navigasi lebih rapi */
+body[data-page="guru"]
+.guru-navigation a {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-height: 45px;
+    border-radius: 10px;
+    padding: 11px 12px;
+}
+
+/* Sidebar desktop diciutkan */
+@media (min-width: 801px) {
+    body[data-page="guru"]
+    .sidebar-collapsed
+    .guru-navigation .guru-nav-label {
+        display: none !important;
+    }
+
+    body[data-page="guru"]
+    .sidebar-collapsed
+    .guru-navigation a {
+        justify-content: center;
+    }
+}
+
+/* Sidebar mobile */
+@media (max-width: 800px) {
+    body[data-page="guru"]
+    .guru-navigation .guru-nav-label {
+        display: none;
+    }
+
+    body[data-page="guru"]
+    .sidebar-collapsed
+    .guru-navigation .guru-nav-label {
+        display: inline !important;
+    }
+}

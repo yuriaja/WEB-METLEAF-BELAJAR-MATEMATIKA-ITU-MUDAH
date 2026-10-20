@@ -59,98 +59,52 @@
           ><span>Ruang Guru<small>{{ auth()->user()->name }} · Pengajar</small></span>
         </div>
         <span class="sidebar-caption">PENGELOLAAN</span>
-        <nav>
-          <a href="#guru-kelas" class=""><span>🏫 Kelas yang Saya Ajar</span></a>
-          <a href="#guru-soal" class=""><span>📝 Buat Soal / Kuis</span></a>
-          <a href="{{ url('/guru') }}" class="selected"
-            ><svg
-              aria-hidden="true"
-              width="18"
-              height="18"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              style="flex-shrink: 0"
-            >
-              <path d="m2 10 10-5 10 5-10 5-10-5Z" />
-              <path d="M6 12v5c3 2 9 2 12 0v-5M22 10v7" /></svg
-            ><span>Dashboard Guru</span></a
-          ><a href="#guru-materi" class=""
-            ><svg
-              aria-hidden="true"
-              width="18"
-              height="18"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              style="flex-shrink: 0"
-            >
-              <path d="M12 7v14" />
-              <path
-                d="M3 18V5a2 2 0 0 1 2-2h3a4 4 0 0 1 4 4 4 4 0 0 1 4-4h3a2 2 0 0 1 2 2v13h-5a4 4 0 0 0-4 3 4 4 0 0 0-4-3H3Z"
-              /></svg
-            ><span>Manajemen Materi</span></a
-          ><a href="{{ url('/forum') }}" class=""
-            ><svg
-              aria-hidden="true"
-              width="18"
-              height="18"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              style="flex-shrink: 0"
-            >
-              <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
-              <circle cx="9" cy="7" r="4" />
-              <path
-                d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"
-              /></svg
-            ><span>Forum Diskusi</span></a
-          ><a href="{{ url('/tugas') }}" class=""
-            ><svg
-              aria-hidden="true"
-              width="18"
-              height="18"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              style="flex-shrink: 0"
-            >
-              <path d="M12 7v14" />
-              <path
-                d="M3 18V5a2 2 0 0 1 2-2h3a4 4 0 0 1 4 4 4 4 0 0 1 4-4h3a2 2 0 0 1 2 2v13h-5a4 4 0 0 0-4 3 4 4 0 0 0-4-3H3Z"
-              /></svg
-            ><span>Pengumpulan Tugas</span></a
-          ><a href="#guru-soal" class=""
-            ><svg
-              aria-hidden="true"
-              width="18"
-              height="18"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              style="flex-shrink: 0"
-            >
-              <circle cx="12" cy="8" r="6" />
-              <path d="m8 13-2 8 6-3 6 3-2-8" /></svg
-            ><span>Analitik Nilai</span></a
-          >
-        </nav>
+
+
+          <nav aria-label="Navigasi Guru" class="guru-navigation">
+
+              <a href="{{ route('teacher.dashboard') }}"
+                class="selected"
+                data-guru-dashboard>
+                  <span class="guru-nav-icon">🏠</span>
+                  <span class="guru-nav-label">Dashboard Guru</span>
+              </a>
+
+              <a href="#guru-kelas">
+                  <span class="guru-nav-icon">🏫</span>
+                  <span class="guru-nav-label">Kelas yang Saya Ajar</span>
+              </a>
+
+              <a href="#guru-materi">
+                  <span class="guru-nav-icon">📚</span>
+                  <span class="guru-nav-label">Manajemen Materi</span>
+              </a>
+
+              <a href="#guru-soal">
+                  <span class="guru-nav-icon">📝</span>
+                  <span class="guru-nav-label">Buat Soal / Kuis</span>
+              </a>
+
+              @if(\Illuminate\Support\Facades\Route::has('class-tasks.index'))
+                  <a href="{{ route('class-tasks.index') }}">
+                      <span class="guru-nav-icon">📤</span>
+                      <span class="guru-nav-label">Pengumpulan Tugas</span>
+                  </a>
+              @endif
+
+              <a href="#guru-daftar-kuis">
+                  <span class="guru-nav-icon">📊</span>
+                  <span class="guru-nav-label">Daftar Kuis</span>
+              </a>
+
+              <a href="{{ url('/forum') }}">
+                  <span class="guru-nav-icon">💬</span>
+                  <span class="guru-nav-label">Forum Diskusi</span>
+              </a>
+
+          </nav>
+
+
         <div class="sidebar-bottom">
           <div class="sidebar-motivation">
             <svg
@@ -366,7 +320,9 @@
         <div class="teacher-item"><div><strong>{{ $material->title }}</strong><small>{{ $material->type }} · {{ optional($classes->firstWhere('id',$material->class_id))->name ?? 'Tanpa kelas' }}</small><span class="badge">{{ $material->is_published ? 'Terbit' : 'Draf' }}</span></div><div class="teacher-item-actions">@if($material->file_path)<a href="{{ route('classroom.file',$material) }}">Unduh</a>@endif @if($material->resource_url)<a href="{{ $material->resource_url }}" target="_blank" rel="noopener noreferrer">Buka link</a>@endif @if($material->class_id)<form method="POST" action="{{ route('classroom.publish',$material) }}">@csrf @method('PATCH')<button type="submit" class="btn btn-outline">{{ $material->is_published ? 'Jadikan draf' : 'Publikasikan' }}</button></form>@endif</div></div>
       @empty<div class="teacher-empty">Belum ada materi. Upload materi pertamamu menggunakan formulir di atas.</div>@endforelse
     </section>
-    <section class="panel teacher-section"><div class="teacher-section-heading"><div><h2>Kuis yang Sudah Dibuat</h2><p>Kuis tersedia untuk anggota kelas yang dituju.</p></div></div>
+    <section
+    class="panel teacher-section"
+    id="guru-daftar-kuis">         <div class="teacher-section-heading"><div><h2>Kuis yang Sudah Dibuat</h2><p>Kuis tersedia untuk anggota kelas yang dituju.</p></div></div>
       @forelse($assessments as $assessment)
         <div class="teacher-item"><div><strong>{{ $assessment->title }}</strong><small>{{ optional($classes->firstWhere('id',$assessment->class_id))->name ?? 'Tanpa kelas' }} · {{ $assessment->questions_count }} soal</small><span class="badge">{{ $assessment->is_published ? 'Terbit' : 'Draf' }}</span></div></div>
       @empty<div class="teacher-empty">Belum ada soal yang dibuat.</div>@endforelse

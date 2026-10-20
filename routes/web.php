@@ -32,3 +32,45 @@ Route::middleware('auth')->group(function () {
  Route::get('/kelas/kuis/{assessment}',[\App\Http\Controllers\ClassroomController::class,'takeQuiz'])->name('classroom.quiz.take');
  Route::post('/kelas/kuis/{assessment}/jawab',[\App\Http\Controllers\ClassroomController::class,'submitQuiz'])->name('classroom.quiz.submit');
 });
+
+
+
+/*
+|--------------------------------------------------------------------------
+| Fitur Tugas Kelas - Branch Hakim
+|--------------------------------------------------------------------------
+*/
+
+Route::middleware('auth')->group(function () {
+
+    // Menampilkan tugas kelas
+    Route::get(
+        '/kelas/tugas',
+        [\App\Http\Controllers\ClassTaskController::class, 'index']
+    )->name('class-tasks.index');
+
+    // Guru membuat tugas
+    Route::post(
+        '/kelas/tugas',
+        [\App\Http\Controllers\ClassTaskController::class, 'store']
+    )->name('class-tasks.store');
+
+    // Siswa mengumpulkan tugas
+    Route::post(
+        '/kelas/tugas/{activity}/kumpul',
+        [\App\Http\Controllers\ClassTaskController::class, 'submit']
+    )->name('class-tasks.submit');
+
+    // Guru memberikan nilai
+    Route::patch(
+        '/kelas/tugas/pengumpulan/{submission}/nilai',
+        [\App\Http\Controllers\ClassTaskController::class, 'grade']
+    )->name('class-tasks.grade');
+
+    // Download file
+    Route::get(
+        '/kelas/tugas/pengumpulan/{submission}/file',
+        [\App\Http\Controllers\ClassTaskController::class, 'download']
+    )->name('class-tasks.download');
+
+});

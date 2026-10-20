@@ -47,16 +47,24 @@ return new class extends Migration {
             });
         }
 
-        $this->ensureForeignKey('materials', 'class_id', 'classes', 'materials_class_id_fk');
-        $this->ensureForeignKey('assessments', 'class_id', 'classes', 'assessments_class_id_fk');
-        $this->ensureForeignKey('assessments', 'author_id', 'users', 'assessments_author_id_fk');
+        // MySQL mendukung penambahan FOREIGN KEY melalui ALTER TABLE.
+        // SQLite tidak mendukung ALTER TABLE ADD CONSTRAINT untuk tabel yang sudah ada.
+        // Kolom tetap ditambahkan pada SQLite; FK perlu ditangani melalui migrasi
+        // rebuild tabel terpisah jika ingin enforced di lingkungan SQLite.
+        if (DB::getDriverName() === 'mysql') {
+            $this->ensureForeignKey('materials', 'class_id', 'classes', 'materials_class_id_fk');
+            $this->ensureForeignKey('assessments', 'class_id', 'classes', 'assessments_class_id_fk');
+            $this->ensureForeignKey('assessments', 'author_id', 'users', 'assessments_author_id_fk');
+        }
     }
 
     public function down(): void
     {
-        $this->dropForeignKeyIfExists('assessments', 'author_id');
-        $this->dropForeignKeyIfExists('assessments', 'class_id');
-        $this->dropForeignKeyIfExists('materials', 'class_id');
+        if (DB::getDriverName() === 'mysql') {
+            $this->dropForeignKeyIfExists('assessments', 'author_id');
+            $this->dropForeignKeyIfExists('assessments', 'class_id');
+            $this->dropForeignKeyIfExists('materials', 'class_id');
+        }
 
         foreach (['author_id', 'class_id'] as $column) {
             if (Schema::hasColumn('assessments', $column)) {
