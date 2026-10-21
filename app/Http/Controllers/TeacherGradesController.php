@@ -121,10 +121,10 @@ return view('pages.teacher-grades', compact(
             'taskSubmissions',
             'quizAttempts'
 
-            
+
         ));
 
-        
+
         // Ambil daftar siswa dari kelas yang diajar guru
         $students = \App\Models\User::query()
             ->whereHas('classes', function ($query) use ($classIds) {
@@ -135,7 +135,7 @@ return view('pages.teacher-grades', compact(
 
     }
 
-    
+
     // =====================================================
     // EXPORT REKAP NILAI GURU KE CSV / EXCEL
     // =====================================================
@@ -359,7 +359,7 @@ return view('pages.teacher-grades', compact(
     }
 
 
-    
+
     // =====================================================
     // DETAIL NILAI PER SISWA
     // =====================================================
