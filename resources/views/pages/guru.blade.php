@@ -96,7 +96,17 @@
                   <span class="guru-nav-icon">📊</span>
                   <span class="guru-nav-label">Daftar Kuis</span>
               </a>
+              
+              
+                <a href="{{ route('teacher.grades') }}">
+                    <span class="guru-nav-icon">🏆</span>
+                    <span class="guru-nav-label">
+                        Rekap Nilai Siswa
+                    </span>
+                </a>
 
+
+              <a href="{{ route('teacher.grades') }}">
               <a href="{{ url('/forum') }}">
                   <span class="guru-nav-icon">💬</span>
                   <span class="guru-nav-label">Forum Diskusi</span>

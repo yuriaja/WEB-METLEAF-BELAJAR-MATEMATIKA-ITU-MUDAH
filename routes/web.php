@@ -74,3 +74,47 @@ Route::middleware('auth')->group(function () {
     )->name('class-tasks.download');
 
 });
+
+
+
+/*
+|--------------------------------------------------------------------------
+| Rekap Nilai Guru - Branch Hakim
+|--------------------------------------------------------------------------
+*/
+
+Route::middleware('auth')->get(
+    '/guru/rekap-nilai',
+    [\App\Http\Controllers\TeacherGradesController::class, 'index']
+)->name('teacher.grades');
+
+
+
+/*
+|--------------------------------------------------------------------------
+| Export Rekap Nilai Guru - Branch Hakim
+|--------------------------------------------------------------------------
+*/
+
+Route::middleware('auth')->get(
+    '/guru/rekap-nilai/export',
+    [
+        \App\Http\Controllers\TeacherGradesController::class,
+        'export'
+    ]
+)->name('teacher.grades.export');
+
+
+/*
+|--------------------------------------------------------------------------
+| Detail Nilai Per Siswa - Guru
+|--------------------------------------------------------------------------
+*/
+
+Route::middleware('auth')->get(
+    '/guru/rekap-nilai/siswa/{student}',
+    [
+        \App\Http\Controllers\TeacherGradesController::class,
+        'student'
+    ]
+)->name('teacher.grades.student');
