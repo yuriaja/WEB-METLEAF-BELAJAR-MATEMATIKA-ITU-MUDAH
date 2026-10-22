@@ -2,163 +2,302 @@
 <html lang="id">
 
 <head>
-<meta name="csrf-token" content="{{ csrf_token() }}">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>Daftar | MathLeaf</title>
-    <meta name="description" content="MathLeaf — Grow Your Math Skills. Pembelajaran Matematika kelas VII SMP." />
-    <link rel="icon" type="image/svg+xml" href="{{ asset('favicon.svg') }}" />
-    <link rel="stylesheet" href="{{ asset('css/mathleaf.css') }}" />
-    <script defer src="{{ asset('js/mathleaf.js') }}"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Inter', system-ui, sans-serif;
+            background-color: #f0fdf4;
+        }
+
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.65);
+            backdrop-filter: blur(28px);
+            -webkit-backdrop-filter: blur(28px);
+            border-left: 1px solid rgba(255, 255, 255, 0.9);
+            box-shadow: -20px 0 60px -15px rgba(22, 163, 74, 0.2);
+        }
+
+        .input-math {
+            background: rgba(255, 255, 255, 0.8);
+            border: 2px solid #bbf7d0;
+            transition: all 0.2s;
+        }
+
+        .input-math:focus {
+            outline: none;
+            border-color: #10b981;
+            box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.2);
+        }
+
+        .title-glow {
+            text-shadow: 0 15px 35px rgba(255, 255, 255, 0.9);
+        }
+    </style>
+
 </head>
 
-<body data-page="daftar">
-    <header class="public-header">
-        <div class="site-container nav-inner">
-            <a href="{{ url('/') }}" class="logo"><span class="logo-mark"><svg aria-hidden="true" width="23"
-                        height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                        stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0">
+<body class="h-screen w-full overflow-hidden flex flex-col md:flex-row relative">
+
+    <canvas id="mathPlantCanvas" class="absolute inset-0 w-full h-full z-0 cursor-pointer"></canvas>
+
+    <div class="flex-1 flex flex-col justify-center px-8 md:px-16 lg:px-24 z-10 pointer-events-none pb-32 md:pb-0">
+        <div class="max-w-2xl relative z-10">
+            <div class="flex items-center gap-4 lg:gap-6 mb-6">
+                <div
+                    class="w-16 h-16 md:w-20 md:h-20 bg-gradient-to-tr from-emerald-500 to-green-400 rounded-3xl flex items-center justify-center text-white shadow-xl rotate-3 border-2 border-white">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M11 20A7 7 0 0 1 4 13C4 5 14 3 21 3c0 7-2 17-10 17Z" />
                         <path d="M4 21c0-6 5-11 11-14" />
-                    </svg></span><span>Math<span class="logo-leaf">Leaf</span><small>GROW YOUR MATH
-                        SKILLS</small></span></a>
-            <nav class="public-nav" id="public-navigation">
-                <a href="{{ url('/') }}" class="">Beranda</a><a href="{{ url('/tentang') }}"
-                    class="">Tentang</a><a href="{{ url('/materi') }}" class="">Materi</a>
-            </nav>
-            <div class="nav-actions">
-                <a class="btn btn-ghost" href="{{ url('/masuk') }}">Masuk
-                    <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none"
-                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                        style="flex-shrink: 0">
-                        <path d="M7 17 17 7" />
-                        <path d="M7 7h10v10" />
-                    </svg></a><a class="btn btn-primary nav-cta" href="{{ url('/daftar') }}">Daftar Gratis
-                    <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none"
-                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                        style="flex-shrink: 0">
-                        <path d="M7 17 17 7" />
-                        <path d="M7 7h10v10" />
-                    </svg></a><button class="btn btn-ghost mobile-toggle" id="menu-toggle" aria-label="Buka menu"
-                    aria-expanded="false">
-                    ☰
-                </button>
+                    </svg>
+                </div>
+                <h1 class="text-5xl md:text-6xl font-black text-emerald-950 tracking-tighter title-glow">
+                    Math<span class="text-emerald-500">Leaf</span>
+                </h1>
             </div>
+            <h2 class="text-3xl font-bold text-emerald-900 mb-4">Mulai Bertumbuh 🌱</h2>
+            <p class="text-lg text-emerald-800 font-medium max-w-md">Daftar secara gratis dan mulai petualangan
+                matematikamu bersama kami.</p>
         </div>
-    </header>
-    <main class="auth-layout">
-        <div class="auth-visual">
-            <span class="eyebrow">SETIAP HARI ADALAH KESEMPATAN BARU</span>
-            <h2>Tumbuhkan rasa ingin tahu.<br />Temukan serunya matematika.</h2>
-            <p>Teman belajar bilangan dan operasi bilangan untuk kelas VII SMP.</p>
-            <img src="{{ asset('images/mathleaf-hero.jpg') }}" alt="Dua siswa belajar bersama" />
-            <p style="margin-top: 20px">
-                Belajar mandiri. Berkolaborasi. Bertumbuh bersama.
-            </p>
-        </div>
-        <form class="auth-form" id="auth-form" data-register="true">
-            <span class="eyebrow"><svg aria-hidden="true" width="15" height="15" viewBox="0 0 24 24"
-                    fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                    style="flex-shrink: 0">
-                    <path d="M7 20h10" />
-                    <path d="M10 20c5.5-2.5.8-8.3 5-11" />
-                    <path d="M9 9c-3 0-5-2-5-5 4 0 7 2 7 6" />
-                    <path d="M14 12c0-4 3-6 7-6 0 5-3 7-7 7" />
-                </svg>
-                SELAMAT DATANG DI MATHLEAF</span>
-            <h1>Mulai bertumbuh bersama.</h1>
-            <p>Daftar dan mulai petualangan matematikamu.</p>
-            <div class="role-tabs">
-                <button type="button" class="btn btn-outline selected" data-role="Siswa">
-                    <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none"
-                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                        style="flex-shrink: 0">
-                        <path d="M12 7v14" />
-                        <path
-                            d="M3 18V5a2 2 0 0 1 2-2h3a4 4 0 0 1 4 4 4 4 0 0 1 4-4h3a2 2 0 0 1 2 2v13h-5a4 4 0 0 0-4 3 4 4 0 0 0-4-3H3Z" />
-                    </svg>
-                    Siswa</button><button type="button" class="btn btn-outline" data-role="Guru">
-                    <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none"
-                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                        style="flex-shrink: 0">
-                        <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
-                        <circle cx="9" cy="7" r="4" />
-                        <path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" />
-                    </svg>
+    </div>
+
+    <!-- Sisi Kanan: Panel Form Register -->
+    <div
+        class="w-full md:w-[480px] h-full glass-panel z-20 flex flex-col justify-center px-8 lg:px-12 absolute md:relative bottom-0 md:bottom-auto pointer-events-auto rounded-t-[3rem] md:rounded-none md:rounded-l-[3rem] border-t md:border-t-0 border-white overflow-y-auto py-10">
+
+        <form action="{{ url('/api/mathleaf/register') }}" method="POST" class="flex flex-col gap-4">
+            @csrf
+            <input type="hidden" name="role" id="role-input" value="{{ old('role', 'siswa') }}">
+
+            <div id="register-error" role="alert" aria-live="polite"
+                class="hidden bg-red-100 border border-red-300 text-red-800 text-sm font-semibold px-4 py-3 rounded-xl shadow-sm text-center">
+            </div>
+
+            <!-- Role Switcher -->
+            <div class="flex p-1 bg-white/50 rounded-xl border border-emerald-100 mb-2">
+                <button type="button"
+                    class="role-btn w-1/2 py-2.5 rounded-lg text-sm font-bold transition-all {{ old('role', 'siswa') === 'siswa' ? 'bg-emerald-500 text-white shadow-md' : 'text-emerald-700' }}"
+                    data-role="siswa">
+                    Siswa
+                </button>
+                <button type="button"
+                    class="role-btn w-1/2 py-2.5 rounded-lg text-sm font-bold transition-all {{ old('role', 'siswa') === 'guru' ? 'bg-emerald-500 text-white shadow-md' : 'text-emerald-700' }}"
+                    data-role="guru">
                     Guru
                 </button>
             </div>
-            <div class="field">
-                <label for="name">Nama lengkap</label><input id="name" name="name"
-                    placeholder="Nama lengkapmu" required />
+
+            <div>
+                <label class="block text-emerald-900 font-bold text-sm mb-1.5">Nama Lengkap</label>
+                <input type="text" name="name" value="{{ old('name') }}"
+                    class="input-math w-full rounded-xl px-4 py-3 text-emerald-900"
+                    placeholder="Nama lengkapmu" required>
             </div>
-            <div class="field">
-                <label for="email">Alamat email</label><input id="email" type="email" name="email"
-                    placeholder="nama@email.com" required />
+
+            <div>
+                <label class="block text-emerald-900 font-bold text-sm mb-1.5">Alamat Email</label>
+                <input type="email" name="email" value="{{ old('email') }}"
+                    class="input-math w-full rounded-xl px-4 py-3 text-emerald-900"
+                    placeholder="nama@email.com" required>
             </div>
-            <div class="field">
-                <label for="password">Kata sandi</label><input id="password" type="password" name="password"
-                    placeholder="Minimal 8 karakter" minlength="8" required />
+
+            <div>
+                <label class="block text-emerald-900 font-bold text-sm mb-1.5">Kata Sandi</label>
+                <input type="password" name="password" class="input-math w-full rounded-xl px-4 py-3 text-emerald-900"
+                    placeholder="Minimal 8 karakter" required minlength="8">
             </div>
-            <p style="font-size:12px;margin-bottom:14px">Kelas diikuti nanti setelah login melalui kode dari guru.</p>
-            <button class="btn btn-primary" type="submit" style="width: 100%">
-                Daftar Sekarang
-                <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none"
-                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                    style="flex-shrink: 0">
-                    <path d="M5 12h14" />
-                    <path d="m12 5 7 7-7 7" />
-                </svg>
+
+            <button type="submit"
+                class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-4 rounded-xl transition-all shadow-lg shadow-emerald-500/30 mt-3">
+                Buat Akun Baru
             </button>
-            <div class="auth-note">
-                Akun tersimpan aman di database MathLeaf.
-            </div>
-            <p style="text-align: center; font-size: 11px">
-                Sudah punya akun?
-                <a style="color: var(--primary); font-weight: 700" href="{{ url('/masuk') }}">Masuk</a>
+
+            <p class="text-center text-sm text-emerald-800 mt-4 font-medium">
+                Sudah punya akun? <a href="{{ url('/masuk') }}"
+                    class="text-emerald-600 font-bold hover:underline">Masuk</a>
             </p>
+            <div class="text-center mt-6 text-xs text-emerald-700 opacity-60">
+                <a href="{{ url('/') }}" class="hover:underline">← Kembali ke Beranda</a>
+            </div>
         </form>
-    </main>
-    <footer class="public-footer">
-        <div class="site-container">
-            <div class="footer-top">
-                <div>
-                    <a href="{{ url('/') }}" class="logo"><span class="logo-mark"><svg aria-hidden="true"
-                                width="23" height="23" viewBox="0 0 24 24" fill="none"
-                                stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                stroke-linejoin="round" style="flex-shrink: 0">
-                                <path d="M11 20A7 7 0 0 1 4 13C4 5 14 3 21 3c0 7-2 17-10 17Z" />
-                                <path d="M4 21c0-6 5-11 11-14" />
-                            </svg></span><span>Math<span class="logo-leaf">Leaf</span><small>GROW YOUR MATH
-                                SKILLS</small></span></a>
-                    <p>
-                        Setiap langkah kecil, membawa pemahaman besar.<br />Tumbuhkan
-                        kemampuan matematikamu bersama kami.
-                    </p>
-                </div>
-                <div>
-                    <h4>Jelajahi</h4>
-                    <a href="{{ url('/materi') }}">Materi Pembelajaran</a><a href="{{ url('/tentang') }}">Tentang
-                        MathLeaf</a><a href="{{ url('/forum') }}">Forum Diskusi</a>
-                </div>
-                <div>
-                    <h4>Mulai bertumbuh</h4>
-                    <a href="{{ url('/masuk') }}">Masuk sebagai Siswa</a><a href="{{ url('/guru') }}">Ruang
-                        Guru</a><a href="{{ url('/daftar') }}">Daftar Gratis</a>
-                </div>
-            </div>
-            <div class="footer-bottom">
-                <span>© 2026 MathLeaf. Grow Your Math Skills.</span><span>Dirancang dengan
-                    <svg aria-hidden="true" width="13" height="13" viewBox="0 0 24 24" fill="none"
-                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                        style="flex-shrink: 0">
-                        <path d="M11 20A7 7 0 0 1 4 13C4 5 14 3 21 3c0 7-2 17-10 17Z" />
-                        <path d="M4 21c0-6 5-11 11-14" />
-                    </svg>
-                    untuk pembelajar muda.</span>
-            </div>
-        </div>
-    </footer>
+    </div>
+
+    <!-- Script Logika Role & Canvas -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const roleBtns = document.querySelectorAll('.role-btn');
+            const roleInput = document.getElementById('role-input');
+            const form = document.querySelector('form');
+            const errorMessage = document.getElementById('register-error');
+
+            form.addEventListener('submit', async (event) => {
+                event.preventDefault();
+                errorMessage.textContent = '';
+                errorMessage.classList.add('hidden');
+
+                const submitButton = form.querySelector('button[type="submit"]');
+                submitButton.disabled = true;
+                submitButton.textContent = 'Membuat akun...';
+
+                try {
+                    const response = await fetch(form.action, {
+                        method: 'POST',
+                        headers: {
+                            'Accept': 'application/json',
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                            'X-Requested-With': 'XMLHttpRequest',
+                        },
+                        body: JSON.stringify(Object.fromEntries(new FormData(form))),
+                    });
+                    const result = await response.json();
+
+                    if (!response.ok) {
+                        const firstError = Object.values(result.errors || {}).flat()[0];
+                        throw new Error(firstError || result.message || 'Pendaftaran gagal. Silakan coba lagi.');
+                    }
+
+                    if (!result.redirect) {
+                        throw new Error('Akun berhasil dibuat, tetapi tujuan setelah daftar tidak tersedia.');
+                    }
+
+                    window.location.assign(result.redirect);
+                } catch (error) {
+                    errorMessage.textContent = error.message || 'Tidak dapat terhubung ke server. Periksa koneksi lalu coba lagi.';
+                    errorMessage.classList.remove('hidden');
+                    submitButton.disabled = false;
+                    submitButton.textContent = 'Buat Akun Baru';
+                }
+            });
+
+            roleBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    roleBtns.forEach(b => {
+                        b.classList.remove('bg-emerald-500', 'text-white', 'shadow-md');
+                        b.classList.add('text-emerald-700');
+                    });
+                    btn.classList.remove('text-emerald-700');
+                    btn.classList.add('bg-emerald-500', 'text-white', 'shadow-md');
+                    roleInput.value = btn.dataset.role;
+                });
+            });
+        });
+
+        // Script Canvas (Sama persis dengan file masuk)
+        const canvas = document.getElementById('mathPlantCanvas');
+        const ctx = canvas.getContext('2d');
+        let w, h;
+
+        function resize() {
+            w = canvas.width = window.innerWidth;
+            h = canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resize);
+        resize();
+        const leaves = [];
+        const bubbles = [];
+        const mathChars = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '+', '−', '×', '÷', '=', '%', '½'];
+        let rootX = w * 0.15;
+        let rootY = h + 100;
+
+        function addLeaf(targetX, targetY) {
+            let baseAng = (Math.random() * Math.PI) - (Math.random() * Math.PI);
+            leaves.push({
+                x: targetX,
+                y: targetY,
+                baseAngle: baseAng,
+                angle: baseAng,
+                scale: 0,
+                maxScale: Math.random() * 0.6 + 0.8,
+                growthRate: 0.05,
+                swaySpeed: Math.random() * 0.0015 + 0.001,
+                swayOffset: Math.random() * Math.PI * 2,
+                swayAmount: Math.random() * 0.15 + 0.05
+            });
+        }
+        for (let i = 0; i < 8; i++) setTimeout(() => {
+            addLeaf(w * 0.15 + (Math.random() * (w * 0.4) - (w * 0.2)), h * 0.8 - (Math.random() * (h * 0.6)));
+        }, i * 250);
+
+        function drawLeaf(leaf) {
+            ctx.save();
+            ctx.translate(leaf.x, leaf.y);
+            ctx.rotate(leaf.angle);
+            ctx.scale(leaf.scale, leaf.scale);
+            ctx.beginPath();
+            ctx.moveTo(0, 0);
+            ctx.quadraticCurveTo(35, -35, 70, -10);
+            ctx.quadraticCurveTo(35, 25, 0, 0);
+            let gradient = ctx.createLinearGradient(0, 0, 70, 0);
+            gradient.addColorStop(0, '#34d399');
+            gradient.addColorStop(1, '#059669');
+            ctx.fillStyle = gradient;
+            ctx.fill();
+            ctx.strokeStyle = 'rgba(255,255,255,0.4)';
+            ctx.lineWidth = 1.5;
+            ctx.beginPath();
+            ctx.moveTo(0, 0);
+            ctx.quadraticCurveTo(35, -10, 65, -10);
+            ctx.stroke();
+            ctx.restore();
+        }
+
+        function spawnBubble(x, y) {
+            bubbles.push({
+                x: x,
+                y: y,
+                char: mathChars[Math.floor(Math.random() * mathChars.length)],
+                speedY: -(Math.random() * 1.5 + 0.5),
+                speedX: (Math.random() - 0.5) * 1.0,
+                opacity: 1,
+                size: Math.random() * 12 + 12,
+                drift: Math.random() * Math.PI * 2
+            });
+        }
+
+        function animate(time) {
+            ctx.clearRect(0, 0, w, h);
+            rootX = w * 0.15;
+            ctx.strokeStyle = '#6ee7b7';
+            ctx.lineWidth = 3;
+            ctx.lineCap = 'round';
+            let rootSway = Math.sin(time * 0.0005) * 15;
+            leaves.forEach(leaf => {
+                leaf.angle = leaf.baseAngle + Math.sin(time * leaf.swaySpeed + leaf.swayOffset) * leaf.swayAmount;
+                ctx.beginPath();
+                ctx.moveTo(rootX + rootSway, rootY);
+                ctx.quadraticCurveTo(rootX, leaf.y + 150, leaf.x, leaf.y);
+                ctx.stroke();
+            });
+            leaves.forEach(leaf => {
+                if (leaf.scale < leaf.maxScale) leaf.scale += leaf.growthRate;
+                drawLeaf(leaf);
+                if (Math.random() < 0.003) spawnBubble(leaf.x, leaf.y);
+            });
+            for (let i = bubbles.length - 1; i >= 0; i--) {
+                let b = bubbles[i];
+                b.x += b.speedX + Math.sin(time * 0.002 + b.drift) * 0.5;
+                b.y += b.speedY;
+                b.opacity -= 0.005;
+                if (b.opacity <= 0) {
+                    bubbles.splice(i, 1);
+                    continue;
+                }
+                ctx.save();
+                ctx.globalAlpha = b.opacity;
+                ctx.fillStyle = '#065f46';
+                ctx.font = `bold ${b.size}px 'Inter', sans-serif`;
+                ctx.fillText(b.char, b.x, b.y);
+                ctx.restore();
+            }
+            requestAnimationFrame(animate);
+        }
+        requestAnimationFrame(animate);
+    </script>
 </body>
 
 </html>

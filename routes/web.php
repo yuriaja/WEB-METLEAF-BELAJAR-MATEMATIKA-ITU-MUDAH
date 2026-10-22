@@ -2,10 +2,17 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\MathLeafController as ML;
 Route::view('/', 'pages.index'); Route::view('/tentang','pages.tentang');
-Route::view('/masuk','pages.auth.masuk')->name('login'); Route::view('/daftar','pages.auth.daftar');
+Route::view('/masuk','pages.auth.masuk')->name('login');
+Route::post('/login',[ML::class,'login'])->middleware('throttle:10,1');
+Route::view('/daftar','pages.auth.daftar');
 Route::middleware('auth')->group(function () {
     Route::view('/materi','pages.shared.materi'); Route::view('/forum','pages.shared.forum'); Route::view('/tugas','pages.shared.tugas');
     Route::view('/dashboard','pages.siswa.dashboard'); Route::view('/video','pages.siswa.video'); Route::view('/latihan','pages.siswa.latihan'); Route::view('/kuis','pages.siswa.kuis'); Route::view('/nilai','pages.siswa.nilai'); Route::get('/guru', [\App\Http\Controllers\ClassroomController::class, 'teacherDashboard'])->name('teacher.dashboard');
+    Route::get('/guru/kuis', [\App\Http\Controllers\ClassroomController::class, 'teacherQuizzes'])->name('teacher.quizzes');
+    Route::post('/guru/kuis/buat', [\App\Http\Controllers\ClassroomController::class, 'startQuiz'])->name('teacher.quizzes.create');
+    Route::get('/guru/kuis/{assessment}/edit', [\App\Http\Controllers\ClassroomController::class, 'editQuiz'])->name('teacher.quizzes.edit');
+    Route::put('/guru/kuis/{assessment}', [\App\Http\Controllers\ClassroomController::class, 'saveQuiz'])->name('teacher.quizzes.update');
+    Route::post('/logout', [ML::class, 'logout'])->name('logout');
 });
 Route::prefix('api/mathleaf')->group(function () {
     Route::post('/register',[ML::class,'register'])->middleware('throttle:10,1');
@@ -23,6 +30,7 @@ Route::prefix('api/mathleaf')->group(function () {
 // Kelas guru dan siswa: registrasi tanpa kode, gabung setelah login.
 Route::middleware('auth')->group(function () {
  Route::get('/kelas',[\App\Http\Controllers\ClassroomController::class,'home'])->name('classroom.home');
+ Route::post('/kelas/aktif',[\App\Http\Controllers\ClassroomController::class,'setActiveClass'])->name('classroom.active');
  Route::post('/kelas/buat',[\App\Http\Controllers\ClassroomController::class,'createClass'])->name('classroom.create');
  Route::post('/kelas/gabung',[\App\Http\Controllers\ClassroomController::class,'joinClass'])->name('classroom.join');
  Route::post('/kelas/materi',[\App\Http\Controllers\ClassroomController::class,'upload'])->name('classroom.upload');

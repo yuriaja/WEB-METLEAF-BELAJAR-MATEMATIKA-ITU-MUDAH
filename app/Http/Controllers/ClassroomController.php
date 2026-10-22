@@ -21,7 +21,7 @@ class ClassroomController extends Controller {
    $materials=Material::where('is_published',true)->whereIn('class_id',$ids)->latest()->get();
    $assessments=Assessment::where('is_published',true)->whereIn('class_id',$ids)->withCount('questions')->latest()->get();
   }
-  return view('pages.classroom',compact('classes','materials','assessments'));
+  return view('pages.guru.classroom',compact('classes','materials','assessments'));
  }
  public function teacherDashboard(){
   $this->teacher();
@@ -29,7 +29,93 @@ class ClassroomController extends Controller {
   $classes=$user->teachingClasses()->withCount('students')->latest()->get();
   $materials=Material::where('author_id',$user->id)->latest()->get();
   $assessments=Assessment::where('author_id',$user->id)->withCount('questions')->latest()->get();
-  return view('pages.guru',compact('classes','materials','assessments'));
+  return view('pages.guru.dashboard',compact('classes','materials','assessments'));
+ }
+ public function teacherQuizzes(){
+  $this->teacher();
+  $assessments=Assessment::where('author_id',auth()->id())->withCount('questions')->latest()->get();
+  return view('pages.guru.classroom-quiz',compact('assessments'));
+ }
+ public function startQuiz(Request $r){
+  $this->teacher();
+  $v=$r->validate([
+   'title'=>'required|string|max:255',
+   'class_id'=>'required|integer',
+   'type'=>'required|in:latihan,kuis,ujian',
+   'time_limit_minutes'=>'required|integer|between:1,600',
+  ]);
+  $class=$this->owned((int)$v['class_id']);
+  $assessment=Assessment::create([
+   'author_id'=>$r->user()->id,
+   'class_id'=>$class->id,
+   'title'=>$v['title'],
+   'type'=>$v['type'],
+   'time_limit_minutes'=>$v['time_limit_minutes'],
+   'is_published'=>false,
+   'max_attempts'=>1,
+  ]);
+  return redirect()->route('teacher.quizzes.edit',$assessment);
+ }
+ public function editQuiz(Assessment $assessment){
+  $this->teacher();
+  abort_unless($assessment->author_id===auth()->id() || auth()->user()->role==='admin',403);
+  $user=auth()->user();
+  $classes=$user->role==='admin'
+   ? SchoolClass::orderBy('name')->get()
+   : $user->teachingClasses()->orderBy('name')->get();
+  $assessment->load('questions');
+  return view('pages.shared.see-quiz',compact('assessment','classes'));
+ }
+ public function saveQuiz(Request $r,Assessment $assessment){
+  $this->teacher();
+  abort_unless($assessment->author_id===$r->user()->id || $r->user()->role==='admin',403);
+  abort_if($assessment->attempts()->exists(),403,'Kuis yang sudah dikerjakan tidak dapat diubah.');
+  $v=$r->validate([
+   'title'=>'required|string|max:255',
+   'class_id'=>'required|integer',
+   'type'=>'required|in:latihan,kuis,ujian',
+   'time_limit_minutes'=>'required|integer|between:1,600',
+   'questions'=>'required|array|min:1|max:50',
+   'questions.*.text'=>'required|string|max:3000',
+   'questions.*.options'=>'required|array|size:4',
+   'questions.*.options.*'=>'required|string|max:1000',
+   'questions.*.correct_answer'=>'required|integer|between:0,3',
+   'questions.*.points'=>'required|integer|min:1|max:1000',
+  ]);
+  $class=$r->user()->role==='admin'
+   ? SchoolClass::findOrFail($v['class_id'])
+   : $this->owned((int)$v['class_id']);
+  DB::transaction(function()use($assessment,$v,$class){
+   $assessment->update([
+    'title'=>$v['title'],
+    'class_id'=>$class->id,
+    'type'=>$v['type'],
+    'time_limit_minutes'=>$v['time_limit_minutes'],
+    'is_published'=>true,
+   ]);
+   $assessment->questions()->delete();
+   foreach($v['questions'] as $index=>$question){
+    $assessment->questions()->create([
+     'question_text'=>$question['text'],
+     'type'=>'multiple_choice',
+     'options'=>$question['options'],
+     'correct_answer'=>(string)$question['correct_answer'],
+     'points'=>$question['points'],
+     'sort_order'=>$index,
+    ]);
+   }
+  });
+  return redirect()->route('teacher.quizzes')->with('success','Kuis berhasil disimpan dan dipublikasikan.');
+ }
+ public function setActiveClass(Request $r){
+  $v=$r->validate(['kelas_id'=>'nullable|integer']);
+  $user=$r->user();
+  $classId=$v['kelas_id']??null;
+  if(empty($classId)){$r->session()->forget('kelas_aktif_id');return back();}
+  $classes=in_array($user->role,['guru','admin'],true)?$user->teachingClasses():$user->classes();
+  abort_unless($classes->whereKey($classId)->exists(),403);
+  $r->session()->put('kelas_aktif_id',(int)$classId);
+  return back();
  }
  public function createClass(Request $r){$this->teacher();$v=$r->validate(['name'=>'required|string|max:100','school_year'=>'nullable|string|max:15']);
   do{$code=Str::upper(Str::random(8));}while(SchoolClass::where('join_code',$code)->exists());
@@ -57,7 +143,7 @@ class ClassroomController extends Controller {
   DB::transaction(function()use($v,$r,$class){$q=Assessment::create(['class_id'=>$class->id,'author_id'=>$r->user()->id,'title'=>$v['title'],'type'=>$v['type'],'is_published'=>true,'max_attempts'=>1]);foreach($v['questions'] as $i=>$item){$q->questions()->create(['question_text'=>$item['text'],'type'=>'multiple_choice','options'=>$item['options'],'correct_answer'=>(string)$item['answer'],'explanation'=>$item['explanation']??null,'points'=>10,'sort_order'=>$i]);}});
   return back()->with('success','Soal dipublikasikan ke kelas '.$class->name);
  }
- public function takeQuiz(Assessment $assessment){$user=auth()->user();abort_unless($assessment->is_published && $assessment->class_id && $this->enrolled($assessment->class_id),403);$assessment->load('questions');$already=$user->attempts()->where('assessment_id',$assessment->id)->count();return view('pages.classroom-quiz',compact('assessment','already'));}
+ public function takeQuiz(Assessment $assessment){$user=auth()->user();abort_unless($assessment->is_published && $assessment->class_id && $this->enrolled($assessment->class_id),403);$assessment->load('questions');$already=$user->attempts()->where('assessment_id',$assessment->id)->count();return view('pages.guru.classroom-quiz',compact('assessment','already'));}
  public function submitQuiz(Request $r,Assessment $assessment){abort_unless($r->user()->role==='siswa' && $assessment->is_published && $assessment->class_id && $this->enrolled($assessment->class_id),403);$r->validate(['answers'=>'required|array']);
   $already=$r->user()->attempts()->where('assessment_id',$assessment->id)->count();abort_if($already >= $assessment->max_attempts,403,'Percobaan sudah habis.');
   $questions=$assessment->questions()->get();$total=$questions->sum('points');$correct=0;

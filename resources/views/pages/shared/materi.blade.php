@@ -1,1004 +1,330 @@
-<!doctype html>
-<html lang="id">
-  <head>
-<meta name="csrf-token" content="{{ csrf_token() }}">
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>Materi Pembelajaran | MathLeaf</title>
-    <meta
-      name="description"
-      content="MathLeaf — Grow Your Math Skills. Pembelajaran Matematika kelas VII SMP."
-    />
-    <link rel="icon" type="image/svg+xml" href="{{ asset('favicon.svg') }}" />
-    <link rel="stylesheet" href="{{ asset('css/mathleaf.css') }}" />
-    <script defer src="{{ asset('js/mathleaf.js') }}"></script>
-  </head>
-  <body data-page="materi">
-    <div class="app-layout" id="app-layout">
-      <aside class="app-sidebar">
-        <a href="{{ url('/') }}" class="logo logo-light"
-          ><span class="logo-mark"
-            ><svg
-              aria-hidden="true"
-              width="23"
-              height="23"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              style="flex-shrink: 0"
-            >
-              <path d="M11 20A7 7 0 0 1 4 13C4 5 14 3 21 3c0 7-2 17-10 17Z" />
-              <path d="M4 21c0-6 5-11 11-14" /></svg></span
-          ><span
-            >Math<span class="logo-leaf">Leaf</span
-            ><small>GROW YOUR MATH SKILLS</small></span
-          ></a
-        >
-        <div class="sidebar-class">
-          <svg
-            aria-hidden="true"
-            width="18"
-            height="18"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            style="flex-shrink: 0"
-          >
-            <path d="M7 20h10" />
-            <path d="M10 20c5.5-2.5.8-8.3 5-11" />
-            <path d="M9 9c-3 0-5-2-5-5 4 0 7 2 7 6" />
-            <path d="M14 12c0-4 3-6 7-6 0 5-3 7-7 7" /></svg
-          ><span
-            >Matematika Kelas VII<small
-              >Semester Ganjil · 2026/2027</small
-            ></span
-          >
-        </div>
-        <span class="sidebar-caption">RUANG BELAJAR</span>
-        <nav><a href="{{ url('/kelas') }}" style="background:rgba(255,255,255,.14);font-weight:700"><span>🏫 Kelas Saya & Konten Guru</span></a>
-          <a href="{{ url('/dashboard') }}" class=""
-            ><svg
-              aria-hidden="true"
-              width="18"
-              height="18"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              style="flex-shrink: 0"
-            >
-              <path d="m2 10 10-5 10 5-10 5-10-5Z" />
-              <path d="M6 12v5c3 2 9 2 12 0v-5M22 10v7" /></svg
-            ><span>Dashboard</span></a
-          ><a href="{{ url('/materi') }}" class="selected"
-            ><svg
-              aria-hidden="true"
-              width="18"
-              height="18"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              style="flex-shrink: 0"
-            >
-              <path d="M12 7v14" />
-              <path
-                d="M3 18V5a2 2 0 0 1 2-2h3a4 4 0 0 1 4 4 4 4 0 0 1 4-4h3a2 2 0 0 1 2 2v13h-5a4 4 0 0 0-4 3 4 4 0 0 0-4-3H3Z"
-              /></svg
-            ><span>Materi Pembelajaran</span></a
-          ><a href="{{ url('/video') }}" class=""
-            ><svg
-              aria-hidden="true"
-              width="18"
-              height="18"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              style="flex-shrink: 0"
-            >
-              <polygon points="6 3 20 12 6 21 6 3" /></svg
-            ><span>Video Pembelajaran</span></a
-          ><a href="{{ url('/latihan') }}" class=""
-            ><svg
-              aria-hidden="true"
-              width="18"
-              height="18"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              style="flex-shrink: 0"
-            >
-              <path
-                d="m12 3 1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8L12 3Z"
-              />
-              <path
-                d="m5 17 .8 2.2L8 20l-2.2.8L5 23l-.8-2.2L2 20l2.2-.8L5 17Z"
-              />
-              <path
-                d="m19 2 .7 1.3L21 4l-1.3.7L19 6l-.7-1.3L17 4l1.3-.7L19 2Z"
-              /></svg
-            ><span>E-LKPD Interaktif</span></a
-          ><a href="{{ url('/kuis') }}" class=""
-            ><svg
-              aria-hidden="true"
-              width="18"
-              height="18"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              style="flex-shrink: 0"
-            >
-              <circle cx="12" cy="8" r="6" />
-              <path d="m8 13-2 8 6-3 6 3-2-8" /></svg
-            ><span>Kuis &amp; Evaluasi</span></a
-          ><a href="{{ url('/forum') }}" class=""
-            ><svg
-              aria-hidden="true"
-              width="18"
-              height="18"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              style="flex-shrink: 0"
-            >
-              <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
-              <circle cx="9" cy="7" r="4" />
-              <path
-                d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"
-              /></svg
-            ><span>Forum Diskusi</span></a
-          ><a href="{{ url('/tugas') }}" class=""
-            ><svg
-              aria-hidden="true"
-              width="18"
-              height="18"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              style="flex-shrink: 0"
-            >
-              <path d="M12 7v14" />
-              <path
-                d="M3 18V5a2 2 0 0 1 2-2h3a4 4 0 0 1 4 4 4 4 0 0 1 4-4h3a2 2 0 0 1 2 2v13h-5a4 4 0 0 0-4 3 4 4 0 0 0-4-3H3Z"
-              /></svg
-            ><span>Tugas &amp; Kelompok</span></a
-          ><a href="{{ url('/nilai') }}" class=""
-            ><svg
-              aria-hidden="true"
-              width="18"
-              height="18"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              style="flex-shrink: 0"
-            >
-              <circle cx="12" cy="8" r="6" />
-              <path d="m8 13-2 8 6-3 6 3-2-8" /></svg
-            ><span>Nilai &amp; Progres</span></a
-          >
-        </nav>
-        <div class="sidebar-bottom">
-          <div class="sidebar-motivation">
-            <svg
-              aria-hidden="true"
-              width="18"
-              height="18"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              style="flex-shrink: 0"
-            >
-              <path d="M7 20h10" />
-              <path d="M10 20c5.5-2.5.8-8.3 5-11" />
-              <path d="M9 9c-3 0-5-2-5-5 4 0 7 2 7 6" />
-              <path d="M14 12c0-4 3-6 7-6 0 5-3 7-7 7" />
-            </svg>
-            <p>
-              Setiap langkah kecil membawa perubahan besar. Terus bertumbuh!
-            </p>
-          </div>
-          <a href="{{ url('/') }}"
-            ><svg
-              aria-hidden="true"
-              width="18"
-              height="18"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              style="flex-shrink: 0"
-            >
-              <path d="M5 12h14" />
-              <path d="m12 5 7 7-7 7" /></svg
-            ><span>Ke Beranda</span></a
-          ><a href="{{ url('/masuk') }}" id="logout-demo"
-            ><svg
-              aria-hidden="true"
-              width="18"
-              height="18"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              style="flex-shrink: 0"
-            >
-              <path d="M18 6 6 18M6 6l12 12" /></svg
-            ><span>Keluar (demo)</span></a
-          >
-        </div>
-      </aside>
-      <div class="app-main">
-        <header class="app-header">
-          <div style="display: flex; align-items: center; gap: 12px">
-            <button
-              type="button"
-              class="btn btn-ghost"
-              id="collapse-sidebar"
-              aria-label="Ciutkan sidebar"
-            >
-              ☰</button
-            ><strong>Materi Pembelajaran</strong>
-          </div>
-          <div style="display: flex; gap: 16px; align-items: center">
-            <button
-              type="button"
-              class="btn btn-ghost"
-              id="notification-button"
-              aria-label="Notifikasi"
-            >
-              <svg
-                aria-hidden="true"
-                width="18"
-                height="18"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                style="flex-shrink: 0"
-              >
-                <path
-                  d="m12 3 1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8L12 3Z"
-                />
-                <path
-                  d="m5 17 .8 2.2L8 20l-2.2.8L5 23l-.8-2.2L2 20l2.2-.8L5 17Z"
-                />
-                <path
-                  d="m19 2 .7 1.3L21 4l-1.3.7L19 6l-.7-1.3L17 4l1.3-.7L19 2Z"
-                />
-              </svg></button
-            ><span class="header-profile"
-              ><span class="avatar" id="avatar-letter">A</span
-              ><span data-student-name>Aurora</span></span
-            >
-          </div>
-          <div class="notification-panel" id="notification-panel" hidden>
-            <strong>Notifikasi MathLeaf</strong>
-            <p>Terus belajar, satu langkah kecil setiap hari 🌱</p>
-          </div>
-        </header>
-        <main class="app-content">
-          <div class="page-heading">
-            <div>
-              <span class="eyebrow"
-                ><svg
-                  aria-hidden="true"
-                  width="14"
-                  height="14"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  style="flex-shrink: 0"
-                >
-                  <path
-                    d="M11 20A7 7 0 0 1 4 13C4 5 14 3 21 3c0 7-2 17-10 17Z"
-                  />
-                  <path d="M4 21c0-6 5-11 11-14" />
+@extends('layouts.app')
+
+@section('title', 'Materi Pembelajaran | MathLeaf')
+@section('header_title', 'Materi Pembelajaran')
+
+@section('content')
+    @php
+        $isTeacher = Auth::check() && Auth::user()->role === 'guru';
+    @endphp
+
+    <style>
+        /* Styling tambahan untuk menyesuaikan layout baru tanpa mengubah CSS bawaan */
+        .page-heading {
+            margin-bottom: 2rem;
+        }
+
+        .page-heading h1 {
+            font-size: 1.8rem;
+            color: #0f172a;
+            margin-bottom: 0.5rem;
+        }
+
+        .page-heading p {
+            color: #64748b;
+            font-size: 1rem;
+        }
+
+        /* Penyesuaian Filter & Search Bar */
+        .filters-wrapper {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1.5rem;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 2rem;
+        }
+
+        .filter-tabs {
+            display: flex;
+            gap: 0.5rem;
+            overflow-x: auto;
+            padding-bottom: 4px;
+        }
+
+        .filter-tabs .btn-ghost {
+            white-space: nowrap;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            color: #475569;
+            font-weight: 600;
+            background: transparent;
+            border: 1px solid transparent;
+            cursor: pointer;
+        }
+
+        .filter-tabs .btn-ghost:hover {
+            background: #f1f5f9;
+        }
+
+        .filter-tabs .btn-ghost.selected {
+            background: #0f172a;
+            color: #ffffff;
+        }
+
+        /* Search Bar Besar & Tombol Aksi */
+        .search-action-group {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            flex: 1;
+            max-width: 600px;
+            /* Search bar dibuat lebih besar */
+        }
+
+        .search-input-large {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            background: #ffffff;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            padding: 0.75rem 1.2rem;
+            flex: 1;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .search-input-large:focus-within {
+            border-color: #086534;
+            box-shadow: 0 0 0 3px rgba(8, 101, 52, 0.1);
+        }
+
+        .search-input-large input {
+            border: none;
+            background: transparent;
+            width: 100%;
+            font-size: 1rem;
+            color: #0f172a;
+            outline: none;
+        }
+
+        .search-input-large svg {
+            color: #64748b;
+        }
+
+        .btn-add-material {
+            background-color: #086534;
+            color: #ffffff;
+            border: none;
+            padding: 0.75rem 1.25rem;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: background 0.2s;
+            white-space: nowrap;
+        }
+
+        .btn-add-material:hover {
+            background-color: #064d27;
+        }
+
+        /* Modifikasi kecil kartu materi untuk tombol guru */
+        .material-item {
+            position: relative;
+        }
+
+        .teacher-card-actions {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px dashed #e2e8f0;
+        }
+
+        .btn-small-outline {
+            flex: 1;
+            background: transparent;
+            border: 1px solid #cbd5e1;
+            color: #475569;
+            padding: 0.4rem;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            text-align: center;
+        }
+
+        .btn-small-outline:hover {
+            background: #f8fafc;
+            border-color: #94a3b8;
+        }
+    </style>
+
+    <div class="page-heading">
+        <div>
+            <span class="eyebrow"
+                style="display: inline-flex; align-items: center; gap: 0.4rem; font-weight: 700; color: #086534; font-size: 0.8rem; letter-spacing: 0.05em; text-transform: uppercase; margin-bottom: 0.5rem;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M11 20A7 7 0 0 1 4 13C4 5 14 3 21 3c0 7-2 17-10 17Z"></path>
+                    <path d="M4 21c0-6 5-11 11-14"></path>
                 </svg>
-                RUANG BERTUMBUHMU</span
-              >
-              <h1>Jelajahi Materi Pembelajaran</h1>
-              <p>
-                Dari mengenal bilangan sampai memecahkan masalah sehari-hari.
-              </p>
-            </div>
-          </div>
-          <div class="filters">
-            <div class="filter-tabs">
-              <button
-                type="button"
-                data-material-tab="Semua Materi"
-                class="btn btn-ghost selected"
-              >
-                Semua Materi</button
-              ><button
-                type="button"
-                data-material-tab="Sedang Dipelajari"
-                class="btn btn-ghost"
-              >
-                Sedang Dipelajari</button
-              ><button
-                type="button"
-                data-material-tab="Belum Dimulai"
-                class="btn btn-ghost"
-              >
-                Belum Dimulai
-              </button>
-            </div>
-            <label class="search-input"
-              ><svg
-                aria-hidden="true"
-                width="15"
-                height="15"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                style="flex-shrink: 0"
-              >
-                <path
-                  d="m12 3 1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8L12 3Z"
-                />
-                <path
-                  d="m5 17 .8 2.2L8 20l-2.2.8L5 23l-.8-2.2L2 20l2.2-.8L5 17Z"
-                />
-                <path
-                  d="m19 2 .7 1.3L21 4l-1.3.7L19 6l-.7-1.3L17 4l1.3-.7L19 2Z"
-                /></svg
-              ><input
-                id="material-search"
-                aria-label="Cari materi"
-                placeholder="Cari materi…"
-            /></label>
-          </div>
-          <div class="material-grid" id="material-grid">
-            <div class="material-item">
-              <article
-                class="material-card"
-                data-material-title="bilangan bulat"
-                data-material-progress="65"
-              >
-                <a
-                  href="{{ url('/video') }}?materi=1"
-                  class="material-art tone-mint"
-                  ><span class="art-leaf"
-                    ><svg
-                      aria-hidden="true"
-                      width="18"
-                      height="18"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-width="2"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      style="flex-shrink: 0"
-                    >
-                      <path
-                        d="M11 20A7 7 0 0 1 4 13C4 5 14 3 21 3c0 7-2 17-10 17Z"
-                      />
-                      <path d="M4 21c0-6 5-11 11-14" /></svg></span
-                  ><span class="math-symbol">−3 + 5</span
-                  ><span class="art-squares">□</span
-                  ><span class="material-label">Dasar bilangan</span></a
-                >
-                <div class="material-body">
-                  <div class="material-meta">
-                    <span
-                      ><svg
-                        aria-hidden="true"
-                        width="14"
-                        height="14"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="2"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        style="flex-shrink: 0"
-                      >
-                        <rect x="2" y="5" width="15" height="14" rx="2" />
-                        <path d="m17 10 5-3v10l-5-3" />
-                      </svg>
-                      4 video</span
-                    ><span
-                      ><svg
-                        aria-hidden="true"
-                        width="14"
-                        height="14"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="2"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        style="flex-shrink: 0"
-                      >
-                        <circle cx="12" cy="12" r="9" />
-                        <path d="M12 7v5l3 2" />
-                      </svg>
-                      32 menit</span
-                    >
-                  </div>
-                  <h3>Bilangan Bulat</h3>
-                  <p>
-                    Kenali bilangan positif, negatif, dan nol dalam kehidupan
-                    sehari-hari.
-                  </p>
-                  <div class="material-bottom">
-                    <span>Kelas VII SMP</span
-                    ><a href="{{ url('/video') }}?materi=1"
-                      >Mulai Belajar
-                      <svg
-                        aria-hidden="true"
-                        width="17"
-                        height="17"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="2"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        style="flex-shrink: 0"
-                      >
-                        <path d="M7 17 17 7" />
-                        <path d="M7 7h10v10" /></svg
-                    ></a>
-                  </div>
-                </div>
-              </article>
-              <div class="progress-label">
-                <span>Progres belajar</span><strong>65%</strong>
-              </div>
-              <div class="progress-track"><div style="width: 65%"></div></div>
-            </div>
-            <div class="material-item">
-              <article
-                class="material-card"
-                data-material-title="penjumlahan &amp; pengurangan"
-                data-material-progress="40"
-              >
-                <a
-                  href="{{ url('/video') }}?materi=2"
-                  class="material-art tone-yellow"
-                  ><span class="art-leaf"
-                    ><svg
-                      aria-hidden="true"
-                      width="18"
-                      height="18"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-width="2"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      style="flex-shrink: 0"
-                    >
-                      <path
-                        d="M11 20A7 7 0 0 1 4 13C4 5 14 3 21 3c0 7-2 17-10 17Z"
-                      />
-                      <path d="M4 21c0-6 5-11 11-14" /></svg></span
-                  ><span class="math-symbol">7 − (−2)</span
-                  ><span class="art-squares">□</span
-                  ><span class="material-label">Operasi bilangan</span></a
-                >
-                <div class="material-body">
-                  <div class="material-meta">
-                    <span
-                      ><svg
-                        aria-hidden="true"
-                        width="14"
-                        height="14"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="2"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        style="flex-shrink: 0"
-                      >
-                        <rect x="2" y="5" width="15" height="14" rx="2" />
-                        <path d="m17 10 5-3v10l-5-3" />
-                      </svg>
-                      5 video</span
-                    ><span
-                      ><svg
-                        aria-hidden="true"
-                        width="14"
-                        height="14"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="2"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        style="flex-shrink: 0"
-                      >
-                        <circle cx="12" cy="12" r="9" />
-                        <path d="M12 7v5l3 2" />
-                      </svg>
-                      40 menit</span
-                    >
-                  </div>
-                  <h3>Penjumlahan &amp; Pengurangan</h3>
-                  <p>
-                    Jelajahi operasi bilangan bulat dengan bantuan garis
-                    bilangan.
-                  </p>
-                  <div class="material-bottom">
-                    <span>Kelas VII SMP</span
-                    ><a href="{{ url('/video') }}?materi=2"
-                      >Mulai Belajar
-                      <svg
-                        aria-hidden="true"
-                        width="17"
-                        height="17"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="2"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        style="flex-shrink: 0"
-                      >
-                        <path d="M7 17 17 7" />
-                        <path d="M7 7h10v10" /></svg
-                    ></a>
-                  </div>
-                </div>
-              </article>
-              <div class="progress-label">
-                <span>Progres belajar</span><strong>40%</strong>
-              </div>
-              <div class="progress-track"><div style="width: 40%"></div></div>
-            </div>
-            <div class="material-item">
-              <article
-                class="material-card"
-                data-material-title="perkalian &amp; pembagian"
-                data-material-progress="0"
-              >
-                <a
-                  href="{{ url('/video') }}?materi=3"
-                  class="material-art tone-peach"
-                  ><span class="art-leaf"
-                    ><svg
-                      aria-hidden="true"
-                      width="18"
-                      height="18"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-width="2"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      style="flex-shrink: 0"
-                    >
-                      <path
-                        d="M11 20A7 7 0 0 1 4 13C4 5 14 3 21 3c0 7-2 17-10 17Z"
-                      />
-                      <path d="M4 21c0-6 5-11 11-14" /></svg></span
-                  ><span class="math-symbol">−4 × 3</span
-                  ><span class="art-squares">□</span
-                  ><span class="material-label">Operasi bilangan</span></a
-                >
-                <div class="material-body">
-                  <div class="material-meta">
-                    <span
-                      ><svg
-                        aria-hidden="true"
-                        width="14"
-                        height="14"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="2"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        style="flex-shrink: 0"
-                      >
-                        <rect x="2" y="5" width="15" height="14" rx="2" />
-                        <path d="m17 10 5-3v10l-5-3" />
-                      </svg>
-                      4 video</span
-                    ><span
-                      ><svg
-                        aria-hidden="true"
-                        width="14"
-                        height="14"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="2"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        style="flex-shrink: 0"
-                      >
-                        <circle cx="12" cy="12" r="9" />
-                        <path d="M12 7v5l3 2" />
-                      </svg>
-                      35 menit</span
-                    >
-                  </div>
-                  <h3>Perkalian &amp; Pembagian</h3>
-                  <p>
-                    Temukan pola tanda dan selesaikan operasi dengan percaya
-                    diri.
-                  </p>
-                  <div class="material-bottom">
-                    <span>Kelas VII SMP</span
-                    ><a href="{{ url('/video') }}?materi=3"
-                      >Mulai Belajar
-                      <svg
-                        aria-hidden="true"
-                        width="17"
-                        height="17"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="2"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        style="flex-shrink: 0"
-                      >
-                        <path d="M7 17 17 7" />
-                        <path d="M7 7h10v10" /></svg
-                    ></a>
-                  </div>
-                </div>
-              </article>
-              <div class="progress-label">
-                <span>Progres belajar</span><strong>0%</strong>
-              </div>
-              <div class="progress-track"><div style="width: 0%"></div></div>
-            </div>
-            <div class="material-item">
-              <article
-                class="material-card"
-                data-material-title="bilangan pecahan"
-                data-material-progress="0"
-              >
-                <a
-                  href="{{ url('/video') }}?materi=4"
-                  class="material-art tone-mint"
-                  ><span class="art-leaf"
-                    ><svg
-                      aria-hidden="true"
-                      width="18"
-                      height="18"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-width="2"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      style="flex-shrink: 0"
-                    >
-                      <path
-                        d="M11 20A7 7 0 0 1 4 13C4 5 14 3 21 3c0 7-2 17-10 17Z"
-                      />
-                      <path d="M4 21c0-6 5-11 11-14" /></svg></span
-                  ><span class="math-symbol">½ + ¼</span
-                  ><span class="art-squares">□</span
-                  ><span class="material-label">Dasar pecahan</span></a
-                >
-                <div class="material-body">
-                  <div class="material-meta">
-                    <span
-                      ><svg
-                        aria-hidden="true"
-                        width="14"
-                        height="14"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="2"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        style="flex-shrink: 0"
-                      >
-                        <rect x="2" y="5" width="15" height="14" rx="2" />
-                        <path d="m17 10 5-3v10l-5-3" />
-                      </svg>
-                      4 video</span
-                    ><span
-                      ><svg
-                        aria-hidden="true"
-                        width="14"
-                        height="14"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="2"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        style="flex-shrink: 0"
-                      >
-                        <circle cx="12" cy="12" r="9" />
-                        <path d="M12 7v5l3 2" />
-                      </svg>
-                      30 menit</span
-                    >
-                  </div>
-                  <h3>Bilangan Pecahan</h3>
-                  <p>
-                    Pahami bagian dari keseluruhan, pecahan senilai, dan
-                    perbandingan.
-                  </p>
-                  <div class="material-bottom">
-                    <span>Kelas VII SMP</span
-                    ><a href="{{ url('/video') }}?materi=4"
-                      >Mulai Belajar
-                      <svg
-                        aria-hidden="true"
-                        width="17"
-                        height="17"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="2"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        style="flex-shrink: 0"
-                      >
-                        <path d="M7 17 17 7" />
-                        <path d="M7 7h10v10" /></svg
-                    ></a>
-                  </div>
-                </div>
-              </article>
-              <div class="progress-label">
-                <span>Progres belajar</span><strong>0%</strong>
-              </div>
-              <div class="progress-track"><div style="width: 0%"></div></div>
-            </div>
-            <div class="material-item">
-              <article
-                class="material-card"
-                data-material-title="operasi hitung pecahan"
-                data-material-progress="0"
-              >
-                <a
-                  href="{{ url('/video') }}?materi=5"
-                  class="material-art tone-yellow"
-                  ><span class="art-leaf"
-                    ><svg
-                      aria-hidden="true"
-                      width="18"
-                      height="18"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-width="2"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      style="flex-shrink: 0"
-                    >
-                      <path
-                        d="M11 20A7 7 0 0 1 4 13C4 5 14 3 21 3c0 7-2 17-10 17Z"
-                      />
-                      <path d="M4 21c0-6 5-11 11-14" /></svg></span
-                  ><span class="math-symbol">¾ ÷ ½</span
-                  ><span class="art-squares">□</span
-                  ><span class="material-label">Operasi pecahan</span></a
-                >
-                <div class="material-body">
-                  <div class="material-meta">
-                    <span
-                      ><svg
-                        aria-hidden="true"
-                        width="14"
-                        height="14"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="2"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        style="flex-shrink: 0"
-                      >
-                        <rect x="2" y="5" width="15" height="14" rx="2" />
-                        <path d="m17 10 5-3v10l-5-3" />
-                      </svg>
-                      5 video</span
-                    ><span
-                      ><svg
-                        aria-hidden="true"
-                        width="14"
-                        height="14"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="2"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        style="flex-shrink: 0"
-                      >
-                        <circle cx="12" cy="12" r="9" />
-                        <path d="M12 7v5l3 2" />
-                      </svg>
-                      45 menit</span
-                    >
-                  </div>
-                  <h3>Operasi Hitung Pecahan</h3>
-                  <p>
-                    Berlatih menjumlahkan, mengurangi, mengalikan, dan membagi
-                    pecahan.
-                  </p>
-                  <div class="material-bottom">
-                    <span>Kelas VII SMP</span
-                    ><a href="{{ url('/video') }}?materi=5"
-                      >Mulai Belajar
-                      <svg
-                        aria-hidden="true"
-                        width="17"
-                        height="17"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="2"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        style="flex-shrink: 0"
-                      >
-                        <path d="M7 17 17 7" />
-                        <path d="M7 7h10v10" /></svg
-                    ></a>
-                  </div>
-                </div>
-              </article>
-              <div class="progress-label">
-                <span>Progres belajar</span><strong>0%</strong>
-              </div>
-              <div class="progress-track"><div style="width: 0%"></div></div>
-            </div>
-            <div class="material-item">
-              <article
-                class="material-card"
-                data-material-title="bilangan dalam kehidupan"
-                data-material-progress="0"
-              >
-                <a
-                  href="{{ url('/video') }}?materi=6"
-                  class="material-art tone-peach"
-                  ><span class="art-leaf"
-                    ><svg
-                      aria-hidden="true"
-                      width="18"
-                      height="18"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-width="2"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      style="flex-shrink: 0"
-                    >
-                      <path
-                        d="M11 20A7 7 0 0 1 4 13C4 5 14 3 21 3c0 7-2 17-10 17Z"
-                      />
-                      <path d="M4 21c0-6 5-11 11-14" /></svg></span
-                  ><span class="math-symbol">−5°C → 8°C</span
-                  ><span class="art-squares">□</span
-                  ><span class="material-label">Penerapan</span></a
-                >
-                <div class="material-body">
-                  <div class="material-meta">
-                    <span
-                      ><svg
-                        aria-hidden="true"
-                        width="14"
-                        height="14"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="2"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        style="flex-shrink: 0"
-                      >
-                        <rect x="2" y="5" width="15" height="14" rx="2" />
-                        <path d="m17 10 5-3v10l-5-3" />
-                      </svg>
-                      3 video</span
-                    ><span
-                      ><svg
-                        aria-hidden="true"
-                        width="14"
-                        height="14"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="2"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        style="flex-shrink: 0"
-                      >
-                        <circle cx="12" cy="12" r="9" />
-                        <path d="M12 7v5l3 2" />
-                      </svg>
-                      25 menit</span
-                    >
-                  </div>
-                  <h3>Bilangan dalam Kehidupan</h3>
-                  <p>
-                    Pecahkan masalah suhu, belanja, dan untung-rugi di
-                    sekitarmu.
-                  </p>
-                  <div class="material-bottom">
-                    <span>Kelas VII SMP</span
-                    ><a href="{{ url('/video') }}?materi=6"
-                      >Mulai Belajar
-                      <svg
-                        aria-hidden="true"
-                        width="17"
-                        height="17"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="2"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        style="flex-shrink: 0"
-                      >
-                        <path d="M7 17 17 7" />
-                        <path d="M7 7h10v10" /></svg
-                    ></a>
-                  </div>
-                </div>
-              </article>
-              <div class="progress-label">
-                <span>Progres belajar</span><strong>0%</strong>
-              </div>
-              <div class="progress-track"><div style="width: 0%"></div></div>
-            </div>
-          </div>
-          <div class="empty-state" id="no-material" hidden>
-            Materi tidak ditemukan.
-          </div>
-        </main>
-      </div>
+                {{ $isTeacher ? 'RUANG KELOLA GURU' : 'RUANG BERTUMBUHMU' }}
+            </span>
+            <h1>{{ $isTeacher ? 'Kelola Materi Pembelajaran' : 'Jelajahi Materi Pembelajaran' }}</h1>
+            <p>Dari mengenal bilangan sampai memecahkan masalah sehari-hari.</p>
+        </div>
     </div>
-  </body>
-</html>
+
+    <div class="filters-wrapper">
+        <!-- Filter Tabs (Ditambah Selesai Dipelajari) -->
+        <div class="filter-tabs">
+            <button type="button" data-material-tab="Semua Materi" class="btn-ghost selected">Semua Materi</button>
+            <button type="button" data-material-tab="Sedang Dipelajari" class="btn-ghost">Sedang Dipelajari</button>
+            <button type="button" data-material-tab="Belum Dimulai" class="btn-ghost">Belum Dimulai</button>
+            <button type="button" data-material-tab="Selesai Dipelajari" class="btn-ghost">Selesai Dipelajari</button>
+        </div>
+
+        <!-- Search Bar & Tombol Tambah Materi -->
+        <div class="search-action-group">
+            <label class="search-input-large">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="11" cy="11" r="8"></circle>
+                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                </svg>
+                <input id="material-search" aria-label="Cari materi" placeholder="Cari modul atau video materi..." />
+            </label>
+
+            @if ($isTeacher)
+                <button type="button" class="btn-add-material" onclick="alert('Route Tambah Materi belum dibuat')">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="12" y1="5" x2="12" y2="19"></line>
+                        <line x1="5" y1="12" x2="19" y2="12"></line>
+                    </svg>
+                    Tambah Materi
+                </button>
+            @endif
+        </div>
+    </div>
+
+    <div class="material-grid" id="material-grid">
+
+        @php
+            // Array warna tema asli untuk dilooping
+            $tones = ['tone-mint', 'tone-yellow', 'tone-peach'];
+
+            // Dummy data jika $materials belum dipassing dari controller
+            $dummyMaterials = [
+                [
+                    'title' => 'Bilangan Bulat',
+                    'desc' => 'Kenali bilangan positif, negatif, dan nol dalam kehidupan sehari-hari.',
+                    'symbol' => '−3 + 5',
+                    'progress' => 65,
+                ],
+                [
+                    'title' => 'Penjumlahan & Pengurangan',
+                    'desc' => 'Jelajahi operasi bilangan bulat dengan bantuan garis bilangan.',
+                    'symbol' => '7 − (−2)',
+                    'progress' => 40,
+                ],
+                [
+                    'title' => 'Perkalian & Pembagian',
+                    'desc' => 'Temukan pola tanda dan selesaikan operasi dengan percaya diri.',
+                    'symbol' => '−4 × 3',
+                    'progress' => 0,
+                ],
+            ];
+
+            $materiList = $materials ?? $dummyMaterials;
+        @endphp
+
+        @forelse($materiList as $index => $materi)
+            @php
+                // Mengambil warna secara bergantian (mint, yellow, peach)
+                $colorClass = $tones[$index % count($tones)];
+                $title = is_array($materi) ? $materi['title'] : $materi->title;
+                $desc = is_array($materi) ? $materi['desc'] : $materi->description;
+                $symbol = is_array($materi) ? $materi['symbol'] : 'x + y';
+                $progress = is_array($materi) ? $materi['progress'] : $materi->progress_percent ?? 0;
+            @endphp
+
+            <div class="material-item">
+                <article class="material-card" data-material-title="{{ strtolower($title) }}"
+                    data-material-progress="{{ $progress }}">
+
+                    <!-- Gambar Art Berwarna Warni -->
+                    <a href="{{ $isTeacher ? '#' : url('/siswa/video') }}" class="material-art {{ $colorClass }}">
+                        <span class="art-leaf">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M11 20A7 7 0 0 1 4 13C4 5 14 3 21 3c0 7-2 17-10 17Z"></path>
+                                <path d="M4 21c0-6 5-11 11-14"></path>
+                            </svg>
+                        </span>
+                        <span class="math-symbol">{{ $symbol }}</span>
+                        <span class="art-squares">□</span>
+                        <span class="material-label">Modul & Video</span>
+                    </a>
+
+                    <div class="material-body">
+                        <div class="material-meta">
+                            <span>
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <rect x="2" y="5" width="15" height="14" rx="2"></rect>
+                                    <path d="m17 10 5-3v10l-5-3"></path>
+                                </svg>
+                                4 video
+                            </span>
+                            <span>
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <circle cx="12" cy="12" r="9"></circle>
+                                    <path d="M12 7v5l3 2"></path>
+                                </svg>
+                                30 menit
+                            </span>
+                        </div>
+
+                        <h3>{{ $title }}</h3>
+                        <p>{{ $desc }}</p>
+
+                        <div class="material-bottom">
+                            <span>Kelas VII SMP</span>
+                            <a href="{{ $isTeacher ? '#' : url('/siswa/video') }}"
+                                style="{{ $isTeacher ? 'pointer-events: none; color: #94a3b8;' : '' }}">
+                                {{ $isTeacher ? 'Pratinjau Materi' : 'Mulai Belajar' }}
+                                <svg width="17" height="17" viewBox="0 0 24 24" fill="none"
+                                    stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                    stroke-linejoin="round">
+                                    <path d="M7 17 17 7"></path>
+                                    <path d="M7 7h10v10"></path>
+                                </svg>
+                            </a>
+                        </div>
+
+                        @if ($isTeacher)
+                            <!-- Tombol Tambahan Khusus Guru (Edit / Hapus) -->
+                            <div class="teacher-card-actions">
+                                <button type="button" class="btn-small-outline"
+                                    onclick="alert('Route Edit belum dibuat')">Edit</button>
+                                <button type="button" class="btn-small-outline"
+                                    style="color: #ef4444; border-color: #fca5a5;"
+                                    onclick="alert('Route Hapus belum dibuat')">Hapus</button>
+                            </div>
+                        @endif
+                    </div>
+                </article>
+
+                <!-- Indikator Progres Dinamis (Progres Kelas vs Progres Belajar) -->
+                <div class="progress-label">
+                    <span>{{ $isTeacher ? 'Progres kelas' : 'Progres belajar' }}</span>
+                    <strong>{{ $progress }}%</strong>
+                </div>
+                <div class="progress-track">
+                    <div style="width: {{ $progress }}%"></div>
+                </div>
+            </div>
+        @empty
+            <div class="empty-state" id="no-material">
+                Materi tidak ditemukan.
+            </div>
+        @endforelse
+    </div>
+@endsection

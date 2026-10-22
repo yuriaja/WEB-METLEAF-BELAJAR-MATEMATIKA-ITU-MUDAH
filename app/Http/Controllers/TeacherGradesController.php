@@ -108,7 +108,7 @@ class TeacherGradesController extends Controller
             ->orderBy('name')
             ->get(['id', 'name']);
 
-return view('pages.teacher-grades', compact(
+return view('pages.guru.teacher-grades', compact(
             'students',
             'classes',
             'selectedClassId',
@@ -458,7 +458,7 @@ return view('pages.teacher-grades', compact(
             ->paginate(10, ['*'], 'quizzes_page')
             ->withQueryString();
 
-        return view('pages.teacher-student-grades', compact(
+        return view('pages.guru.teacher-student-grades', compact(
             'student',
             'classes',
             'selectedClassId',
@@ -474,4 +474,3 @@ return view('pages.teacher-grades', compact(
     }
 
 }
-

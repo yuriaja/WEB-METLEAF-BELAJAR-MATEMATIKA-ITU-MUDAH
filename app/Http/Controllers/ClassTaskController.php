@@ -82,7 +82,7 @@ class ClassTaskController extends Controller
             ->latest()
             ->get();
 
-        return view('pages.class-tasks', compact(
+        return view('pages.guru.class-tasks', compact(
             'teacher',
             'classes',
             'tasks'

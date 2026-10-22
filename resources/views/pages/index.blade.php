@@ -2,534 +2,347 @@
 <html lang="id">
 
 <head>
-<meta name="csrf-token" content="{{ csrf_token() }}">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>Beranda | MathLeaf</title>
-    <meta name="description" content="MathLeaf — Grow Your Math Skills. Pembelajaran Matematika kelas VII SMP." />
+    <meta name="description" content="MathLeaf — Grow Your Math Skills. Portal masuk siswa kelas VII SMP." />
     <link rel="icon" type="image/svg+xml" href="{{ asset('favicon.svg') }}" />
-    <link rel="stylesheet" href="{{ asset('css/mathleaf.css') }}" />
-    <script defer src="{{ asset('js/mathleaf.js') }}"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <style>
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background-color: #f0fdf4;
+            /* emerald-50 */
+        }
+
+        /* Glassmorphism Panel Kanan */
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.6);
+            backdrop-filter: blur(28px);
+            -webkit-backdrop-filter: blur(28px);
+            border-left: 1px solid rgba(255, 255, 255, 0.9);
+            box-shadow: -20px 0 60px -15px rgba(22, 163, 74, 0.2);
+        }
+
+        /* Input 6 Kotak (Kode Kelas) */
+        .code-box {
+            text-align: center;
+            text-transform: uppercase;
+            font-size: 1.5rem;
+            font-weight: 900;
+            background: rgba(255, 255, 255, 0.8);
+            border: 2px solid #bbf7d0;
+            /* emerald-200 */
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .code-box:focus {
+            outline: none;
+            border-color: #10b981;
+            /* emerald-500 */
+            box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.2);
+            transform: translateY(-2px);
+        }
+
+        /* Efek Hover Tombol */
+        .btn-math {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .btn-math:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px -5px rgba(22, 163, 74, 0.3);
+        }
+
+        /* Custom glow untuk teks agar terbaca tanpa kotak background */
+        .title-glow {
+            text-shadow:
+                -2px -2px 0 #fff,
+                2px -2px 0 #fff,
+                -2px 2px 0 #fff,
+                2px 2px 0 #fff,
+                0 15px 35px rgba(255, 255, 255, 0.9);
+        }
+
+        .caption-glow {
+            text-shadow: 0 2px 15px rgba(255, 255, 255, 1), 0 0 30px rgba(255, 255, 255, 0.9);
+        }
+    </style>
 </head>
 
-<body data-page="index">
-    <header class="public-header">
-        <div class="site-container nav-inner">
-            <a href="{{ url('/') }}" class="logo"><span class="logo-mark"><svg aria-hidden="true" width="23"
-                        height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                        stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0">
-                        <path d="M11 20A7 7 0 0 1 4 13C4 5 14 3 21 3c0 7-2 17-10 17Z" />
-                        <path d="M4 21c0-6 5-11 11-14" />
-                    </svg></span><span>Math<span class="logo-leaf">Leaf</span><small>GROW YOUR MATH
-                        SKILLS</small></span></a>
-            <nav class="public-nav" id="public-navigation">
-                <a href="{{ url('/') }}" class="active">Beranda</a><a href="{{ url('/tentang') }}"
-                    class="">Tentang</a><a href="{{ url('/materi') }}" class="">Materi</a>
-            </nav>
-            <div class="nav-actions">
-                <a class="btn btn-ghost" href="{{ url('/masuk') }}">Masuk
-                    <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none"
-                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                        style="flex-shrink: 0">
-                        <path d="M7 17 17 7" />
-                        <path d="M7 7h10v10" />
-                    </svg></a><a class="btn btn-primary nav-cta" href="{{ url('/daftar') }}">Daftar Gratis
-                    <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none"
-                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                        style="flex-shrink: 0">
-                        <path d="M7 17 17 7" />
-                        <path d="M7 7h10v10" />
-                    </svg></a><button class="btn btn-ghost mobile-toggle" id="menu-toggle" aria-label="Buka menu"
-                    aria-expanded="false">
-                    ☰
-                </button>
-            </div>
+<body class="h-screen w-full overflow-hidden flex flex-col items-center justify-center relative">
+    <!-- Canvas Background: Interactive Math Plant -->
+    <canvas id="mathPlantCanvas" class="absolute inset-0 w-full h-full z-0 cursor-pointer"></canvas>
+
+    <!-- Konten Utama (Tengah) -->
+    <div
+        class="z-10 flex flex-col items-center justify-center text-center w-full max-w-3xl px-6 relative pointer-events-none">
+
+        <!-- Slogan MathLeaf -->
+        <div
+            class="flex items-center gap-3 mb-6 text-emerald-700 font-bold tracking-widest text-xs uppercase bg-white/50 px-5 py-2 rounded-full border border-emerald-200/50 backdrop-blur-md shadow-sm">
+            <span class="relative flex h-2 w-2">
+                <span
+                    class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+            </span>
+            Grow Your Math Skills
         </div>
-    </header>
-    <main>
-        <section class="landing-hero">
-            <img src="{{ asset('images/mathleaf-hero.jpg') }}" width="1536" height="864"
-                alt="Dua pelajar belajar matematika" class="hero-image" />
-            <div class="site-container hero-inner">
-                <div class="hero-copy">
-                    <span class="hero-pill"><span></span> BELAJAR HARI INI, BERTUMBUH ESOK HARI</span>
-                    <h1>
-                        Matematika Jadi<br />Lebih Mudah dan<br /><span>Menyenangkan!</span><span
-                            class="headline-leaf"><svg aria-hidden="true" width="28" height="28"
-                                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                                stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0">
-                                <path d="M11 20A7 7 0 0 1 4 13C4 5 14 3 21 3c0 7-2 17-10 17Z" />
-                                <path d="M4 21c0-6 5-11 11-14" />
-                            </svg></span>
-                    </h1>
-                    <p>
-                        Belajar bilangan bulat dan pecahan melalui video,<br class="desktop-break" />
-                        latihan interaktif, dan tantangan seru.
-                    </p>
-                    <div class="hero-actions">
-                        <a class="btn btn-primary" href="{{ url('/daftar') }}">Mulai Belajar
-                            <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none"
-                                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                                style="flex-shrink: 0">
-                                <path d="M7 17 17 7" />
-                                <path d="M7 7h10v10" />
-                            </svg></a><a class="btn btn-outline" href="{{ url('/materi') }}">Lihat Materi
-                            <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24"
-                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                stroke-linejoin="round" style="flex-shrink: 0">
-                                <polygon points="6 3 20 12 6 21 6 3" />
-                            </svg></a>
-                    </div>
-                    <div class="hero-proof">
-                        <div class="mini-avatars">
-                            <span>A</span><span>R</span><span>D</span><span>N</span>
-                        </div>
-                        <div>
-                            <div class="stars">★★★★★</div>
-                            <small>Teman belajar siswa kelas VII SMP</small>
-                        </div>
-                    </div>
-                </div>
-                <div class="hero-floating">
-                    <span class="floating-icon"><svg aria-hidden="true" width="18" height="18"
-                            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                            stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0">
-                            <path d="M7 20h10" />
-                            <path d="M10 20c5.5-2.5.8-8.3 5-11" />
-                            <path d="M9 9c-3 0-5-2-5-5 4 0 7 2 7 6" />
-                            <path d="M14 12c0-4 3-6 7-6 0 5-3 7-7 7" />
-                        </svg></span><span>Langkah kecil, kemajuan besar.<small>Tumbuhkan potensi
-                            matematikamu!</small></span>
-                </div>
-            </div>
-        </section>
-        <section class="trust-band">
-            <div class="site-container">
-                <span><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none"
-                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                        style="flex-shrink: 0">
-                        <path d="m2 10 10-5 10 5-10 5-10-5Z" />
-                        <path d="M6 12v5c3 2 9 2 12 0v-5M22 10v7" />
-                    </svg>
-                    Dirancang untuk Kelas VII SMP</span><i></i><span><svg aria-hidden="true" width="18"
-                        height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                        stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0">
-                        <path d="M12 7v14" />
-                        <path
-                            d="M3 18V5a2 2 0 0 1 2-2h3a4 4 0 0 1 4 4 4 4 0 0 1 4-4h3a2 2 0 0 1 2 2v13h-5a4 4 0 0 0-4 3 4 4 0 0 0-4-3H3Z" />
-                    </svg>
-                    Sesuai Kurikulum Merdeka</span><i></i><span><svg aria-hidden="true" width="18" height="18"
-                        viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                        stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0">
-                        <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
-                        <circle cx="9" cy="7" r="4" />
-                        <path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" />
-                    </svg>
-                    Belajar Aktif dengan FPBL</span><i></i><span><svg aria-hidden="true" width="18"
-                        height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                        stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0">
-                        <path d="M11 20A7 7 0 0 1 4 13C4 5 14 3 21 3c0 7-2 17-10 17Z" />
-                        <path d="M4 21c0-6 5-11 11-14" />
-                    </svg>
-                    Bertumbuh Bersama MathLeaf</span>
-            </div>
-        </section>
-        <section class="section benefits-section">
-            <div class="site-container">
-                <div class="section-heading centered">
-                    <span class="eyebrow"><svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24"
-                            fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                            stroke-linejoin="round" style="flex-shrink: 0">
-                            <path d="M11 20A7 7 0 0 1 4 13C4 5 14 3 21 3c0 7-2 17-10 17Z" />
-                            <path d="M4 21c0-6 5-11 11-14" />
-                        </svg>
-                        CARA BARU BELAJAR MATEMATIKA</span>
-                    <h2>
-                        Bukan sekadar belajar.<br /><span>Tapi memahami dan bertumbuh.</span>
-                    </h2>
-                    <p>
-                        Setiap anak punya cara belajar. Temukan cara terbaikmu bersama
-                        MathLeaf.
-                    </p>
-                </div>
-                <div class="benefits-grid">
-                    <div class="benefit">
-                        <span class="benefit-icon tone-mint"><svg aria-hidden="true" width="25" height="25"
-                                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                                stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0">
-                                <rect x="2" y="5" width="15" height="14" rx="2" />
-                                <path d="m17 10 5-3v10l-5-3" />
-                            </svg></span>
-                        <h3>Belajar Sesuai Ritmemu</h3>
-                        <p>
-                            Video singkat dan e-modul yang bisa dipelajari kapan saja, di
-                            mana saja.
-                        </p>
-                    </div>
-                    <div class="benefit">
-                        <span class="benefit-icon tone-yellow"><svg aria-hidden="true" width="25" height="25"
-                                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                                stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0">
-                                <path d="m12 3 1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8L12 3Z" />
-                                <path d="m5 17 .8 2.2L8 20l-2.2.8L5 23l-.8-2.2L2 20l2.2-.8L5 17Z" />
-                                <path d="m19 2 .7 1.3L21 4l-1.3.7L19 6l-.7-1.3L17 4l1.3-.7L19 2Z" />
-                            </svg></span>
-                        <h3>Latihan yang Bikin Paham</h3>
-                        <p>
-                            Eksplorasi konsep lewat latihan interaktif dan feedback
-                            langsung.
-                        </p>
-                    </div>
-                    <div class="benefit">
-                        <span class="benefit-icon tone-peach"><svg aria-hidden="true" width="25" height="25"
-                                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                                stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0">
-                                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
-                                <circle cx="9" cy="7" r="4" />
-                                <path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" />
-                            </svg></span>
-                        <h3>Berpikir & Berkolaborasi</h3>
-                        <p>
-                            Pecahkan masalah nyata dan bertukar ide bersama teman sekelas.
-                        </p>
-                    </div>
-                    <div class="benefit">
-                        <span class="benefit-icon tone-mint"><svg aria-hidden="true" width="25" height="25"
-                                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                                stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0">
-                                <path d="m2 10 10-5 10 5-10 5-10-5Z" />
-                                <path d="M6 12v5c3 2 9 2 12 0v-5M22 10v7" />
-                            </svg></span>
-                        <h3>Lihat Progresmu Tumbuh</h3>
-                        <p>
-                            Pantau setiap pencapaian dan rayakan langkah kecil belajarmu.
-                        </p>
-                    </div>
-                </div>
-            </div>
-        </section>
-        <section class="section materials-section">
-            <div class="site-container">
-                <div class="section-heading horizontal">
-                    <div>
-                        <span class="eyebrow"><svg aria-hidden="true" width="14" height="14"
-                                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                                stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0">
-                                <path d="M12 7v14" />
-                                <path
-                                    d="M3 18V5a2 2 0 0 1 2-2h3a4 4 0 0 1 4 4 4 4 0 0 1 4-4h3a2 2 0 0 1 2 2v13h-5a4 4 0 0 0-4 3 4 4 0 0 0-4-3H3Z" />
-                            </svg>
-                            MULAI DARI DASAR, MELANGKAH LEBIH JAUH</span>
-                        <h2>Petualangan belajarmu<br />dimulai di sini.</h2>
-                        <p>
-                            Kenali bilangan, kuasai operasi, dan terapkan dalam keseharian.
-                        </p>
-                    </div>
-                    <a class="btn btn-outline" href="{{ url('/materi') }}">Lihat Semua Materi
-                        <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none"
-                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                            style="flex-shrink: 0">
-                            <path d="M7 17 17 7" />
-                            <path d="M7 7h10v10" />
-                        </svg></a>
-                </div>
-                <div class="material-grid">
-                    <article class="material-card" data-material-title="bilangan bulat" data-material-progress="65">
-                        <a href="{{ url('/video') }}?materi=1" class="material-art tone-mint"><span
-                                class="art-leaf"><svg aria-hidden="true" width="18" height="18"
-                                    viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                                    stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0">
-                                    <path d="M11 20A7 7 0 0 1 4 13C4 5 14 3 21 3c0 7-2 17-10 17Z" />
-                                    <path d="M4 21c0-6 5-11 11-14" />
-                                </svg></span><span class="math-symbol">−3 + 5</span><span
-                                class="art-squares">□</span><span class="material-label">Dasar bilangan</span></a>
-                        <div class="material-body">
-                            <div class="material-meta">
-                                <span><svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24"
-                                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                        stroke-linejoin="round" style="flex-shrink: 0">
-                                        <rect x="2" y="5" width="15" height="14" rx="2" />
-                                        <path d="m17 10 5-3v10l-5-3" />
-                                    </svg>
-                                    4 video</span><span><svg aria-hidden="true" width="14" height="14"
-                                        viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                                        stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0">
-                                        <circle cx="12" cy="12" r="9" />
-                                        <path d="M12 7v5l3 2" />
-                                    </svg>
-                                    32 menit</span>
-                            </div>
-                            <h3>Bilangan Bulat</h3>
-                            <p>
-                                Kenali bilangan positif, negatif, dan nol dalam kehidupan
-                                sehari-hari.
-                            </p>
-                            <div class="material-bottom">
-                                <span>Kelas VII SMP</span><a href="{{ url('/video') }}?materi=1">Mulai Belajar
-                                    <svg aria-hidden="true" width="17" height="17" viewBox="0 0 24 24"
-                                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                        stroke-linejoin="round" style="flex-shrink: 0">
-                                        <path d="M7 17 17 7" />
-                                        <path d="M7 7h10v10" />
-                                    </svg></a>
-                            </div>
-                        </div>
-                    </article>
-                    <article class="material-card" data-material-title="penjumlahan &amp; pengurangan"
-                        data-material-progress="40">
-                        <a href="{{ url('/video') }}?materi=2" class="material-art tone-yellow"><span
-                                class="art-leaf"><svg aria-hidden="true" width="18" height="18"
-                                    viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                                    stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0">
-                                    <path d="M11 20A7 7 0 0 1 4 13C4 5 14 3 21 3c0 7-2 17-10 17Z" />
-                                    <path d="M4 21c0-6 5-11 11-14" />
-                                </svg></span><span class="math-symbol">7 − (−2)</span><span
-                                class="art-squares">□</span><span class="material-label">Operasi bilangan</span></a>
-                        <div class="material-body">
-                            <div class="material-meta">
-                                <span><svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24"
-                                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                        stroke-linejoin="round" style="flex-shrink: 0">
-                                        <rect x="2" y="5" width="15" height="14" rx="2" />
-                                        <path d="m17 10 5-3v10l-5-3" />
-                                    </svg>
-                                    5 video</span><span><svg aria-hidden="true" width="14" height="14"
-                                        viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                                        stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0">
-                                        <circle cx="12" cy="12" r="9" />
-                                        <path d="M12 7v5l3 2" />
-                                    </svg>
-                                    40 menit</span>
-                            </div>
-                            <h3>Penjumlahan &amp; Pengurangan</h3>
-                            <p>
-                                Jelajahi operasi bilangan bulat dengan bantuan garis bilangan.
-                            </p>
-                            <div class="material-bottom">
-                                <span>Kelas VII SMP</span><a href="{{ url('/video') }}?materi=2">Mulai Belajar
-                                    <svg aria-hidden="true" width="17" height="17" viewBox="0 0 24 24"
-                                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                        stroke-linejoin="round" style="flex-shrink: 0">
-                                        <path d="M7 17 17 7" />
-                                        <path d="M7 7h10v10" />
-                                    </svg></a>
-                            </div>
-                        </div>
-                    </article>
-                    <article class="material-card" data-material-title="perkalian &amp; pembagian"
-                        data-material-progress="0">
-                        <a href="{{ url('/video') }}?materi=3" class="material-art tone-peach"><span
-                                class="art-leaf"><svg aria-hidden="true" width="18" height="18"
-                                    viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                                    stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0">
-                                    <path d="M11 20A7 7 0 0 1 4 13C4 5 14 3 21 3c0 7-2 17-10 17Z" />
-                                    <path d="M4 21c0-6 5-11 11-14" />
-                                </svg></span><span class="math-symbol">−4 × 3</span><span
-                                class="art-squares">□</span><span class="material-label">Operasi bilangan</span></a>
-                        <div class="material-body">
-                            <div class="material-meta">
-                                <span><svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24"
-                                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                        stroke-linejoin="round" style="flex-shrink: 0">
-                                        <rect x="2" y="5" width="15" height="14" rx="2" />
-                                        <path d="m17 10 5-3v10l-5-3" />
-                                    </svg>
-                                    4 video</span><span><svg aria-hidden="true" width="14" height="14"
-                                        viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                                        stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0">
-                                        <circle cx="12" cy="12" r="9" />
-                                        <path d="M12 7v5l3 2" />
-                                    </svg>
-                                    35 menit</span>
-                            </div>
-                            <h3>Perkalian &amp; Pembagian</h3>
-                            <p>
-                                Temukan pola tanda dan selesaikan operasi dengan percaya diri.
-                            </p>
-                            <div class="material-bottom">
-                                <span>Kelas VII SMP</span><a href="{{ url('/video') }}?materi=3">Mulai Belajar
-                                    <svg aria-hidden="true" width="17" height="17" viewBox="0 0 24 24"
-                                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                        stroke-linejoin="round" style="flex-shrink: 0">
-                                        <path d="M7 17 17 7" />
-                                        <path d="M7 7h10v10" />
-                                    </svg></a>
-                            </div>
-                        </div>
-                    </article>
-                </div>
-            </div>
-        </section>
-        <section class="section fpbl-section">
-            <div class="site-container">
-                <div class="section-heading centered">
-                    <span class="eyebrow"><svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24"
-                            fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                            stroke-linejoin="round" style="flex-shrink: 0">
-                            <path d="M7 20h10" />
-                            <path d="M10 20c5.5-2.5.8-8.3 5-11" />
-                            <path d="M9 9c-3 0-5-2-5-5 4 0 7 2 7 6" />
-                            <path d="M14 12c0-4 3-6 7-6 0 5-3 7-7 7" />
-                        </svg>
-                        BELAJAR DENGAN CARA YANG BERMAKNA</span>
-                    <h2>Empat langkah menuju <span>“Aku paham!”</span></h2>
-                    <p>
-                        Alur Flipped-Problem Based Learning: belajar mandiri, eksplorasi,
-                        dan kolaborasi.
-                    </p>
-                </div>
-                <div data-fpbl>
-                    <div class="fpbl-steps">
-                        <button type="button" class="fpbl-step active" data-step="0" aria-pressed="true">
-                            <span class="step-icon"><svg aria-hidden="true" width="23" height="23"
-                                    viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                                    stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0">
-                                    <rect x="2" y="5" width="15" height="14" rx="2" />
-                                    <path d="m17 10 5-3v10l-5-3" />
-                                </svg></span><span class="step-no">TAHAP 01</span><strong>Mengamati & Menanya</strong>
-                            <p>
-                                Tonton video, temukan hal baru, dan tuliskan pertanyaanmu.
-                            </p>
-                            <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24"
-                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                stroke-linejoin="round" style="flex-shrink: 0">
-                                <path d="M5 12h14" />
-                                <path d="m12 5 7 7-7 7" />
-                            </svg>
-                        </button><button type="button" class="fpbl-step" data-step="1" aria-pressed="false">
-                            <span class="step-icon"><svg aria-hidden="true" width="23" height="23"
-                                    viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                                    stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0">
-                                    <path d="M12 7v14" />
-                                    <path
-                                        d="M3 18V5a2 2 0 0 1 2-2h3a4 4 0 0 1 4 4 4 4 0 0 1 4-4h3a2 2 0 0 1 2 2v13h-5a4 4 0 0 0-4 3 4 4 0 0 0-4-3H3Z" />
-                                </svg></span><span class="step-no">TAHAP 02</span><strong>Eksplorasi Awal</strong>
-                            <p>Baca e-modul dan uji pemahamanmu lewat E-LKPD interaktif.</p>
-                            <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24"
-                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                stroke-linejoin="round" style="flex-shrink: 0">
-                                <path d="M5 12h14" />
-                                <path d="m12 5 7 7-7 7" />
-                            </svg>
-                        </button><button type="button" class="fpbl-step" data-step="2" aria-pressed="false">
-                            <span class="step-icon"><svg aria-hidden="true" width="23" height="23"
-                                    viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                                    stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0">
-                                    <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
-                                    <circle cx="9" cy="7" r="4" />
-                                    <path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" />
-                                </svg></span><span class="step-no">TAHAP 03</span><strong>Investigasi Kelompok</strong>
-                            <p>
-                                Berkolaborasi dengan teman untuk memecahkan masalah nyata.
-                            </p>
-                            <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24"
-                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                stroke-linejoin="round" style="flex-shrink: 0">
-                                <path d="M5 12h14" />
-                                <path d="m12 5 7 7-7 7" />
-                            </svg>
-                        </button><button type="button" class="fpbl-step" data-step="3" aria-pressed="false">
-                            <span class="step-icon"><svg aria-hidden="true" width="23" height="23"
-                                    viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                                    stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0">
-                                    <circle cx="12" cy="8" r="6" />
-                                    <path d="m8 13-2 8 6-3 6 3-2-8" />
-                                </svg></span><span class="step-no">TAHAP 04</span><strong>Presentasi &
-                                Evaluasi</strong>
-                            <p>
-                                Bagikan hasil, refleksikan proses, dan rayakan perkembanganmu.
-                            </p>
-                        </button>
-                    </div>
-                    <div class="step-detail">
-                        <span><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24"
-                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                stroke-linejoin="round" style="flex-shrink: 0">
-                                <path d="m4 12 5 5L20 6" />
-                            </svg>
-                            <span id="step-text">Tonton video, temukan hal baru, dan tuliskan
-                                pertanyaanmu.</span></span><a class="btn btn-link" id="step-link"
-                            href="{{ url('/video') }}">Jelajahi tahap ini
-                            <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24"
-                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                stroke-linejoin="round" style="flex-shrink: 0">
-                                <path d="M5 12h14" />
-                                <path d="m12 5 7 7-7 7" />
-                            </svg></a>
-                    </div>
-                </div>
-            </div>
-        </section>
-        <section class="cta-band">
-            <div class="site-container">
-                <div>
-                    <span class="eyebrow"><svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24"
-                            fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                            stroke-linejoin="round" style="flex-shrink: 0">
-                            <path d="M11 20A7 7 0 0 1 4 13C4 5 14 3 21 3c0 7-2 17-10 17Z" />
-                            <path d="M4 21c0-6 5-11 11-14" />
-                        </svg>
-                        SATU LANGKAH KECIL UNTUK HARI INI</span>
-                    <h2>Siap menumbuhkan<br />kemampuan matematikamu?</h2>
-                    <p>Rasa ingin tahu adalah awal dari petualangan hebat.</p>
-                </div>
-                <a class="btn btn-primary" href="{{ url('/daftar') }}">Yuk, Mulai Belajar!
-                    <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none"
-                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                        style="flex-shrink: 0">
-                        <path d="M7 17 17 7" />
-                        <path d="M7 7h10v10" />
-                    </svg></a><svg aria-hidden="true" width="145" height="145" viewBox="0 0 24 24"
-                    fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                    stroke-linejoin="round" style="flex-shrink: 0">
-                    <path d="M7 20h10" />
-                    <path d="M10 20c5.5-2.5.8-8.3 5-11" />
-                    <path d="M9 9c-3 0-5-2-5-5 4 0 7 2 7 6" />
-                    <path d="M14 12c0-4 3-6 7-6 0 5-3 7-7 7" />
+
+        <!-- Logo & Judul -->
+        <div class="flex flex-col md:flex-row items-center justify-center gap-4 lg:gap-6 mb-6">
+            <div
+                class="w-20 h-20 md:w-24 md:h-24 bg-gradient-to-tr from-emerald-500 to-green-400 rounded-3xl flex items-center justify-center text-white shadow-xl shadow-emerald-500/40 rotate-3 border-2 border-white">
+                <svg width="40" height="40" class="md:w-14 md:h-14" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M11 20A7 7 0 0 1 4 13C4 5 14 3 21 3c0 7-2 17-10 17Z" />
+                    <path d="M4 21c0-6 5-11 11-14" />
                 </svg>
             </div>
-        </section>
-    </main>
-    <footer class="public-footer">
-        <div class="site-container">
-            <div class="footer-top">
-                <div>
-                    <a href="{{ url('/') }}" class="logo"><span class="logo-mark"><svg aria-hidden="true"
-                                width="23" height="23" viewBox="0 0 24 24" fill="none"
-                                stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                stroke-linejoin="round" style="flex-shrink: 0">
-                                <path d="M11 20A7 7 0 0 1 4 13C4 5 14 3 21 3c0 7-2 17-10 17Z" />
-                                <path d="M4 21c0-6 5-11 11-14" />
-                            </svg></span><span>Math<span class="logo-leaf">Leaf</span><small>GROW YOUR MATH
-                                SKILLS</small></span></a>
-                    <p>
-                        Setiap langkah kecil, membawa pemahaman besar.<br />Tumbuhkan
-                        kemampuan matematikamu bersama kami.
-                    </p>
-                </div>
-                <div>
-                    <h4>Jelajahi</h4>
-                    <a href="{{ url('/materi') }}">Materi Pembelajaran</a><a href="{{ url('/tentang') }}">Tentang
-                        MathLeaf</a><a href="{{ url('/forum') }}">Forum Diskusi</a>
-                </div>
-                <div>
-                    <h4>Mulai bertumbuh</h4>
-                    <a href="{{ url('/masuk') }}">Masuk sebagai Siswa</a><a href="{{ url('/guru') }}">Ruang
-                        Guru</a><a href="{{ url('/daftar') }}">Daftar Gratis</a>
-                </div>
-            </div>
-            <div class="footer-bottom">
-                <span>© 2026 MathLeaf. Grow Your Math Skills.</span><span>Dirancang dengan
-                    <svg aria-hidden="true" width="13" height="13" viewBox="0 0 24 24" fill="none"
-                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                        style="flex-shrink: 0">
-                        <path d="M11 20A7 7 0 0 1 4 13C4 5 14 3 21 3c0 7-2 17-10 17Z" />
-                        <path d="M4 21c0-6 5-11 11-14" />
-                    </svg>
-                    untuk pembelajar muda.</span>
-            </div>
+            <h1 class="text-6xl md:text-7xl lg:text-8xl font-black text-emerald-950 tracking-tighter title-glow">
+                Math<span class="text-emerald-500">Leaf</span>
+            </h1>
         </div>
-    </footer>
+
+        <!-- Caption -->
+        <p class="text-lg md:text-xl text-emerald-900 font-medium leading-relaxed max-w-xl mb-10 caption-glow mx-auto">
+            Matematika jadi lebih menyenangkan. Pecahkan angka, dan lihat pemahamanmu bertumbuh subur!
+        </p>
+
+        <!-- Tombol Aksi (Masuk & Daftar) -->
+        <div class="flex flex-col sm:flex-row items-center justify-center gap-4 pointer-events-auto">
+            <a href="{{ url('/masuk') }}"
+                class="btn-math w-full sm:w-auto bg-emerald-600 text-white font-bold py-3.5 px-8 rounded-2xl flex items-center justify-center gap-3 shadow-lg shadow-emerald-600/30 hover:bg-emerald-700 hover:scale-105 transition-all">
+                Masuk
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                    stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" />
+                    <polyline points="10 17 15 12 10 7" />
+                    <line x1="15" y1="12" x2="3" y2="12" />
+                </svg>
+            </a>
+
+            <a href="{{ url('/daftar') }}"
+                class="btn-math w-full sm:w-auto bg-white/70 text-emerald-800 font-bold py-3.5 px-8 rounded-2xl border-2 border-emerald-200 hover:bg-white hover:border-emerald-400 hover:scale-105 transition-all text-center flex items-center justify-center gap-2 backdrop-blur-sm">
+                Daftar Akun Baru
+            </a>
+        </div>
+
+        <!-- Tombol Tumbuhkan Daun -->
+        <div class="mt-8 inline-flex items-center gap-2 bg-emerald-600/90 backdrop-blur-sm px-6 py-3 rounded-full shadow-lg shadow-emerald-500/20 text-sm font-medium text-white pointer-events-auto hover:bg-emerald-700 hover:scale-105 transition-all cursor-pointer"
+            onclick="forceAddLeaf(event)">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
+                <path d="M15.5 3H5a2 2 0 0 0-2 2v14c0 1.1.9 2 2 2h14a2 2 0 0 0 2-2V8.5L15.5 3Z" />
+                <path d="M14 3v7h7" />
+            </svg>
+            Klik untuk menumbuhkan daun
+        </div>
+
+    </div>
+    <!-- Script Logic Kotak Kode 6 Digit -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const inputs = document.querySelectorAll('.code-box');
+            const hiddenInput = document.getElementById('hidden_class_code');
+
+            inputs.forEach((input, index) => {
+                input.addEventListener('input', (e) => {
+                    updateHiddenCode();
+                    if (e.target.value.length === 1 && index < inputs.length - 1) {
+                        inputs[index + 1].focus();
+                    }
+                });
+
+                input.addEventListener('keydown', (e) => {
+                    if (e.key === 'Backspace' && e.target.value === '' && index > 0) {
+                        inputs[index - 1].focus();
+                    }
+                });
+
+                input.addEventListener('paste', (e) => {
+                    e.preventDefault();
+                    const pastedData = e.clipboardData.getData('text').replace(/[^a-zA-Z0-9]/g, '')
+                        .slice(0, 6).toUpperCase();
+                    for (let i = 0; i < pastedData.length; i++) {
+                        if (inputs[i]) {
+                            inputs[i].value = pastedData[i];
+                        }
+                    }
+                    if (pastedData.length > 0 && pastedData.length < 6) {
+                        inputs[pastedData.length].focus();
+                    } else if (pastedData.length === 6) {
+                        inputs[5].focus();
+                    }
+                    updateHiddenCode();
+                });
+            });
+
+            function updateHiddenCode() {
+                let code = '';
+                inputs.forEach(input => code += input.value);
+                hiddenInput.value = code;
+            }
+        });
+    </script>
+
+    <!-- Script Logic Interactive 3D Math Plant -->
+    <script>
+        const canvas = document.getElementById('mathPlantCanvas');
+        const ctx = canvas.getContext('2d');
+        let w, h;
+
+        function resize() {
+            w = canvas.width = window.innerWidth;
+            h = canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resize);
+        resize();
+
+        const leaves = [];
+        const bubbles = [];
+        const mathChars = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '+', '−', '×', '÷', '=', '%', '½'];
+
+        let rootX = w * 0.15;
+        let rootY = h + 100;
+
+        function addLeaf(targetX, targetY) {
+            let baseAng = (Math.random() * Math.PI) - (Math.random() * Math.PI);
+            leaves.push({
+                x: targetX,
+                y: targetY,
+                baseAngle: baseAng,
+                angle: baseAng,
+                scale: 0,
+                maxScale: Math.random() * 0.6 + 0.8,
+                growthRate: 0.05,
+                swaySpeed: Math.random() * 0.0015 + 0.001,
+                swayOffset: Math.random() * Math.PI * 2,
+                swayAmount: Math.random() * 0.15 + 0.05
+            });
+
+            // Mengurangi ledakan angka saat daun pertama kali muncul
+            for (let i = 0; i < 1; i++) {
+                spawnBubble(targetX, targetY);
+            }
+        }
+
+        // Setup awal 8 daun dekorasi
+        for (let i = 0; i < 8; i++) {
+            setTimeout(() => {
+                let ranX = w * 0.15 + (Math.random() * (w * 0.4) - (w * 0.2));
+                let ranY = h * 0.8 - (Math.random() * (h * 0.6));
+                addLeaf(ranX, ranY);
+            }, i * 250);
+        }
+
+        window.forceAddLeaf = function(e) {
+            e.stopPropagation();
+            let ranX = w * 0.15 + (Math.random() * (w * 0.4) - (w * 0.2));
+            let ranY = h * 0.8 - (Math.random() * (h * 0.6));
+            addLeaf(ranX, ranY);
+        }
+
+        canvas.addEventListener('click', (e) => {
+            addLeaf(e.clientX, e.clientY);
+        });
+
+        function spawnBubble(x, y) {
+            bubbles.push({
+                x: x + (Math.random() * 40 - 20),
+                y: y + (Math.random() * 40 - 20),
+                char: mathChars[Math.floor(Math.random() * mathChars.length)],
+                speedY: -(Math.random() * 1.5 + 0.5), // Bergerak lebih santai
+                speedX: (Math.random() - 0.5) * 1.0,
+                opacity: 1,
+                size: Math.random() * 12 + 12,
+                drift: Math.random() * Math.PI * 2
+            });
+        }
+
+        function drawLeaf(leaf) {
+            ctx.save();
+            ctx.translate(leaf.x, leaf.y);
+            ctx.rotate(leaf.angle);
+            ctx.scale(leaf.scale, leaf.scale);
+
+            ctx.beginPath();
+            ctx.moveTo(0, 0);
+            ctx.quadraticCurveTo(35, -35, 70, -10);
+            ctx.quadraticCurveTo(35, 25, 0, 0);
+
+            let gradient = ctx.createLinearGradient(0, 0, 70, 0);
+            gradient.addColorStop(0, '#34d399');
+            gradient.addColorStop(1, '#059669');
+
+            ctx.fillStyle = gradient;
+            ctx.fill();
+
+            ctx.strokeStyle = 'rgba(255,255,255,0.4)';
+            ctx.lineWidth = 1.5;
+            ctx.beginPath();
+            ctx.moveTo(0, 0);
+            ctx.quadraticCurveTo(35, -10, 65, -10);
+            ctx.stroke();
+
+            ctx.restore();
+        }
+
+        function animate(time) {
+            ctx.clearRect(0, 0, w, h);
+
+            rootX = w * 0.15;
+
+            ctx.strokeStyle = '#6ee7b7';
+            ctx.lineWidth = 3;
+            ctx.lineCap = 'round';
+
+            let rootSway = Math.sin(time * 0.0005) * 15;
+
+            leaves.forEach(leaf => {
+                leaf.angle = leaf.baseAngle + Math.sin(time * leaf.swaySpeed + leaf.swayOffset) * leaf.swayAmount;
+
+                ctx.beginPath();
+                ctx.moveTo(rootX + rootSway, rootY);
+                ctx.quadraticCurveTo(rootX, leaf.y + 150, leaf.x, leaf.y);
+                ctx.stroke();
+            });
+
+            leaves.forEach(leaf => {
+                if (leaf.scale < leaf.maxScale) leaf.scale += leaf.growthRate;
+                drawLeaf(leaf);
+
+                // Peluang sangat kecil (0.3%) daun menghasilkan oksigen angka agar lebih minimalis
+                if (Math.random() < 0.003) {
+                    spawnBubble(leaf.x, leaf.y);
+                }
+            });
+
+            for (let i = bubbles.length - 1; i >= 0; i--) {
+                let b = bubbles[i];
+                b.x += b.speedX + Math.sin(time * 0.002 + b.drift) * 0.5;
+                b.y += b.speedY;
+                b.opacity -= 0.005; // Fade out lebih cepat
+
+                if (b.opacity <= 0) {
+                    bubbles.splice(i, 1);
+                    continue;
+                }
+
+                ctx.save();
+                ctx.globalAlpha = b.opacity;
+                ctx.fillStyle = '#065f46';
+                ctx.font = `bold ${b.size}px 'Inter', sans-serif`;
+                ctx.fillText(b.char, b.x, b.y);
+                ctx.restore();
+            }
+
+            requestAnimationFrame(animate);
+        }
+        requestAnimationFrame(animate);
+    </script>
 </body>
 
 </html>

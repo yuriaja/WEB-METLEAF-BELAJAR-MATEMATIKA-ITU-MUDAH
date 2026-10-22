@@ -25,11 +25,32 @@ class MathLeafController extends Controller
         return response()->json(['user'=>$user->only('id','name','email','role'),'redirect'=>$user->role==='guru'?'/guru':'/dashboard'],201);
     }
     public function login(Request $r) {
-        $v=$r->validate(['email'=>'required|email','password'=>'required|string','role'=>'required|in:siswa,guru']);
+        $v=$r->validate([
+            'email'=>'required|email',
+            'password'=>'required|string',
+            'role'=>'required|in:siswa,guru',
+            'kode_kelas'=>'nullable|string|max:12',
+        ]);
         if(!Auth::attempt(['email'=>$v['email'],'password'=>$v['password'],'role'=>$v['role']])) throw ValidationException::withMessages(['email'=>'Email, kata sandi, atau peran salah.']);
-        $r->session()->regenerate(); return response()->json(['user'=>$r->user()->only('id','name','email','role'),'redirect'=>$r->user()->role==='guru'?'/guru':'/dashboard']);
+        if($r->user()->role==='siswa' && filled($v['kode_kelas']??null)) {
+            $class=SchoolClass::where('join_code',strtoupper(trim($v['kode_kelas'])))->first();
+            if(!$class) {
+                Auth::logout();
+                throw ValidationException::withMessages(['kode_kelas'=>'Kode kelas tidak ditemukan. Periksa kembali kode dari gurumu.']);
+            }
+            $class->students()->syncWithoutDetaching([$r->user()->id]);
+        }
+        $r->session()->regenerate();
+        $redirect=$r->user()->role==='guru'?'/guru':'/dashboard';
+        if($r->expectsJson()) return response()->json(['user'=>$r->user()->only('id','name','email','role'),'redirect'=>$redirect]);
+        return redirect()->to($redirect);
     }
-    public function logout(Request $r) { Auth::logout();$r->session()->invalidate();$r->session()->regenerateToken();return response()->json(['ok'=>true]); }
+    public function logout(Request $r) {
+        Auth::logout();$r->session()->invalidate();$r->session()->regenerateToken();
+        return $r->expectsJson()
+            ? response()->json(['ok'=>true])
+            : redirect()->route('login');
+    }
     public function me(Request $r) { return response()->json($r->user()->only('id','name','email','role')); }
     public function overview(Request $r) {
         $u=$r->user();$attempts=$u->attempts()->whereNotNull('score');
