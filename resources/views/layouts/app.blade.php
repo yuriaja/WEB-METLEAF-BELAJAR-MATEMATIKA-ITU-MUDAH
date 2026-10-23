@@ -10,47 +10,6 @@
     <link rel="stylesheet" href="{{ asset('css/mathleaf.css') }}" />
     <script defer src="{{ asset('js/mathleaf.js') }}"></script>
     <style>
-        /* Styling tambahan untuk dropdown di sidebar dan banner notifikasi */
-        .sidebar-dropdown-wrapper {
-            position: relative;
-            display: flex;
-            align-items: center;
-            width: 100%;
-        }
-
-        .sidebar-dropdown-wrapper .icon-left {
-            position: absolute;
-            left: 12px;
-            color: #64748b;
-            pointer-events: none;
-        }
-
-        .sidebar-dropdown-wrapper .icon-right {
-            position: absolute;
-            right: 12px;
-            color: #64748b;
-            pointer-events: none;
-        }
-
-        .sidebar-select {
-            width: 100%;
-            padding: 10px 30px 10px 38px;
-            border-radius: 8px;
-            border: 1px solid #cbd5e1;
-            background: #f8fafc;
-            font-size: 0.85rem;
-            font-weight: 600;
-            color: #0f172a;
-            cursor: pointer;
-            outline: none;
-            appearance: none;
-            transition: border-color 0.2s;
-        }
-
-        .sidebar-select:focus {
-            border-color: #086534;
-        }
-
         .alert-no-class {
             background-color: #fef2f2;
             border: 1px solid #f87171;
@@ -63,40 +22,83 @@
             gap: 1rem;
             font-weight: 500;
         }
+
+        /* --- TAMBAHAN CSS UNTUK MEMPERLEBAR SIDEBAR & MENU --- */
+        .app-layout {
+            grid-template-columns: 280px 1fr !important;
+            /* Memperlebar ruang layout sidebar */
+        }
+
+        .app-sidebar {
+            width: 280px !important;
+            /* Memperlebar sidebar agar teks tidak sesak */
+        }
+
+        .app-sidebar nav a {
+            font-size: 1.05rem !important;
+            padding: 0.85rem 1.25rem !important;
+            /* Ruang dalam (lebar atas-bawah-kiri-kanan) diperbesar */
+            gap: 14px !important;
+            /* Jarak antara ikon dan teks diperlebar */
+        }
+
+        .app-sidebar nav a svg {
+            width: 20px !important;
+            height: 20px !important;
+        }
+
+        .sidebar-caption {
+            font-size: 0.85rem !important;
+            margin-top: 0.5rem !important;
+            padding-left: 0.25rem;
+        }
     </style>
 </head>
 
 <body data-page="dashboard">
     <div class="app-layout" id="app-layout">
 
-        <!-- MENGAMBIL DATA KELAS UNTUK DROPDOWN SIDEBAR -->
+        <!-- LOGIKA PENGAMBILAN DATA KELAS -->
         @php
             $activeClassId = session('kelas_aktif_id');
-            $userClasses = collect(); // Default koleksi kosong
+            $userClasses = collect();
 
             if (Auth::check()) {
                 if (Auth::user()->role === 'guru') {
                     $userClasses = \Illuminate\Support\Facades\DB::table('classes')
                         ->where('teacher_id', Auth::id())
-                        ->select('id', 'name')
+                        ->select('id', 'name', 'school_year')
                         ->get();
                 } else {
                     $userClasses = \Illuminate\Support\Facades\DB::table('classes')
                         ->join('class_user', 'classes.id', '=', 'class_user.class_id')
+                        ->join('users', 'classes.teacher_id', '=', 'users.id')
                         ->where('class_user.user_id', Auth::id())
-                        ->select('classes.id', 'classes.name')
+                        ->select('classes.id', 'classes.name', 'classes.school_year', 'users.name as teacher_name')
                         ->get();
                 }
             }
 
-            // Penentuan rute Dashboard untuk Logo
+            // Penentuan Data Kelas Aktif (Semua Kelas sbg Default)
+            $activeClass = $userClasses->firstWhere('id', $activeClassId);
+            $showSubtitle = false;
+
+            if ($activeClass) {
+                $activeName = $activeClass->name;
+                $activeTeacher =
+                    Auth::user()->role === 'guru' ? Auth::user()->name : $activeClass->teacher_name ?? 'Guru';
+                $activeYear = $activeClass->school_year ?? '-';
+                $showSubtitle = true;
+            } else {
+                $activeName = $userClasses->isEmpty() ? 'Belum Ada Kelas' : 'Semua Kelas';
+            }
+
             $dashboardRoute = url('/');
             if (Auth::check()) {
                 $dashboardRoute = Auth::user()->role === 'guru' ? route('teacher.dashboard') : url('/dashboard');
             }
         @endphp
 
-        <!-- SIDEBAR -->
         <aside class="app-sidebar">
             <a href="{{ $dashboardRoute }}" class="logo logo-light">
                 <span class="logo-mark">
@@ -118,46 +120,61 @@
                 </span>
             </a>
 
-            <!-- PENGGANTI DIV SIDEBAR CLASS MENJADI DROPDOWN -->
-            <div class="sidebar-class" style="padding: 10px 20px;">
-                <form action="{{ route('classroom.active') }}" method="POST" style="width: 100%; margin: 0;">
-                    @csrf
-                    <div class="sidebar-dropdown-wrapper">
-                        <!-- Ikon Daun/Kelas Kiri -->
-                        <svg class="icon-left" aria-hidden="true" width="18" height="18" viewBox="0 0 24 24"
-                            fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                            stroke-linejoin="round">
-                            <path d="M7 20h10" />
-                            <path d="M10 20c5.5-2.5.8-8.3 5-11" />
-                            <path d="M9 9c-3 0-5-2-5-5 4 0 7 2 7 6" />
-                            <path d="M14 12c0-4 3-6 7-6 0 5-3 7-7 7" />
-                        </svg>
+            <!-- DROPDOWN KELAS: DESAIN MURNI DARI mathleaf.css -->
+            <form action="{{ route('classroom.active') }}" method="POST" style="margin: 0; padding: 0 20px 0 20px;">
+                @csrf
+                <div class="sidebar-class" style="position: relative;">
+                    <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                        style="flex-shrink: 0">
+                        <path d="M7 20h10" />
+                        <path d="M10 20c5.5-2.5.8-8.3 5-11" />
+                        <path d="M9 9c-3 0-5-2-5-5 4 0 7 2 7 6" />
+                        <path d="M14 12c0-4 3-6 7-6 0 5-3 7-7 7" />
+                    </svg>
 
-                        <select name="kelas_id" class="sidebar-select" onchange="this.form.submit()">
-                            @if ($userClasses->isEmpty())
-                                <option value="">Belum Ada Kelas</option>
+                    <span>
+                        {{ $activeName }}
+                        @if ($showSubtitle && !$userClasses->isEmpty())
+                            @if (Auth::user()->role === 'guru')
+                                <small>Semester Ganjil · {{ $activeYear }}</small>
                             @else
-                                <option value="">-- Semua Kelas --</option>
-                                @foreach ($userClasses as $kelas)
-                                    <option value="{{ $kelas->id }}"
-                                        {{ $activeClassId == $kelas->id ? 'selected' : '' }}>
-                                        {{ $kelas->name }}
-                                    </option>
-                                @endforeach
+                                <small>{{ $activeTeacher }} · {{ $activeYear }}</small>
                             @endif
-                        </select>
+                        @endif
+                    </span>
 
-                        <!-- Ikon Panah Kanan -->
-                        <svg class="icon-right" width="14" height="14" viewBox="0 0 24 24" fill="none"
-                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    @if (!$userClasses->isEmpty())
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                            style="margin-left: auto; opacity: 0.7;">
                             <polyline points="6 9 12 15 18 9"></polyline>
                         </svg>
-                    </div>
-                </form>
-            </div>
+
+                        <!-- Invisible Select Input untuk Fungsionalitas Dropdown -->
+                        <select name="kelas_id" onchange="this.form.submit()"
+                            style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; appearance: none;">
+                            <option value="">Semua Kelas</option>
+                            @foreach ($userClasses as $kelas)
+                                @php
+                                    $namaGuru =
+                                        Auth::user()->role === 'guru'
+                                            ? Auth::user()->name
+                                            : $kelas->teacher_name ?? 'Guru';
+                                    $tahunAjar = $kelas->school_year ?? '-';
+                                @endphp
+                                <option value="{{ $kelas->id }}"
+                                    {{ $activeClassId == $kelas->id ? 'selected' : '' }}>
+                                    {{ $kelas->name }}
+                                    ({{ Auth::user()->role === 'guru' ? $tahunAjar : $namaGuru . ' - ' . $tahunAjar }})
+                                </option>
+                            @endforeach
+                        </select>
+                    @endif
+                </div>
+            </form>
 
             @if (Auth::check() && Auth::user()->role === 'guru')
-                <!-- MENU GURU -->
                 <span class="sidebar-caption">MANAJEMEN KELAS</span>
                 <nav>
                     <a href="{{ route('teacher.dashboard') }}"
@@ -234,7 +251,6 @@
                     </a>
                 </nav>
             @else
-                <!-- MENU SISWA -->
                 <span class="sidebar-caption">RUANG BELAJAR</span>
                 <nav>
                     <a href="{{ url('/dashboard') }}"
@@ -351,7 +367,6 @@
             </div>
         </aside>
 
-        <!-- AREA KONTEN UTAMA & HEADER -->
         <div class="app-main">
             <header class="app-header">
                 <div style="display: flex; align-items: center; gap: 12px">
@@ -367,7 +382,6 @@
                 </div>
 
                 <div style="display: flex; gap: 16px; align-items: center; margin-left: auto;">
-                    <!-- Lonceng Notifikasi -->
                     <button type="button" class="btn btn-ghost" id="notification-button" aria-label="Notifikasi">
                         <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none"
                             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
@@ -393,7 +407,6 @@
             </header>
 
             <main class="app-content">
-                <!-- NOTIFIKASI JIKA SISWA BELUM PUNYA KELAS -->
                 @if (Auth::check() && Auth::user()->role === 'siswa' && $userClasses->isEmpty())
                     <div class="alert-no-class">
                         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -414,7 +427,6 @@
                 @yield('content')
             </main>
         </div>
-
     </div>
 </body>
 
