@@ -121,7 +121,7 @@ class ClassTaskController extends Controller
         ]);
 
         return redirect()
-            ->route('class-tasks.index')
+            ->route('classroom.tasks.index')
             ->with(
                 'success',
                 'Tugas berhasil dibuat!'
@@ -234,7 +234,7 @@ class ClassTaskController extends Controller
         }
 
         return redirect()
-            ->route('class-tasks.index')
+            ->route('classroom.tasks.index')
             ->with(
                 'success',
                 'Tugas berhasil dikumpulkan!'
@@ -282,7 +282,7 @@ class ClassTaskController extends Controller
         ]);
 
         return redirect()
-            ->route('class-tasks.index')
+            ->route('classroom.tasks.index')
             ->with(
                 'success',
                 'Nilai berhasil disimpan!'

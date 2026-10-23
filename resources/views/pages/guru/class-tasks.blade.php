@@ -444,7 +444,7 @@
                 </button>
             </div>
 
-            <form method="POST" action="{{ route('class-tasks.store') }}">
+            <form method="POST" action="{{ route('classroom.tasks.store') }}">
                 @csrf
                 <div class="modal-body">
                     <div class="form-group">
@@ -596,7 +596,7 @@
 
                                             <!-- Lampiran File -->
                                             @if ($submission->file_path)
-                                                <a href="{{ route('class-tasks.download', $submission) }}"
+                                                <a href="{{ route('classroom.tasks.download', $submission) }}"
                                                     class="attachment-link">
                                                     <svg width="16" height="16" viewBox="0 0 24 24"
                                                         fill="none" stroke="currentColor" stroke-width="2"
@@ -621,7 +621,7 @@
 
                                         <td>
                                             <!-- Form Beri Nilai -->
-                                            <form method="POST" action="{{ route('class-tasks.grade', $submission) }}"
+                                            <form method="POST" action="{{ route('classroom.tasks.grade', $submission) }}"
                                                 class="grading-form">
                                                 @csrf
                                                 @method('PATCH')

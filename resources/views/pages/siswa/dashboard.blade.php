@@ -42,10 +42,9 @@
             font-size: 0.85rem;
         }
 
-        /* Banner Dinamis Pengganti "Setiap langkah kecil..." */
+        /* BANNER DINAMIS & CANVAS INTERAKTIF */
         .dashboard-banner {
             background: #0f172a;
-            color: white;
             border-radius: 12px;
             padding: 2rem;
             margin-bottom: 2rem;
@@ -54,17 +53,18 @@
             align-items: center;
             overflow: hidden;
             position: relative;
-            min-height: 180px;
+            min-height: 220px;
             box-shadow: 0 4px 6px rgba(15, 23, 42, 0.1);
         }
 
         .banner-text-content {
             z-index: 2;
             position: relative;
-            max-width: 50%;
+            max-width: 60%;
         }
 
         .banner-text-content h2 {
+            color: white;
             font-size: 1.8rem;
             margin: 0.5rem 0 1rem 0;
             line-height: 1.3;
@@ -91,74 +91,58 @@
             text-decoration: none;
             font-size: 0.95rem;
             transition: background 0.2s;
+            position: relative;
+            z-index: 2;
         }
 
         .btn-primary:hover {
             background: var(--ml-green-hover);
         }
 
-        /* Area Notifikasi Interaktif (Matahari & Daun) */
-        .notification-interactive-area {
+        /* Canvas Tumbuhan 3D */
+        #dashboardPlantCanvas {
             position: absolute;
             right: 0;
-            bottom: -20px;
             top: 0;
+            bottom: 0;
             width: 40%;
-            display: flex;
-            justify-content: flex-end;
-            align-items: center;
-            padding-right: 3rem;
+            height: 100%;
             z-index: 1;
-            pointer-events: auto;
-        }
-
-        .interactive-item {
-            background: transparent;
-            border: none;
             cursor: pointer;
-            position: relative;
-            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
 
-        .interactive-item:hover {
-            transform: scale(1.1);
+        /* Overlay Notifikasi Angka di atas Tanaman */
+        .notif-badge-overlay {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: #ef4444;
+            color: white;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            font-weight: bold;
+            border: 3px solid #0f172a;
+            z-index: 2;
+            cursor: pointer;
+            animation: bounce 2s infinite;
+            display: none;
         }
 
-        /* Animasi Goyang Daun */
-        @keyframes sway {
+        @keyframes bounce {
 
             0%,
             100% {
-                transform: rotate(-5deg);
+                transform: translateY(0);
             }
 
             50% {
-                transform: rotate(5deg);
+                transform: translateY(-5px);
             }
-        }
-
-        .leaf-icon {
-            animation: sway 3s ease-in-out infinite;
-            transform-origin: bottom center;
-        }
-
-        .leaf-icon:nth-child(2) {
-            animation-delay: 0.5s;
-        }
-
-        .leaf-icon:nth-child(3) {
-            animation-delay: 1s;
-        }
-
-        /* Animasi Putar Matahari */
-        @keyframes spin-slow {
-            100% {
-                transform: rotate(360deg);
-            }
-        }
-
-        .sun-icon svg {
-            animation: spin-slow 20s linear infinite;
         }
 
         /* Pop-up Notifikasi Kustom */
@@ -187,7 +171,7 @@
             background: white;
             border-radius: 12px;
             width: 100%;
-            max-width: 400px;
+            max-width: 420px;
             box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
             transform: translateY(20px);
             transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
@@ -326,10 +310,9 @@
                 max-width: 100%;
             }
 
-            .notification-interactive-area {
-                opacity: 0.2;
+            #dashboardPlantCanvas {
+                opacity: 0.3;
                 width: 100%;
-                pointer-events: none;
             }
         }
 
@@ -366,13 +349,6 @@
             font-size: 1.25rem;
             margin: 0;
             color: #0f172a;
-        }
-
-        .panel-head a {
-            color: var(--ml-green);
-            text-decoration: none;
-            font-weight: 600;
-            font-size: 0.9rem;
         }
 
         .activity-row {
@@ -443,7 +419,7 @@
                 </svg>
                 RUANG BERTUMBUHMU
             </span>
-            <h1>Halo, {{ Auth::user()->name ?? 'Karin' }}! Selamat Datang! </h1>
+            <h1>Halo, {{ Auth::user()->name ?? 'Karin' }}! Selamat Datang! 👋</h1>
             <p>Hari yang baik untuk belajar hal baru. Yuk, lanjutkan petualanganmu!</p>
         </div>
         <span class="badge-date">
@@ -459,22 +435,18 @@
     </div>
 
     @php
-        // SIMULASI NOTIFIKASI (Kamu bisa ganti dengan query database seperti auth()->user()->unreadNotifications)
-        // Ubah angka ini menjadi 0 untuk melihat animasi matahari, atau > 0 untuk animasi daun
-        $unreadCount = 2;
+        // Variabel ini akan dilempar ke Javascript untuk menentukan jumlah daun 3D
+        $unreadCount = 2; // Ubah ke 0 untuk melihat banner tanpa notifikasi/tumbuhan
 
-        // Teks dinamis banner
         $bannerTitle =
-            $unreadCount > 0
-                ? "Ada $unreadCount aktivitas baru yang menantimu."
-                : 'Tumbuhanmu sedang bersantai di bawah matahari cerah.';
+            $unreadCount > 0 ? "Ada $unreadCount tugas menantimu." : 'Matahari cerah, hari ini kosong dari tugas.';
         $bannerDesc =
             $unreadCount > 0
-                ? 'Jangan biarkan tugasmu menumpuk. Yuk, selesaikan sekarang agar tumbuhanmu tumbuh subur!'
-                : 'Kamu sudah menyelesaikan semua tugas! Lanjutkan petualangan dengan menjelajahi materi sebelumnya.';
+                ? 'Ayo selesaikan tugas-tugas di bawah ini agar tumbuhan pemahamanmu makin rimbun! Klik tumbuhan di samping untuk melihat detail.'
+                : 'Hebat! Kamu sudah menyelesaikan semua tugas. Lanjutkan petualangan dengan mengulang materi terdahulu atau membaca E-Modul baru.';
     @endphp
 
-    <!-- Banner Dinamis Pengganti Hero Image Statis -->
+    <!-- Banner Utama -->
     <section class="dashboard-banner">
         <div class="banner-text-content">
             <span class="eyebrow"
@@ -492,61 +464,13 @@
             </a>
         </div>
 
-        <!-- Area Animasi Interaktif -->
-        <div class="notification-interactive-area">
-            <button type="button" class="interactive-item" onclick="openInteractivePopup()">
-                @if ($unreadCount == 0)
-                    <!-- Tampilan 0 Notif (Matahari Senyum) -->
-                    <div class="sun-icon" style="position: relative;">
-                        <!-- Matahari Base -->
-                        <svg width="120" height="120" viewBox="0 0 24 24" fill="none" stroke="#f59e0b"
-                            stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                            <circle cx="12" cy="12" r="5" fill="#fef3c7"></circle>
-                            <line x1="12" y1="1" x2="12" y2="3"></line>
-                            <line x1="12" y1="21" x2="12" y2="23"></line>
-                            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
-                            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
-                            <line x1="1" y1="12" x2="3" y2="12"></line>
-                            <line x1="21" y1="12" x2="23" y2="12"></line>
-                            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
-                            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
-                        </svg>
-                        <!-- Muka Senyum Absolut (Tidak ikut mutar) -->
-                        <svg width="120" height="120" viewBox="0 0 24 24" fill="none" stroke="#d97706"
-                            stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"
-                            style="position: absolute; top:0; left:0;">
-                            <circle cx="9" cy="10" r="1" fill="#d97706"></circle>
-                            <circle cx="15" cy="10" r="1" fill="#d97706"></circle>
-                            <path d="M9 14.5c1.5 1.5 4.5 1.5 6 0"></path>
-                        </svg>
-                    </div>
-                @else
-                    <!-- Tampilan Ada Notif (Daun Tumbuh) -->
-                    <div style="display: flex; gap: -20px; position: relative;">
-                        <!-- Batasi maksimal 3 daun agar rapi -->
-                        @for ($i = 0; $i < min($unreadCount, 3); $i++)
-                            <div class="leaf-icon">
-                                <svg width="80" height="100" viewBox="0 0 24 24" fill="var(--ml-green-light)"
-                                    stroke="var(--ml-green)" stroke-width="1.5" stroke-linecap="round"
-                                    stroke-linejoin="round">
-                                    <path d="M11 20A7 7 0 0 1 4 13C4 5 14 3 21 3c0 7-2 17-10 17Z"></path>
-                                    <path d="M4 21c0-6 5-11 11-14"></path>
-                                </svg>
-                                <!-- Badge angka notif kecil di atas daun terakhir -->
-                                @if ($i == min($unreadCount, 3) - 1)
-                                    <div
-                                        style="position: absolute; top: 10px; right: 10px; background: #ef4444; color: white; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; font-weight: bold; border: 2px solid #0f172a;">
-                                        {{ $unreadCount }}</div>
-                                @endif
-                            </div>
-                        @endfor
-                    </div>
-                @endif
-            </button>
-        </div>
+        <!-- Area Canvas Interaktif Tumbuhan -->
+        <canvas id="dashboardPlantCanvas" onclick="openInteractivePopup()" title="Klik untuk lihat notifikasi"></canvas>
+        <!-- Badge Merah (Muncul jika ada notif > 0) -->
+        <div id="notifBadge" class="notif-badge-overlay" onclick="openInteractivePopup()">{{ $unreadCount }}</div>
     </section>
 
-    <!-- Pop-up Overlay Kustom -->
+    <!-- Pop-up Overlay -->
     <div id="interactive-popup" class="custom-popup-overlay">
         <div class="custom-popup-box">
             <div class="popup-header">
@@ -577,7 +501,6 @@
                     <p><strong>Belum ada tugas atau materi baru!</strong><br>Yuk, jangan tunggu gurumu. Cek lagi pelajaran
                         terdahulu atau eksplorasi materi lain. Terus belajar, satu langkah kecil setiap hari 🌱</p>
                 @else
-                    <!-- Loop notifikasi jika ada (Contoh Hardcode) -->
                     <div class="notif-list-item">
                         <strong>Tugas Baru: Pecahan Lanjutan</strong>
                         <small>Diberikan oleh Guru Budi · 1 jam yang lalu</small>
@@ -586,7 +509,6 @@
                         <strong>Kuis Terjadwal: Bilangan Bulat</strong>
                         <small>Batas waktu: Besok, 23:59</small>
                     </div>
-
                     <a href="#" class="btn-primary"
                         style="width: 100%; margin-top: 1rem; justify-content: center; background: #0f172a;">Lihat Semua
                         Notifikasi</a>
@@ -594,22 +516,6 @@
             </div>
         </div>
     </div>
-
-    <script>
-        function openInteractivePopup() {
-            document.getElementById('interactive-popup').classList.add('active');
-        }
-
-        function closeInteractivePopup() {
-            document.getElementById('interactive-popup').classList.remove('active');
-        }
-        // Tutup popup kalau klik di luar kotak putih
-        document.getElementById('interactive-popup').addEventListener('click', function(e) {
-            if (e.target === this) {
-                closeInteractivePopup();
-            }
-        });
-    </script>
 
     <!-- Statistik 4 Kotak -->
     <div class="stats-grid">
@@ -619,9 +525,8 @@
                     <path d="M12 20v-6M6 20V10M18 20V4"></path>
                 </svg></span>
             <div class="stat-content">
-                <span class="stat-label">Progres Pembelajaran</span>
-                <span class="stat-value">65%</span>
-                <span class="stat-desc">Terus bertumbuh, ya!</span>
+                <span class="stat-label">Progres Pembelajaran</span><span class="stat-value">65%</span><span
+                    class="stat-desc">Terus bertumbuh, ya!</span>
             </div>
         </div>
         <div class="stat-card">
@@ -632,9 +537,8 @@
                     <polyline points="22 4 12 14.01 9 11.01"></polyline>
                 </svg></span>
             <div class="stat-content">
-                <span class="stat-label">Tugas Selesai</span>
-                <span class="stat-value">8</span>
-                <span class="stat-desc">dari 12 tugas belajar</span>
+                <span class="stat-label">Tugas Selesai</span><span class="stat-value">8</span><span
+                    class="stat-desc">dari 12 tugas belajar</span>
             </div>
         </div>
         <div class="stat-card">
@@ -646,9 +550,8 @@
                     <line x1="12" y1="16" x2="12.01" y2="16"></line>
                 </svg></span>
             <div class="stat-content">
-                <span class="stat-label">Tugas Belum Selesai</span>
-                <span class="stat-value">4</span>
-                <span class="stat-desc">Yuk, selesaikan bertahap</span>
+                <span class="stat-label">Tugas Belum Selesai</span><span class="stat-value">4</span><span
+                    class="stat-desc">Yuk, selesaikan bertahap</span>
             </div>
         </div>
         <div class="stat-card">
@@ -660,9 +563,8 @@
                     </polygon>
                 </svg></span>
             <div class="stat-content">
-                <span class="stat-label">Rata-rata Nilai</span>
-                <span class="stat-value">85</span>
-                <span class="stat-desc">Pemahamanmu semakin baik</span>
+                <span class="stat-label">Rata-rata Nilai</span><span class="stat-value">85</span><span
+                    class="stat-desc">Pemahamanmu semakin baik</span>
             </div>
         </div>
     </div>
@@ -686,10 +588,7 @@
                             <line x1="16" y1="17" x2="8" y2="17"></line>
                             <polyline points="10 9 9 9 8 9"></polyline>
                         </svg></span>
-                    <div>
-                        <strong>Menyelesaikan kuis Bilangan Bulat · Nilai 85</strong>
-                        <small>Hari ini, 09.30</small>
-                    </div>
+                    <div><strong>Menyelesaikan kuis Bilangan Bulat · Nilai 85</strong><small>Hari ini, 09.30</small></div>
                 </div>
                 <div class="activity-row">
                     <span class="stat-icon" style="width:32px; height:32px;"><svg width="16" height="16"
@@ -699,10 +598,7 @@
                                 d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z">
                             </path>
                         </svg></span>
-                    <div>
-                        <strong>Mengirim pertanyaan tentang bilangan negatif</strong>
-                        <small>Kemarin, 14.15</small>
-                    </div>
+                    <div><strong>Mengirim pertanyaan tentang bilangan negatif</strong><small>Kemarin, 14.15</small></div>
                 </div>
                 <div class="activity-row">
                     <span class="stat-icon" style="width:32px; height:32px;"><svg width="16" height="16"
@@ -710,10 +606,7 @@
                             stroke-linecap="round" stroke-linejoin="round">
                             <polygon points="6 3 20 12 6 21 6 3"></polygon>
                         </svg></span>
-                    <div>
-                        <strong>Menonton Video Operasi Bilangan</strong>
-                        <small>12 Oktober, 10.00</small>
-                    </div>
+                    <div><strong>Menonton Video Operasi Bilangan</strong><small>12 Oktober, 10.00</small></div>
                 </div>
             </section>
         </div>
@@ -752,4 +645,163 @@
             </section>
         </div>
     </div>
+
+    <!-- SCRIPTS: Logic Tumbuhan 3D Math Plant Khusus Banner -->
+    <script>
+        // POP-UP LOGIC
+        function openInteractivePopup() {
+            document.getElementById('interactive-popup').classList.add('active');
+        }
+
+        function closeInteractivePopup() {
+            document.getElementById('interactive-popup').classList.remove('active');
+        }
+        document.getElementById('interactive-popup').addEventListener('click', function(e) {
+            if (e.target === this) closeInteractivePopup();
+        });
+
+        // CANVAS ANIMATION LOGIC
+        const notifCount = {{ $unreadCount }};
+        const canvas = document.getElementById('dashboardPlantCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // Tampilkan badge angka di canvas jika > 0
+        if (notifCount > 0) {
+            document.getElementById('notifBadge').style.display = 'flex';
+        }
+
+        let w, h;
+
+        function resize() {
+            w = canvas.width = canvas.offsetWidth;
+            h = canvas.height = canvas.offsetHeight;
+        }
+        window.addEventListener('resize', resize);
+        resize();
+
+        const leaves = [];
+        const bubbles = [];
+        const mathChars = ['+', '−', '×', '÷', '=', '%', '½'];
+
+        let rootX = w * 0.7; // Akar tanaman berada sedikit ke kanan
+        let rootY = h + 20;
+
+        function addLeaf(targetX, targetY) {
+            let baseAng = (Math.random() * Math.PI) - (Math.random() * Math.PI);
+            leaves.push({
+                x: targetX,
+                y: targetY,
+                baseAngle: baseAng,
+                angle: baseAng,
+                scale: 0,
+                maxScale: Math.random() * 0.5 + 0.5,
+                growthRate: 0.05,
+                swaySpeed: Math.random() * 0.0015 + 0.001,
+                swayOffset: Math.random() * Math.PI * 2,
+                swayAmount: Math.random() * 0.15 + 0.05
+            });
+            spawnBubble(targetX, targetY);
+        }
+
+        function spawnBubble(x, y) {
+            bubbles.push({
+                x: x + (Math.random() * 40 - 20),
+                y: y + (Math.random() * 40 - 20),
+                char: mathChars[Math.floor(Math.random() * mathChars.length)],
+                speedY: -(Math.random() * 1.5 + 0.5),
+                speedX: (Math.random() - 0.5) * 1.0,
+                opacity: 1,
+                size: Math.random() * 10 + 10,
+                drift: Math.random() * Math.PI * 2
+            });
+        }
+
+        function drawLeaf(leaf) {
+            ctx.save();
+            ctx.translate(leaf.x, leaf.y);
+            ctx.rotate(leaf.angle);
+            ctx.scale(leaf.scale, leaf.scale);
+
+            ctx.beginPath();
+            ctx.moveTo(0, 0);
+            ctx.quadraticCurveTo(35, -35, 70, -10);
+            ctx.quadraticCurveTo(35, 25, 0, 0);
+
+            let gradient = ctx.createLinearGradient(0, 0, 70, 0);
+            gradient.addColorStop(0, '#34d399');
+            gradient.addColorStop(1, '#059669');
+
+            ctx.fillStyle = gradient;
+            ctx.fill();
+
+            ctx.strokeStyle = 'rgba(255,255,255,0.4)';
+            ctx.lineWidth = 1.5;
+            ctx.beginPath();
+            ctx.moveTo(0, 0);
+            ctx.quadraticCurveTo(35, -10, 65, -10);
+            ctx.stroke();
+
+            ctx.restore();
+        }
+
+        // Inisialisasi: Jika ada notif, tumbuhkan daun sesuai jumlah notif (max 6)
+        if (notifCount > 0) {
+            let maxLeaves = Math.min(notifCount, 6);
+            for (let i = 0; i < maxLeaves; i++) {
+                setTimeout(() => {
+                    let ranX = (w * 0.5) + (Math.random() * (w * 0.3));
+                    let ranY = (h * 0.6) - (Math.random() * (h * 0.4));
+                    addLeaf(ranX, ranY);
+                }, i * 300);
+            }
+        }
+
+        function animate(time) {
+            ctx.clearRect(0, 0, w, h);
+
+            if (notifCount > 0) {
+                // Gambar Akar
+                rootX = w * 0.6;
+                ctx.strokeStyle = '#6ee7b7';
+                ctx.lineWidth = 3;
+                ctx.lineCap = 'round';
+                let rootSway = Math.sin(time * 0.0005) * 10;
+
+                leaves.forEach(leaf => {
+                    leaf.angle = leaf.baseAngle + Math.sin(time * leaf.swaySpeed + leaf.swayOffset) * leaf
+                        .swayAmount;
+                    ctx.beginPath();
+                    ctx.moveTo(rootX + rootSway, rootY);
+                    ctx.quadraticCurveTo(rootX, leaf.y + 50, leaf.x, leaf.y);
+                    ctx.stroke();
+                });
+
+                leaves.forEach(leaf => {
+                    if (leaf.scale < leaf.maxScale) leaf.scale += leaf.growthRate;
+                    drawLeaf(leaf);
+                    if (Math.random() < 0.005) spawnBubble(leaf.x, leaf.y);
+                });
+
+                for (let i = bubbles.length - 1; i >= 0; i--) {
+                    let b = bubbles[i];
+                    b.x += b.speedX + Math.sin(time * 0.002 + b.drift) * 0.5;
+                    b.y += b.speedY;
+                    b.opacity -= 0.008;
+                    if (b.opacity <= 0) {
+                        bubbles.splice(i, 1);
+                        continue;
+                    }
+
+                    ctx.save();
+                    ctx.globalAlpha = b.opacity;
+                    ctx.fillStyle = '#6ee7b7'; // Warna text hijau terang
+                    ctx.font = `bold ${b.size}px 'Inter', sans-serif`;
+                    ctx.fillText(b.char, b.x, b.y);
+                    ctx.restore();
+                }
+            }
+            requestAnimationFrame(animate);
+        }
+        requestAnimationFrame(animate);
+    </script>
 @endsection

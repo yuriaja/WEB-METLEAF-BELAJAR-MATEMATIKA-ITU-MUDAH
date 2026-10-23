@@ -79,22 +79,29 @@
                     Math<span class="text-emerald-500">Leaf</span>
                 </h1>
             </div>
-            <h2 class="text-3xl font-bold text-emerald-900 mb-4">Senang bertemu lagi! </h2>
+            <h2 class="text-3xl font-bold text-emerald-900 mb-4">Senang bertemu lagi! 👋</h2>
             <p class="text-lg text-emerald-800 font-medium max-w-md">Masuk untuk melanjutkan perjalanan belajarmu hari
                 ini.</p>
 
             <!-- Kotak Kode Kelas (Pointer Events Auto agar bisa diklik) -->
             <div id="left-kode-kelas-container" class="mt-10 pointer-events-auto transition-all duration-300">
                 <label class="block text-emerald-900 font-bold text-base mb-1">Punya Kode Kelas?</label>
-                <p class="text-xs text-emerald-700 font-medium mb-4">Opsional untuk siswa: masukkan 8 karakter kode kelas dari gurumu untuk langsung bergabung.
+                <p class="text-xs text-emerald-700 font-medium mb-4">Khusus siswa: Masukkan 6 digit kode dari gurumu.
                 </p>
 
                 <div class="flex gap-2 sm:gap-3" id="otp-container">
-                    @for ($i = 0; $i < 8; $i++)
-                        <input type="text" autocomplete="off" aria-label="Karakter kode kelas {{ $i + 1 }}"
-                            class="code-box w-9 h-12 sm:w-11 sm:h-14 rounded-xl text-emerald-900 shadow-sm"
-                            maxlength="1" value="{{ strtoupper(substr(old('kode_kelas', ''), $i, 1)) }}">
-                    @endfor
+                    <input type="text"
+                        class="code-box w-12 h-14 sm:w-14 sm:h-16 rounded-xl text-emerald-900 shadow-sm" maxlength="1">
+                    <input type="text"
+                        class="code-box w-12 h-14 sm:w-14 sm:h-16 rounded-xl text-emerald-900 shadow-sm" maxlength="1">
+                    <input type="text"
+                        class="code-box w-12 h-14 sm:w-14 sm:h-16 rounded-xl text-emerald-900 shadow-sm" maxlength="1">
+                    <input type="text"
+                        class="code-box w-12 h-14 sm:w-14 sm:h-16 rounded-xl text-emerald-900 shadow-sm" maxlength="1">
+                    <input type="text"
+                        class="code-box w-12 h-14 sm:w-14 sm:h-16 rounded-xl text-emerald-900 shadow-sm" maxlength="1">
+                    <input type="text"
+                        class="code-box w-12 h-14 sm:w-14 sm:h-16 rounded-xl text-emerald-900 shadow-sm" maxlength="1">
                 </div>
             </div>
         </div>
@@ -104,26 +111,20 @@
     <div
         class="w-full md:w-[440px] lg:w-[480px] h-full glass-panel z-20 flex flex-col justify-center px-8 lg:px-12 absolute md:relative bottom-0 md:bottom-auto pointer-events-auto rounded-t-[3rem] md:rounded-none md:rounded-l-[3rem] border-t md:border-t-0 border-white overflow-y-auto py-10">
 
-        <form action="{{ url('/login') }}" method="POST" class="flex flex-col gap-5">
+        <form action="{{ url('/api/mathleaf/login') }}" method="POST" class="flex flex-col gap-5">
             @csrf
 
             <!-- Notifikasi Sukses Daftar -->
             @if (session('success'))
                 <div
                     class="bg-emerald-100 border border-emerald-300 text-emerald-800 text-sm font-semibold px-4 py-3 rounded-xl shadow-sm text-center">
-                    {{ session('success') }}
-                </div>
-            @endif
-            @if ($errors->any())
-                <div role="alert"
-                    class="bg-red-100 border border-red-300 text-red-800 text-sm font-semibold px-4 py-3 rounded-xl shadow-sm text-center">
-                    {{ $errors->first() }}
+                    ✅ {{ session('success') }}
                 </div>
             @endif
 
             <!-- Nilai default diambil dari old('role'), jika kosong default 'siswa' -->
             <input type="hidden" name="role" id="role-input" value="{{ old('role', 'siswa') }}">
-            <input type="hidden" name="kode_kelas" id="hidden_class_code" value="{{ old('kode_kelas') }}">
+            <input type="hidden" name="kode_kelas" id="hidden_class_code">
 
             <!-- Role Switcher -->
             <div class="flex p-1 bg-white/50 rounded-xl border border-emerald-100 mb-2">
@@ -176,6 +177,53 @@
             const leftKodeKelasContainer = document.getElementById('left-kode-kelas-container');
             const hiddenInput = document.getElementById('hidden_class_code');
             const inputs = document.querySelectorAll('.code-box');
+            const form = document.querySelector('form');
+            let errorMessage;
+
+            form.addEventListener('submit', async (event) => {
+                event.preventDefault();
+                if (!errorMessage) {
+                    errorMessage = document.createElement('div');
+                    errorMessage.setAttribute('role', 'alert');
+                    errorMessage.setAttribute('aria-live', 'polite');
+                    errorMessage.className =
+                        'bg-red-100 border border-red-300 text-red-800 text-sm font-semibold px-4 py-3 rounded-xl shadow-sm text-center';
+                    form.prepend(errorMessage);
+                }
+                errorMessage.textContent = '';
+
+                const submitButton = form.querySelector('button[type="submit"]');
+                submitButton.disabled = true;
+
+                try {
+                    const response = await fetch(form.action, {
+                        method: 'POST',
+                        headers: {
+                            'Accept': 'application/json',
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                            'X-Requested-With': 'XMLHttpRequest',
+                        },
+                        body: JSON.stringify(Object.fromEntries(new FormData(form))),
+                    });
+                    const result = await response.json();
+
+                    if (!response.ok) {
+                        const firstError = Object.values(result.errors || {}).flat()[0];
+                        throw new Error(firstError || result.message || 'Gagal masuk. Silakan coba lagi.');
+                    }
+
+                    if (!result.redirect) {
+                        throw new Error('Berhasil masuk, tetapi tujuan setelah masuk tidak tersedia.');
+                    }
+
+                    window.location.assign(result.redirect);
+                } catch (error) {
+                    errorMessage.textContent =
+                        error.message || 'Tidak dapat terhubung ke server. Periksa koneksi lalu coba lagi.';
+                    submitButton.disabled = false;
+                }
+            });
 
             // 1. Logika Role Switcher
             roleBtns.forEach(btn => {
@@ -197,20 +245,17 @@
                         leftKodeKelasContainer.style.pointerEvents = 'auto';
                     } else {
                         leftKodeKelasContainer.style.opacity =
-                            '0.2'; // Dibuat buram agar tetap estetik
+                        '0.2'; // Dibuat buram agar tetap estetik
                         leftKodeKelasContainer.style.pointerEvents = 'none';
                         hiddenInput.value = '';
                         inputs.forEach(input => input.value = '');
                     }
                 });
             });
-            const initialRole = document.querySelector(`.role-btn[data-role="${roleInput.value}"]`);
-            if (initialRole) initialRole.click();
 
-            // 2. Logika kotak kode kelas (pindah otomatis)
+            // 2. Logika 6 Kotak Input (Pindah otomatis)
             inputs.forEach((input, index) => {
                 input.addEventListener('input', (e) => {
-                    e.target.value = e.target.value.replace(/[^a-zA-Z0-9]/g, '').toUpperCase().slice(0, 1);
                     updateHiddenCode();
                     if (e.target.value.length === 1 && index < inputs.length - 1) {
                         inputs[index + 1].focus();
@@ -226,14 +271,14 @@
                 input.addEventListener('paste', (e) => {
                     e.preventDefault();
                     const pastedData = e.clipboardData.getData('text').replace(/[^a-zA-Z0-9]/g, '')
-                        .slice(0, inputs.length).toUpperCase();
+                        .slice(0, 6).toUpperCase();
                     for (let i = 0; i < pastedData.length; i++) {
                         if (inputs[i]) inputs[i].value = pastedData[i];
                     }
-                    if (pastedData.length > 0 && pastedData.length < inputs.length) {
+                    if (pastedData.length > 0 && pastedData.length < 6) {
                         inputs[pastedData.length].focus();
-                    } else if (pastedData.length === inputs.length) {
-                        inputs[inputs.length - 1].focus();
+                    } else if (pastedData.length === 6) {
+                        inputs[5].focus();
                     }
                     updateHiddenCode();
                 });
@@ -244,7 +289,6 @@
                 inputs.forEach(input => code += input.value);
                 hiddenInput.value = code;
             }
-            updateHiddenCode();
         });
 
 

@@ -71,21 +71,17 @@
 
         <form action="{{ url('/api/mathleaf/register') }}" method="POST" class="flex flex-col gap-4">
             @csrf
-            <input type="hidden" name="role" id="role-input" value="{{ old('role', 'siswa') }}">
-
-            <div id="register-error" role="alert" aria-live="polite"
-                class="hidden bg-red-100 border border-red-300 text-red-800 text-sm font-semibold px-4 py-3 rounded-xl shadow-sm text-center">
-            </div>
+            <input type="hidden" name="role" id="role-input" value="siswa">
 
             <!-- Role Switcher -->
             <div class="flex p-1 bg-white/50 rounded-xl border border-emerald-100 mb-2">
                 <button type="button"
-                    class="role-btn w-1/2 py-2.5 rounded-lg text-sm font-bold transition-all {{ old('role', 'siswa') === 'siswa' ? 'bg-emerald-500 text-white shadow-md' : 'text-emerald-700' }}"
+                    class="role-btn w-1/2 py-2.5 rounded-lg text-sm font-bold bg-emerald-500 text-white shadow-md transition-all"
                     data-role="siswa">
                     Siswa
                 </button>
                 <button type="button"
-                    class="role-btn w-1/2 py-2.5 rounded-lg text-sm font-bold transition-all {{ old('role', 'siswa') === 'guru' ? 'bg-emerald-500 text-white shadow-md' : 'text-emerald-700' }}"
+                    class="role-btn w-1/2 py-2.5 rounded-lg text-sm font-bold text-emerald-700 transition-all"
                     data-role="guru">
                     Guru
                 </button>
@@ -93,15 +89,13 @@
 
             <div>
                 <label class="block text-emerald-900 font-bold text-sm mb-1.5">Nama Lengkap</label>
-                <input type="text" name="name" value="{{ old('name') }}"
-                    class="input-math w-full rounded-xl px-4 py-3 text-emerald-900"
+                <input type="text" name="name" class="input-math w-full rounded-xl px-4 py-3 text-emerald-900"
                     placeholder="Nama lengkapmu" required>
             </div>
 
             <div>
                 <label class="block text-emerald-900 font-bold text-sm mb-1.5">Alamat Email</label>
-                <input type="email" name="email" value="{{ old('email') }}"
-                    class="input-math w-full rounded-xl px-4 py-3 text-emerald-900"
+                <input type="email" name="email" class="input-math w-full rounded-xl px-4 py-3 text-emerald-900"
                     placeholder="nama@email.com" required>
             </div>
 
@@ -132,16 +126,22 @@
             const roleBtns = document.querySelectorAll('.role-btn');
             const roleInput = document.getElementById('role-input');
             const form = document.querySelector('form');
-            const errorMessage = document.getElementById('register-error');
+            let errorMessage;
 
             form.addEventListener('submit', async (event) => {
                 event.preventDefault();
+                if (!errorMessage) {
+                    errorMessage = document.createElement('div');
+                    errorMessage.setAttribute('role', 'alert');
+                    errorMessage.setAttribute('aria-live', 'polite');
+                    errorMessage.className =
+                        'bg-red-100 border border-red-300 text-red-800 text-sm font-semibold px-4 py-3 rounded-xl shadow-sm text-center';
+                    form.prepend(errorMessage);
+                }
                 errorMessage.textContent = '';
-                errorMessage.classList.add('hidden');
 
                 const submitButton = form.querySelector('button[type="submit"]');
                 submitButton.disabled = true;
-                submitButton.textContent = 'Membuat akun...';
 
                 try {
                     const response = await fetch(form.action, {
@@ -167,10 +167,9 @@
 
                     window.location.assign(result.redirect);
                 } catch (error) {
-                    errorMessage.textContent = error.message || 'Tidak dapat terhubung ke server. Periksa koneksi lalu coba lagi.';
-                    errorMessage.classList.remove('hidden');
+                    errorMessage.textContent =
+                        error.message || 'Tidak dapat terhubung ke server. Periksa koneksi lalu coba lagi.';
                     submitButton.disabled = false;
-                    submitButton.textContent = 'Buat Akun Baru';
                 }
             });
 

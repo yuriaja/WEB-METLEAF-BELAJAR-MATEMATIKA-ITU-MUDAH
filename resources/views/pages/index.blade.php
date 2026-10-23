@@ -5,7 +5,7 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>Beranda | MathLeaf</title>
+    <title>Portal Masuk | MathLeaf</title>
     <meta name="description" content="MathLeaf — Grow Your Math Skills. Portal masuk siswa kelas VII SMP." />
     <link rel="icon" type="image/svg+xml" href="{{ asset('favicon.svg') }}" />
     <script src="https://cdn.tailwindcss.com"></script>

@@ -88,11 +88,17 @@
                         ->get();
                 }
             }
+
+            // Penentuan rute Dashboard untuk Logo
+            $dashboardRoute = url('/');
+            if (Auth::check()) {
+                $dashboardRoute = Auth::user()->role === 'guru' ? route('teacher.dashboard') : url('/dashboard');
+            }
         @endphp
 
         <!-- SIDEBAR -->
         <aside class="app-sidebar">
-            <a href="{{ url('/') }}" class="logo logo-light">
+            <a href="{{ $dashboardRoute }}" class="logo logo-light">
                 <span class="logo-mark">
                     <svg aria-hidden="true" width="23" height="23" viewBox="0 0 24 24" fill="none"
                         stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
@@ -193,8 +199,7 @@
                         </svg>
                         <span>Kelola Kuis</span>
                     </a>
-                    <!-- TAMBAHAN: MENU KELOLA TUGAS GURU -->
-                    <a href="{{ route('class-tasks.index') }}"
+                    <a href="{{ route('classroom.tasks.index') }}"
                         class="{{ request()->is('kelas/tugas*') ? 'selected' : '' }}">
                         <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none"
                             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
@@ -232,8 +237,8 @@
                 <!-- MENU SISWA -->
                 <span class="sidebar-caption">RUANG BELAJAR</span>
                 <nav>
-                    <a href="{{ url('/siswa/dashboard') }}"
-                        class="{{ request()->is('siswa/dashboard') ? 'selected' : '' }}">
+                    <a href="{{ url('/dashboard') }}"
+                        class="{{ request()->is('dashboard') || request()->is('siswa/dashboard') ? 'selected' : '' }}">
                         <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none"
                             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
                             style="flex-shrink: 0">
@@ -242,7 +247,6 @@
                         </svg>
                         <span>Dashboard</span>
                     </a>
-                    <!-- TAMBAHAN: Menu Gabung Kelas Untuk Siswa -->
                     <a href="{{ route('classroom.home') }}" class="{{ request()->is('kelas*') ? 'selected' : '' }}">
                         <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none"
                             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
@@ -264,8 +268,8 @@
                         </svg>
                         <span>Materi Pembelajaran</span>
                     </a>
-                    <a href="{{ url('/siswa/video') }}"
-                        class="{{ request()->is('siswa/video*') ? 'selected' : '' }}">
+                    <a href="{{ url('/video') }}"
+                        class="{{ request()->is('video*') || request()->is('siswa/video*') ? 'selected' : '' }}">
                         <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none"
                             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
                             style="flex-shrink: 0">
@@ -273,8 +277,8 @@
                         </svg>
                         <span>Video Pembelajaran</span>
                     </a>
-                    <a href="{{ url('/siswa/latihan') }}"
-                        class="{{ request()->is('siswa/latihan*') ? 'selected' : '' }}">
+                    <a href="{{ url('/latihan') }}"
+                        class="{{ request()->is('latihan*') || request()->is('siswa/latihan*') ? 'selected' : '' }}">
                         <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none"
                             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
                             style="flex-shrink: 0">
@@ -363,8 +367,6 @@
                 </div>
 
                 <div style="display: flex; gap: 16px; align-items: center; margin-left: auto;">
-                    <!-- Dropdown global dihapus dari sini karena sudah dipindah ke sidebar -->
-
                     <!-- Lonceng Notifikasi -->
                     <button type="button" class="btn btn-ghost" id="notification-button" aria-label="Notifikasi">
                         <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none"
@@ -387,7 +389,6 @@
                 <div class="notification-panel" id="notification-panel" hidden>
                     <strong>Notifikasi MathLeaf</strong>
                     <p>Terus belajar, satu langkah kecil setiap hari 🌱</p>
-                    <!-- Boleh dihapus emoji tanamannya kalau tidak suka -->
                 </div>
             </header>
 
