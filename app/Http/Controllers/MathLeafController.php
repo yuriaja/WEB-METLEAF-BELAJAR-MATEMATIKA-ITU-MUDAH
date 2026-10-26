@@ -5,6 +5,7 @@ use App\Models\{User, SchoolClass, Material, MaterialProgress, Activity, Assessm
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\{Auth, DB, Hash, Storage};
 use Illuminate\Validation\ValidationException;
+use App\Support\ForumAccess;
 
 class MathLeafController extends Controller
 {
@@ -128,17 +129,40 @@ class MathLeafController extends Controller
         abort_unless($submission->file_path && Storage::disk('local')->exists($submission->file_path),404);
         return Storage::disk('local')->download($submission->file_path);
     }
+    // Forum API: gunakan batasan kelas yang sama dengan halaman /forum.
     public function threads(Request $r) {
-        return response()->json(ForumThread::with(['author:id,name,role','comments.author:id,name,role'])->where(fn($q)=>$q->whereNull('class_id')->orWhereIn('class_id',$this->classIds($r)))->latest()->get());
+        return response()->json(
+            ForumThread::with(['author:id,name,role', 'comments.author:id,name,role'])
+                ->whereIn('class_id', ForumAccess::classIds($r->user()))
+                ->latest()
+                ->get()
+        );
     }
     public function newThread(Request $r) {
-        $v=$r->validate(['title'=>'required|string|max:255','body'=>'required|string|max:10000','class_id'=>'nullable|exists:classes,id','activity_id'=>'nullable|exists:activities,id']);
-        $this->belongsToClass($r,$v['class_id']??null);
-        return response()->json(ForumThread::create($v+['user_id'=>$r->user()->id]),201);
+        $v = $r->validate([
+            'title' => 'required|string|max:255',
+            'body' => 'required|string|max:10000',
+            'class_id' => 'required|integer|exists:classes,id',
+            'activity_id' => 'nullable|integer|exists:activities,id',
+        ]);
+        abort_unless(ForumAccess::canAccess($r->user(), (int) $v['class_id']), 403);
+        if (!empty($v['activity_id'])) {
+            abort_unless(
+                Activity::whereKey($v['activity_id'])->where('class_id', $v['class_id'])->exists(),
+                422,
+                'Aktivitas harus berasal dari kelas yang dipilih.'
+            );
+        }
+        return response()->json(ForumThread::create($v + ['user_id' => $r->user()->id]), 201);
     }
-    public function comment(Request $r,ForumThread $thread) {
-        $this->belongsToClass($r,$thread->class_id);$v=$r->validate(['body'=>'required|string|max:10000']);
-        return response()->json(ForumComment::create(['forum_thread_id'=>$thread->id,'user_id'=>$r->user()->id,'body'=>$v['body']]),201);
+    public function comment(Request $r, ForumThread $thread) {
+        abort_unless(ForumAccess::canAccess($r->user(), $thread->class_id), 403);
+        $v = $r->validate(['body' => 'required|string|max:10000']);
+        return response()->json(ForumComment::create([
+            'forum_thread_id' => $thread->id,
+            'user_id' => $r->user()->id,
+            'body' => $v['body'],
+        ]), 201);
     }
     public function teacherOverview(Request $r) {
         $this->teacher($r);$ids=$r->user()->teachingClasses()->pluck('id');

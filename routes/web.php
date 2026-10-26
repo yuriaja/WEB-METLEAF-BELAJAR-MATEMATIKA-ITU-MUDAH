@@ -5,6 +5,9 @@ use App\Http\Controllers\MathLeafController as ML;
 use App\Http\Controllers\ClassroomController;
 use App\Http\Controllers\ClassTaskController;
 use App\Http\Controllers\TeacherGradesController;
+use App\Http\Controllers\ForumController;
+use App\Http\Controllers\StudentQuizController;
+use App\Http\Controllers\StudentGradesController;
 
 /*
 |--------------------------------------------------------------------------
@@ -26,7 +29,10 @@ Route::post('/logout', [ML::class, 'logout'])->name('logout');
 Route::middleware('auth')->group(function () {
     // Tampilan statis
     Route::view('/materi', 'pages.shared.materi')->name('materi.index');
-    Route::view('/forum', 'pages.shared.forum')->name('forum.index');
+    // Forum: topik dan komentar tersimpan dalam database, akses sesuai kelas.
+    Route::get('/forum', [ForumController::class, 'index'])->name('forum.index');
+    Route::post('/forum/topik', [ForumController::class, 'store'])->middleware('throttle:20,1')->name('forum.threads.store');
+    Route::post('/forum/topik/{thread}/balas', [ForumController::class, 'comment'])->middleware('throttle:40,1')->name('forum.comments.store');
     Route::view('/tugas', 'pages.shared.tugas')->name('tugas.index');
     
     // Fitur Kelas Bersama
@@ -43,8 +49,8 @@ Route::middleware('auth')->group(function () {
         
         // Kuis di dalam kelas (Akses Siswa & Guru)
         Route::post('/kuis', [ClassroomController::class, 'createQuiz'])->name('quiz');
-        Route::get('/kuis/{assessment}', [ClassroomController::class, 'takeQuiz'])->name('quiz.take');
-        Route::post('/kuis/{assessment}/jawab', [ClassroomController::class, 'submitQuiz'])->name('quiz.submit');
+        Route::get('/kuis/{assessment}', [StudentQuizController::class, 'take'])->name('quiz.take');
+        Route::post('/kuis/{assessment}/jawab', [StudentQuizController::class, 'submit'])->middleware('throttle:12,1')->name('quiz.submit');
 
         // Tugas Kelas (Branch Hakim)
         Route::get('/tugas', [ClassTaskController::class, 'index'])->name('tasks.index');
@@ -65,8 +71,9 @@ Route::middleware('auth')->group(function () {
     Route::view('/dashboard', 'pages.siswa.dashboard')->name('siswa.dashboard');
     Route::view('/video', 'pages.siswa.video')->name('siswa.video');
     Route::view('/latihan', 'pages.siswa.latihan')->name('siswa.latihan');
-    Route::view('/kuis', 'pages.siswa.kuis')->name('siswa.kuis');
-    Route::view('/nilai', 'pages.siswa.nilai')->name('siswa.nilai');
+    Route::get('/kuis', [StudentQuizController::class, 'index'])->name('siswa.kuis');
+    Route::get('/kuis/hasil/{attempt}', [StudentQuizController::class, 'result'])->name('siswa.quiz.result');
+    Route::get('/nilai', [StudentGradesController::class, 'index'])->name('siswa.nilai');
 });
 
 /*

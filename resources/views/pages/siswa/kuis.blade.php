@@ -316,9 +316,7 @@
                 <polyline points="22 4 12 14.01 9 11.01"></polyline>
             </svg>
             Kuis Tersedia
-            <!-- Misal ada 2 kuis baru (Angka dinamis nantinya) -->
-            <span
-                style="background: #ef4444; color: white; padding: 2px 8px; border-radius: 12px; font-size: 0.75rem;">2</span>
+            <span style="background:#086534;color:white;padding:2px 8px;border-radius:12px;font-size:0.75rem">{{ $available->count() }}</span>
         </button>
         <button type="button" class="tab-btn" id="tab-btn-selesai" onclick="switchTab('selesai')">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
@@ -330,177 +328,74 @@
         </button>
     </div>
 
-    <!-- TAB 1: KUIS TERSEDIA (BELUM DIKERJAKAN) -->
+    @if (session('error'))
+      <div style="padding:14px 18px;margin-bottom:20px;background:#fff1d6;color:#8b5a12;border-radius:10px">{{ session('error') }}</div>
+    @endif
+    @if (session('success'))
+      <div style="padding:14px 18px;margin-bottom:20px;background:#dcfce7;color:#166534;border-radius:10px">{{ session('success') }}</div>
+    @endif
+
+    <!-- Kuis benar-benar diambil dari database kelas siswa -->
     <div id="tab-tersedia" class="tab-content active">
-        <div class="quiz-grid">
-
-            <!-- CARD DUMMY: MODE UJIAN (Fullscreen) -->
-            <div class="quiz-card">
-                <div class="card-header">
-                    <span class="badge orange" style="margin-bottom: 0.8rem;">Evaluasi Tengah Semester</span>
-                    <h3 style="padding-right: 3rem;">Ujian Bilangan Bulat & Pecahan</h3>
-                    <div class="quiz-type-icon icon-ujian" title="Mode Ujian (Layar Penuh)">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-                            <line x1="9" y1="3" x2="9" y2="21"></line>
-                        </svg>
-                    </div>
-                </div>
-                <div class="card-body">
-                    <p style="margin:0; color:#475569; font-size:0.95rem; line-height:1.5;">Ujian komprehensif Bab 1.
-                        Membutuhkan konsentrasi penuh.</p>
-                    <div class="quiz-meta" style="margin-top: 0.5rem;">
-                        <div class="meta-item">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                stroke-width="2">
-                                <circle cx="12" cy="12" r="10"></circle>
-                                <polyline points="12 6 12 12 16 14"></polyline>
-                            </svg>
-                            Durasi: 60 Menit
-                        </div>
-                        <div class="meta-item">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                stroke-width="2">
-                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-                                <polyline points="14 2 14 8 20 8"></polyline>
-                                <line x1="16" y1="13" x2="8" y2="13"></line>
-                                <line x1="16" y1="17" x2="8" y2="17"></line>
-                                <polyline points="10 9 9 9 8 9"></polyline>
-                            </svg>
-                            Jumlah: 20 Soal
-                        </div>
-                        <div class="meta-item" style="color: #ef4444;">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                stroke-width="2">
-                                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
-                                <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
-                            </svg>
-                            Mode: Ujian Ketat (Fullscreen)
-                        </div>
-                    </div>
-                </div>
-                <div class="card-footer">
-                    <!-- LINK MENUJU PREVIEW-KUIS -->
-                    <!-- Asumsi rute untuk memulai kuis adalah 'siswa.quizzes.start' dengan ID kuis -->
-                    <a href="{{ url('/siswa/kuis/1/kerjakan') }}" class="btn-action btn-start">
-                        Mulai Ujian
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <line x1="5" y1="12" x2="19" y2="12"></line>
-                            <polyline points="12 5 19 12 12 19"></polyline>
-                        </svg>
-                    </a>
-                </div>
+      <div class="quiz-grid">
+        @forelse ($available as $assessment)
+          <div class="quiz-card">
+            <div class="card-header">
+              <span class="badge {{ $assessment->type === 'ujian' ? 'orange' : ($assessment->type === 'latihan' ? 'green' : 'blue') }}" style="margin-bottom:0.8rem">
+                {{ ucfirst($assessment->type) }}
+              </span>
+              <h3 style="padding-right:3rem">{{ $assessment->title }}</h3>
+              <div class="quiz-type-icon {{ $assessment->type === 'ujian' ? 'icon-ujian' : 'icon-kuis' }}">✎</div>
             </div>
-
-            <!-- CARD DUMMY: MODE LATIHAN BIASA -->
-            <div class="quiz-card">
-                <div class="card-header">
-                    <span class="badge blue" style="margin-bottom: 0.8rem;">Latihan Harian</span>
-                    <h3 style="padding-right: 3rem;">Latihan: Operasi Hitung Campuran</h3>
-                    <div class="quiz-type-icon icon-latihan" title="Mode Latihan Santai">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M12 20V10"></path>
-                            <path d="M18 20V4"></path>
-                            <path d="M6 20v-4"></path>
-                        </svg>
-                    </div>
-                </div>
-                <div class="card-body">
-                    <p style="margin:0; color:#475569; font-size:0.95rem; line-height:1.5;">Pertajam insting berhitungmu
-                        dengan latihan ringan ini.</p>
-                    <div class="quiz-meta" style="margin-top: 0.5rem;">
-                        <div class="meta-item">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                stroke-width="2">
-                                <circle cx="12" cy="12" r="10"></circle>
-                                <polyline points="12 6 12 12 16 14"></polyline>
-                            </svg>
-                            Durasi: 30 Menit
-                        </div>
-                        <div class="meta-item">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                stroke-width="2">
-                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-                                <polyline points="14 2 14 8 20 8"></polyline>
-                                <line x1="16" y1="13" x2="8" y2="13"></line>
-                                <line x1="16" y1="17" x2="8" y2="17"></line>
-                                <polyline points="10 9 9 9 8 9"></polyline>
-                            </svg>
-                            Jumlah: 10 Soal
-                        </div>
-                        <div class="meta-item">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                stroke-width="2">
-                                <polyline points="20 6 9 17 4 12"></polyline>
-                            </svg>
-                            Mode: Latihan Bebas
-                        </div>
-                    </div>
-                </div>
-                <div class="card-footer">
-                    <!-- LINK MENUJU PREVIEW-KUIS -->
-                    <a href="{{ url('/siswa/kuis/2/kerjakan') }}" class="btn-action btn-start"
-                        style="background: #0ea5e9;">
-                        Mulai Latihan
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <polygon points="5 3 19 12 5 21 5 3"></polygon>
-                        </svg>
-                    </a>
-                </div>
+            <div class="card-body">
+              <div class="quiz-meta">
+                <div class="meta-item">📄 {{ $assessment->questions_count }} soal pilihan ganda</div>
+                <div class="meta-item">⏱ {{ $assessment->time_limit_minutes ? $assessment->time_limit_minutes.' menit (alokasi)' : 'Tanpa alokasi waktu' }}</div>
+                <div class="meta-item">🔁 Maksimal {{ max(1, (int) $assessment->max_attempts) }} percobaan</div>
+              </div>
             </div>
-
-        </div>
+            <div class="card-footer">
+              <a href="{{ route('classroom.quiz.take', $assessment) }}" class="btn-action btn-start">Mulai {{ ucfirst($assessment->type) }} →</a>
+            </div>
+          </div>
+        @empty
+          <div class="empty-state">
+            <h3>Belum ada kuis yang tersedia</h3>
+            <p>Gabung ke kelas menggunakan kode guru, lalu kuis yang diterbitkan akan muncul di sini.</p>
+            <a href="{{ route('classroom.home') }}" class="btn-action btn-view" style="margin:20px auto 0;max-width:250px">Lihat Kelas Saya</a>
+          </div>
+        @endforelse
+      </div>
     </div>
 
-    <!-- TAB 2: RIWAYAT PENGERJAAN (KUIS SELESAI) -->
+    <!-- Riwayat pengerjaan berasal dari tabel assessment_attempts -->
     <div id="tab-selesai" class="tab-content">
-        <div class="quiz-grid">
-
-            <!-- CARD DUMMY: KUIS YANG SUDAH DIKERJAKAN -->
-            <div class="quiz-card" style="opacity: 0.9;">
-                <div class="card-header" style="background: #f8fafc;">
-                    <span class="badge green" style="margin-bottom: 0.8rem;">
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                            stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
-                            <polyline points="20 6 9 17 4 12"></polyline>
-                        </svg>
-                        Selesai Dikerjakan
-                    </span>
-                    <h3>Kuis: Pengenalan Garis Bilangan</h3>
-                </div>
-                <div class="card-body">
-                    <div style="text-align: center; margin: 1rem 0;">
-                        <span
-                            style="display: block; color: #64748b; font-size: 0.9rem; font-weight: 600; text-transform: uppercase;">Skor
-                            Akhir</span>
-                        <strong style="font-size: 3rem; color: var(--ml-green); line-height: 1;">85</strong>
-                        <span style="font-size: 1.2rem; color: #94a3b8;">/ 100</span>
-                    </div>
-                    <div class="quiz-meta" style="background: #f1f5f9; padding: 1rem; border-radius: 8px;">
-                        <div class="meta-item">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                stroke-width="2">
-                                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-                                <line x1="16" y1="2" x2="16" y2="6"></line>
-                                <line x1="8" y1="2" x2="8" y2="6"></line>
-                                <line x1="3" y1="10" x2="21" y2="10"></line>
-                            </svg>
-                            Dikerjakan: 12 Okt 2026, 14:30
-                        </div>
-                    </div>
-                </div>
-                <div class="card-footer">
-                    <a href="{{ url('/rapor') }}" class="btn-action btn-view">
-                        Lihat Rapor Detail
-                    </a>
-                </div>
+      <div class="quiz-grid">
+        @forelse ($attempts as $attempt)
+          <div class="quiz-card">
+            <div class="card-header">
+              <span class="badge green" style="margin-bottom:0.8rem">Selesai dikerjakan</span>
+              <h3>{{ $attempt->assessment?->title ?? 'Kuis' }}</h3>
             </div>
-
-        </div>
+            <div class="card-body">
+              <div style="text-align:center;margin:0.6rem 0">
+                <span style="display:block;color:#64748b;font-size:0.9rem">Nilai</span>
+                <strong style="font-size:3rem;color:var(--ml-green)">{{ number_format((float) $attempt->score, 1) }}</strong>
+                <span style="color:#94a3b8"> / 100</span>
+              </div>
+              <div class="meta-item">{{ $attempt->submitted_at?->format('d M Y H:i') ?? '-' }} · Percobaan {{ $attempt->attempt_number }}</div>
+            </div>
+            <div class="card-footer">
+              <a href="{{ route('siswa.quiz.result', $attempt) }}" class="btn-action btn-view">Lihat Hasil dan Pembahasan</a>
+            </div>
+          </div>
+        @empty
+          <div class="empty-state">
+            <h3>Belum ada kuis yang dikerjakan</h3>
+            <p>Riwayat dan nilai akan muncul setelah kamu mengirim jawaban kuis.</p>
+          </div>
+        @endforelse
+      </div>
     </div>
 
     <script>

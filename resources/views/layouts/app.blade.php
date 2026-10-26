@@ -52,6 +52,45 @@
             margin-top: 0.5rem !important;
             padding-left: 0.25rem;
         }
+        /* MATHLEAF_SIDEBAR_SPACING_FIX_V1
+           Samakan posisi konten dengan lebar sidebar yang tampil. */
+        @media (min-width: 1101px) {
+            .app-layout .app-main { margin-left: 280px; }
+            .app-layout .app-content { padding: 32px; }
+            .app-layout.sidebar-collapsed .app-sidebar { width: 76px !important; }
+            .app-layout.sidebar-collapsed .app-main { margin-left: 76px; }
+            .app-layout.sidebar-collapsed .app-sidebar nav a { padding: 12px !important; justify-content: center; }
+        }
+
+        @media (min-width: 801px) and (max-width: 1100px) {
+            .app-layout .app-sidebar { width: 215px !important; }
+            .app-layout .app-main { margin-left: 215px; }
+            .app-layout .app-content { padding: 28px; }
+            .app-layout.sidebar-collapsed .app-sidebar { width: 76px !important; }
+            .app-layout.sidebar-collapsed .app-main { margin-left: 76px; }
+            .app-layout.sidebar-collapsed .app-sidebar nav a { padding: 12px !important; justify-content: center; }
+        }
+
+        @media (min-width: 561px) and (max-width: 800px) {
+            .app-layout .app-sidebar { width: 76px !important; }
+            .app-layout .app-main { margin-left: 76px; }
+            .app-layout .app-content { padding: 24px 20px; }
+            .app-layout .app-sidebar nav a { padding: 12px !important; justify-content: center; }
+            .app-layout.sidebar-collapsed .app-sidebar { width: 215px !important; }
+            .app-layout.sidebar-collapsed .app-main { margin-left: 76px; }
+            .app-layout.sidebar-collapsed .app-sidebar nav a { padding: 12px 14px !important; justify-content: flex-start; }
+        }
+
+        @media (max-width: 560px) {
+            .app-layout .app-sidebar { width: 62px !important; }
+            .app-layout .app-main,
+            .app-layout.sidebar-collapsed .app-main { margin-left: 62px; }
+            .app-layout .app-content { padding: 20px 16px; }
+            .app-layout .app-sidebar nav a { padding: 12px !important; justify-content: center; }
+            .app-layout.sidebar-collapsed .app-sidebar { width: 215px !important; }
+            .app-layout.sidebar-collapsed .app-sidebar nav a { padding: 12px 14px !important; justify-content: flex-start; }
+        }
+
     </style>
 </head>
 

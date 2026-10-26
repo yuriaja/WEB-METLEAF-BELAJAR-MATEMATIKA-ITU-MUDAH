@@ -269,8 +269,8 @@
                 </svg>
             </div>
             <div class="stat-body">
-                <span class="stat-value">{{ $pendingComments ?? 0 }}</span>
-                <span class="stat-label">Komentar Belum Dibalas</span>
+                <span class="stat-value">{{ $forumThreadsCount ?? 0 }}</span>
+                <span class="stat-label">Topik Diskusi</span>
             </div>
         </div>
     </div>
@@ -283,7 +283,7 @@
                 <h2 class="panel-title">Aksi Cepat</h2>
             </div>
             <div class="quick-actions-grid">
-                <a href="{{ route('teacher.quizzes') }}" class="action-item">
+                <a href="{{ route('classroom.home') }}" class="action-item">
                     <div class="action-left">
                         <span class="action-icon">
                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -298,7 +298,7 @@
                     <span class="action-arrow">→</span>
                 </a>
 
-                <a href="{{ url('/materi') }}" class="action-item">
+                <a href="{{ route('classroom.home') }}" class="action-item">
                     <div class="action-left">
                         <span class="action-icon">
                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -311,7 +311,7 @@
                     <span class="action-arrow">→</span>
                 </a>
 
-                <a href="{{ route('classroom.home') }}" class="action-item">
+                <a href="{{ route('teacher.quizzes') }}" class="action-item">
                     <div class="action-left">
                         <span class="action-icon">
                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -347,33 +347,21 @@
                 <h2 class="panel-title">Aktivitas Siswa Terbaru</h2>
             </div>
             <div class="activity-feed">
-                @if (isset($recentActivities) && $recentActivities->count() > 0)
-                    @foreach ($recentActivities as $activity)
-                        <div class="activity-row">
-                            <div class="activity-time">{{ $activity->created_at->diffForHumans() }}</div>
-                            <div class="activity-text">{!! $activity->description !!}</div>
+                @forelse ($recentActivities as $activity)
+                    <div class="activity-row">
+                        <div class="activity-time">{{ $activity->date?->diffForHumans() ?? '-' }}</div>
+                        <div class="activity-text">
+                            <strong>{{ $activity->actor }}</strong>
+                            {{ $activity->action }} <em>{{ $activity->target }}</em>.
                         </div>
-                    @endforeach
-                @else
-                    <div class="activity-row">
-                        <div class="activity-time">10m lalu</div>
-                        <div class="activity-text"><strong>Budi Santoso</strong> (VII A) mengumpulkan tugas <em>Operasi
-                                Bilangan Bulat</em>.</div>
                     </div>
+                @empty
                     <div class="activity-row">
-                        <div class="activity-time">1j lalu</div>
-                        <div class="activity-text"><strong>Siti Aminah</strong> (VII B) membuat kiriman baru di forum
-                            diskusi.</div>
+                        <div class="activity-text" style="color:#64748b">
+                            Belum ada aktivitas siswa di kelasmu. Aktivitas akan muncul setelah siswa mengumpulkan tugas, menyelesaikan kuis, atau membuat diskusi.
+                        </div>
                     </div>
-                    <div class="activity-row">
-                        <div class="activity-time">2j lalu</div>
-                        <div class="activity-text"><strong>Andi Wijaya</strong> (VII A) menyelesaikan Kuis Aljabar.</div>
-                    </div>
-                    <div class="activity-row">
-                        <div class="activity-time">3j lalu</div>
-                        <div class="activity-text"><strong>Rina Melati</strong> (VII C) bergabung ke kelas VII C.</div>
-                    </div>
-                @endif
+                @endforelse
             </div>
         </div>
     </div>

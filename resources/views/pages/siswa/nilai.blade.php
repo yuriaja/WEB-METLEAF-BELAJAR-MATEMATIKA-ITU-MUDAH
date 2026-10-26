@@ -5,9 +5,9 @@
 
 @section('content')
     @php
-        $userName = Auth::user()->name ?? 'Karin';
-        // Dummy kelas, nanti ambil dari relasi database
-        $namaKelas = 'VII A';
+        $userName = $user->name;
+        $selectedClass = $selectedClassId === null ? null : $classes->firstWhere('id', $selectedClassId);
+        $namaKelas = $selectedClass?->name ?? 'Semua Kelas';
     @endphp
 
     <style>
@@ -455,376 +455,89 @@
 
     <div class="page-heading">
         <div>
-            <span class="eyebrow"
-                style="display: inline-flex; align-items: center; gap: 0.4rem; font-weight: 700; color: #086534; font-size: 0.9rem; letter-spacing: 0.05em; text-transform: uppercase;">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                    stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-                    <polyline points="14 2 14 8 20 8"></polyline>
-                    <line x1="16" y1="13" x2="8" y2="13"></line>
-                    <line x1="16" y1="17" x2="8" y2="17"></line>
-                    <polyline points="10 9 9 9 8 9"></polyline>
-                </svg>
-                RAPOR BELAJAR
-            </span>
-            <h1>
-                Rapor {{ $userName }} - {{ $namaKelas }}
-                <!-- Tombol Ganti Kelas -->
-                <button type="button" class="btn-switch-class"
-                    onclick="alert('Pilihan dropdown kelas akan muncul di sini')">
-                    Ganti Kelas
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <polyline points="6 9 12 15 18 9"></polyline>
-                    </svg>
-                </button>
-            </h1>
-            <p>Setiap latihan membawa pemahaman baru. Yuk, lihat hasil kerjamu sejauh ini!</p>
+            <span style="color:#086534;font-weight:800;font-size:.9rem">RAPOR BELAJAR</span>
+            <h1>Rapor {{ $userName }} — {{ $namaKelas }}</h1>
+            <p>Nilai kuis, tugas, dan kemajuan materimu dihitung dari aktivitas yang tersimpan.</p>
         </div>
+        <form method="GET" action="{{ route('siswa.nilai') }}">
+            <label for="ml-class" style="display:block;margin-bottom:7px;color:#475569">Pilih kelas</label>
+            <select id="ml-class" name="class_id" class="btn-switch-class" onchange="this.form.submit()">
+                <option value="">Semua Kelas</option>
+                @foreach ($classes as $class)
+                    <option value="{{ $class->id }}" @selected($selectedClassId === (int) $class->id)>{{ $class->name }}</option>
+                @endforeach
+            </select>
+        </form>
     </div>
 
     <div class="stats-grid">
-        <div class="stat-card">
-            <span class="stat-icon" style="background: #fef9c3; color: #ca8a04;">
-                <!-- Ikon Bintang (SVG) -->
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                    stroke-linecap="round" stroke-linejoin="round">
-                    <polygon
-                        points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2">
-                    </polygon>
-                </svg>
-            </span>
-            <div class="stat-content">
-                <span class="stat-label">Rata-rata Nilai</span>
-                <div class="stat-value">85</div>
-                <span class="stat-desc">Kategori: Sangat Baik</span>
-            </div>
-        </div>
-
-        <div class="stat-card">
-            <span class="stat-icon" style="background: #e0f2fe; color: #0284c7;">
-                <!-- Ikon Peringkat/Trophy (SVG) -->
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                    stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"></path>
-                    <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"></path>
-                    <path d="M4 22h16"></path>
-                    <path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"></path>
-                    <path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"></path>
-                    <path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"></path>
-                </svg>
-            </span>
-            <div class="stat-content">
-                <span class="stat-label">Peringkat Kelas</span>
-                <div class="stat-value">5 <small>/ 32</small></div>
-                <span class="stat-desc">Pertahankan prestasimu!</span>
-            </div>
-        </div>
-
-        <div class="stat-card">
-            <span class="stat-icon" style="background: var(--ml-green-light); color: var(--ml-green);">
-                <!-- Ikon Buku (SVG) -->
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                    stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path>
-                    <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
-                </svg>
-            </span>
-            <div class="stat-content">
-                <span class="stat-label">Progres Belajar</span>
-                <div class="stat-value">65<small>%</small></div>
-                <span class="stat-desc">Materi berhasil dikuasai</span>
-            </div>
-        </div>
-        <div class="stat-card">
-            <span class="stat-icon" style="background: #f3e8ff; color: #9333ea;">
-                <!-- Ikon Ceklis Dokumen (SVG) -->
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                    stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-                    <polyline points="14 2 14 8 20 8"></polyline>
-                    <path d="M9 15l2 2 4-4"></path>
-                </svg>
-            </span>
-            <div class="stat-content">
-                <span class="stat-label">Tugas Terkumpul</span>
-                <div class="stat-value">8 <small>/ 12</small></div>
-                <span class="stat-desc">Ayo selesaikan sisanya!</span>
-            </div>
-        </div>
+        <div class="stat-card"><div class="stat-content">
+            <span class="stat-label">Rata-rata Nilai</span>
+            <div class="stat-value">{{ $average === null ? '—' : number_format($average, 1) }}</div>
+            <span class="stat-desc">Dari kuis dan tugas yang sudah dinilai</span>
+        </div></div>
+        <div class="stat-card"><div class="stat-content">
+            <span class="stat-label">Kuis Selesai</span>
+            <div class="stat-value">{{ $attempts->count() }}</div>
+            <span class="stat-desc">Total percobaan yang telah dikirim</span>
+        </div></div>
+        <div class="stat-card"><div class="stat-content">
+            <span class="stat-label">Progres Belajar</span>
+            <div class="stat-value">{{ $progressAverage }}<small>%</small></div>
+            <span class="stat-desc">Rata-rata progres materi tersedia</span>
+        </div></div>
+        <div class="stat-card"><div class="stat-content">
+            <span class="stat-label">Tugas Terkumpul</span>
+            <div class="stat-value">{{ $tasksSubmitted }}<small>/ {{ $tasksTotal }}</small></div>
+            <span class="stat-desc">Jumlah tugas dari kelas terpilih</span>
+        </div></div>
     </div>
 
     <section class="panel">
-        <div class="panel-head">
-            <h2>
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--ml-green)"
-                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-                    <line x1="3" y1="9" x2="21" y2="9"></line>
-                    <line x1="9" y1="21" x2="9" y2="9"></line>
-                </svg>
-                Riwayat Penilaian Utama
-            </h2>
-        </div>
-
+        <div class="panel-head"><h2>Riwayat Nilai</h2></div>
         <div class="custom-table-wrap">
             <table class="custom-table">
-                <thead>
-                    <tr>
-                        <th>Kegiatan Pembelajaran</th>
-                        <th>Waktu Penyelesaian</th>
-                        <th>Status</th>
-                        <th>Nilai Akhir</th>
-                        <th>Catatan & Apresiasi Guru</th>
-                    </tr>
-                </thead>
+                <thead><tr><th>Kegiatan</th><th>Tanggal</th><th>Status</th><th>Nilai</th><th>Catatan Guru</th></tr></thead>
                 <tbody>
-                    <tr>
-                        <td>
-                            <strong style="display:block; color:#0f172a; margin-bottom:0.2rem;">Kuis: Bilangan
-                                Bulat</strong>
-                            <small style="color:#64748b;">Evaluasi Tahap 1</small>
-                        </td>
-                        <td>15 Okt 2026</td>
-                        <td>
-                            <span class="badge green">
-                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
-                                    stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
-                                    stroke-linejoin="round">
-                                    <polyline points="20 6 9 17 4 12"></polyline>
-                                </svg>
-                                Selesai
-                            </span>
-                        </td>
-                        <td><b>85</b> / 100</td>
-                        <td>Pemahaman sudah sangat bagus. Ingat untuk lebih teliti lagi pada pengurangan angka negatif ya.
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>
-                            <strong style="display:block; color:#0f172a; margin-bottom:0.2rem;">Tugas: E-LKPD Garis
-                                Bilangan</strong>
-                            <small style="color:#64748b;">Tugas Kelompok</small>
-                        </td>
-                        <td>12 Okt 2026</td>
-                        <td>
-                            <span class="badge blue">
-                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
-                                    stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                    stroke-linejoin="round">
-                                    <circle cx="12" cy="12" r="10"></circle>
-                                    <polyline points="12 6 12 12 16 14"></polyline>
-                                </svg>
-                                Direview
-                            </span>
-                        </td>
-                        <td><b>90</b> / 100</td>
-                        <td>Visualisasi garis bilangan kelompokmu sangat jelas dan kreatif. Pertahankan!</td>
-                    </tr>
-                    <tr>
-                        <td>
-                            <strong style="display:block; color:#0f172a; margin-bottom:0.2rem;">Refleksi: Operasi
-                                Bilangan</strong>
-                            <small style="color:#64748b;">Tugas Individu</small>
-                        </td>
-                        <td>10 Okt 2026</td>
-                        <td>
-                            <span class="badge green">
-                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
-                                    stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
-                                    stroke-linejoin="round">
-                                    <polyline points="20 6 9 17 4 12"></polyline>
-                                </svg>
-                                Selesai
-                            </span>
-                        </td>
-                        <td><b>88</b> / 100</td>
-                        <td>Pola pikir logismu sangat terlihat. Penjelasanmu sangat runtut dan mudah dipahami.</td>
-                    </tr>
+                    @forelse ($history as $entry)
+                        <tr>
+                            <td><strong>{{ $entry->category }}: {{ $entry->title }}</strong></td>
+                            <td>{{ $entry->date?->format('d M Y H:i') ?? '—' }}</td>
+                            <td><span class="badge {{ $entry->score === null ? 'blue' : 'green' }}">{{ $entry->score === null ? 'Menunggu Nilai' : 'Sudah Dinilai' }}</span></td>
+                            <td><b>{{ $entry->score === null ? '—' : number_format((float) $entry->score, 1) }}</b></td>
+                            <td>
+                                {{ $entry->feedback ?? '—' }}
+                                @if ($entry->result_id)
+                                    <a style="display:block;color:#086534;font-weight:600;margin-top:5px" href="{{ route('siswa.quiz.result', $entry->result_id) }}">Lihat hasil kuis</a>
+                                @endif
+                            </td>
+                        </tr>
+                    @empty
+                        <tr><td colspan="5" style="text-align:center;padding:32px;color:#64748b">
+                            Belum ada hasil kuis atau tugas. Mulai belajar dan kerjakan aktivitas dari kelasmu.
+                        </td></tr>
+                    @endforelse
                 </tbody>
             </table>
         </div>
     </section>
 
-    <!-- ==========================================
-         FLOATING WIDGET BUTTON
-         ========================================== -->
-    <div class="widget-toggle-btn" id="widget-btn" onclick="toggleProgressDrawer()" title="Lihat Progres Materi">
-        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-            stroke-linecap="round" stroke-linejoin="round">
-            <path d="M12 20V10"></path>
-            <path d="M18 20V4"></path>
-            <path d="M6 20v-4"></path>
-        </svg>
-    </div>
-
-    <!-- ==========================================
-         PROGRESS DRAWER (SLIDE-OUT DARI KANAN)
-         ========================================== -->
-    <div class="progress-drawer-overlay" id="drawer-overlay" onclick="toggleProgressDrawer()"></div>
-    <div class="progress-drawer" id="progress-drawer">
-        <div class="drawer-header">
-            <h2>
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--ml-green)"
-                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path
-                        d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z">
-                    </path>
-                    <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
-                    <line x1="12" y1="22.08" x2="12" y2="12"></line>
-                </svg>
-                Detail Progres Materi
-            </h2>
-            <button class="btn-close-drawer" onclick="toggleProgressDrawer()">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <line x1="18" y1="6" x2="6" y2="18"></line>
-                    <line x1="6" y1="6" x2="18" y2="18"></line>
-                </svg>
-            </button>
+    <section class="panel">
+        <div class="panel-head"><h2>Progres Materi Kelas</h2></div>
+        <div class="growth-list">
+            @forelse ($materials as $material)
+                @php($percent = (int) $progressByMaterial->get($material->id, 0))
+                <div class="growth-item">
+                    <div class="growth-header">
+                        <div class="growth-info"><strong>{{ $material->title }}</strong><small>{{ $percent === 100 ? 'Tuntas' : ($percent > 0 ? 'Sedang dipelajari' : 'Belum dimulai') }}</small></div>
+                        <div class="growth-percentage">{{ $percent }}%</div>
+                    </div>
+                    <div class="growth-track-bg"><div class="growth-fill" style="width:{{ $percent }}%"></div></div>
+                </div>
+            @empty
+                <p style="color:#64748b">Belum ada materi yang diterbitkan untuk kelas ini.</p>
+            @endforelse
         </div>
-
-        <div class="drawer-content">
-            <div class="growth-list">
-                <!-- MATERI 1: SELESAI -->
-                <div class="growth-item">
-                    <div class="growth-header">
-                        <div class="growth-info">
-                            <strong>Konsep Bilangan Bulat</strong>
-                            <small>
-                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
-                                    stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                    stroke-linejoin="round">
-                                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-                                    <polyline points="22 4 12 14.01 9 11.01"></polyline>
-                                </svg>
-                                Tuntas
-                            </small>
-                        </div>
-                        <div class="growth-percentage">100%</div>
-                    </div>
-                    <div class="growth-track-bg">
-                        <div class="growth-fill" style="width: 100%;">
-                            <div class="growth-leaf-icon">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"
-                                    stroke-linejoin="round">
-                                    <polyline points="20 6 9 17 4 12"></polyline>
-                                </svg>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- MATERI 2: BERJALAN -->
-                <div class="growth-item">
-                    <div class="growth-header">
-                        <div class="growth-info">
-                            <strong>Penjumlahan & Pengurangan</strong>
-                            <small>
-                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
-                                    stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                    stroke-linejoin="round">
-                                    <circle cx="12" cy="12" r="10"></circle>
-                                    <polyline points="12 6 12 12 16 14"></polyline>
-                                </svg>
-                                Sedang dipelajari
-                            </small>
-                        </div>
-                        <div class="growth-percentage" style="color: #f59e0b;">65%</div>
-                    </div>
-                    <div class="growth-track-bg">
-                        <div class="growth-fill"
-                            style="width: 65%; background: linear-gradient(90deg, #fcd34d 0%, #f59e0b 100%);">
-                            <div class="growth-leaf-icon" style="border-color: #f59e0b; color: #f59e0b;">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"
-                                    stroke-linejoin="round">
-                                    <path d="M11 20A7 7 0 0 1 4 13C4 5 14 3 21 3c0 7-2 17-10 17Z"></path>
-                                    <path d="M4 21c0-6 5-11 11-14"></path>
-                                </svg>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- MATERI 3: BELUM DIMULAI -->
-                <div class="growth-item">
-                    <div class="growth-header">
-                        <div class="growth-info">
-                            <strong>Perkalian & Pembagian</strong>
-                            <small>
-                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
-                                    stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                    stroke-linejoin="round">
-                                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2">
-                                    </rect>
-                                    <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
-                                </svg>
-                                Belum dibuka
-                            </small>
-                        </div>
-                        <div class="growth-percentage" style="color: #94a3b8;">0%</div>
-                    </div>
-                    <div class="growth-track-bg">
-                        <div class="growth-fill empty" style="width: 0%;">
-                            <div class="growth-leaf-icon">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"
-                                    stroke-linejoin="round">
-                                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2">
-                                    </rect>
-                                    <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
-                                </svg>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- MATERI 4: BELUM DIMULAI -->
-                <div class="growth-item">
-                    <div class="growth-header">
-                        <div class="growth-info">
-                            <strong>Operasi Pecahan</strong>
-                            <small>
-                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
-                                    stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                    stroke-linejoin="round">
-                                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2">
-                                    </rect>
-                                    <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
-                                </svg>
-                                Belum dibuka
-                            </small>
-                        </div>
-                        <div class="growth-percentage" style="color: #94a3b8;">0%</div>
-                    </div>
-                    <div class="growth-track-bg">
-                        <div class="growth-fill empty" style="width: 0%;">
-                            <div class="growth-leaf-icon">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"
-                                    stroke-linejoin="round">
-                                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2">
-                                    </rect>
-                                    <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
-                                </svg>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-            </div>
-        </div>
-    </div>
-
-    <script>
-        // Logika untuk menampilkan & menyembunyikan Floating Widget Drawer
-        function toggleProgressDrawer() {
-            const drawer = document.getElementById('progress-drawer');
-            const overlay = document.getElementById('drawer-overlay');
-            const btn = document.getElementById('widget-btn');
-
-            drawer.classList.toggle('active');
-            overlay.classList.toggle('active');
-            btn.classList.toggle('active');
-        }
-    </script>
+    </section>
 
 @endsection

@@ -25,11 +25,63 @@ class ClassroomController extends Controller {
  }
  public function teacherDashboard(){
   $this->teacher();
-  $user=auth()->user();
-  $classes=$user->teachingClasses()->withCount('students')->latest()->get();
-  $materials=Material::where('author_id',$user->id)->latest()->get();
-  $assessments=Assessment::where('author_id',$user->id)->withCount('questions')->latest()->get();
-  return view('pages.guru.dashboard',compact('classes','materials','assessments'));
+  $user = auth()->user();
+  $classes = $user->teachingClasses()->withCount('students')->latest()->get();
+  $classIds = $classes->pluck('id')->all();
+  $materials = Material::where('author_id', $user->id)->latest()->get();
+  $assessments = Assessment::where('author_id', $user->id)->withCount('questions')->latest()->get();
+
+  $pendingTasks = \App\Models\Submission::query()
+      ->whereNull('score')
+      ->whereHas('activity', fn ($query) => $query->where('mode', 'tugas')->whereIn('class_id', $classIds))
+      ->count();
+
+  // Angka forum menunjukkan jumlah topik aktual, bukan komentar demo.
+  $forumThreadsCount = \App\Models\ForumThread::query()
+      ->whereIn('class_id', $classIds)
+      ->count();
+
+  $submissions = \App\Models\Submission::query()
+      ->with(['user:id,name', 'activity:id,title,class_id'])
+      ->whereNotNull('user_id')
+      ->whereHas('activity', fn ($query) => $query->where('mode', 'tugas')->whereIn('class_id', $classIds))
+      ->latest('created_at')->limit(6)->get()
+      ->map(fn ($item) => (object) [
+          'date' => $item->submitted_at ?? $item->created_at,
+          'actor' => $item->user?->name ?? 'Siswa',
+          'action' => 'mengumpulkan tugas',
+          'target' => $item->activity?->title ?? 'Tugas',
+      ]);
+
+  $quizAttempts = \App\Models\AssessmentAttempt::query()
+      ->with(['user:id,name', 'assessment:id,title,class_id'])
+      ->whereHas('assessment', fn ($query) => $query->whereIn('class_id', $classIds))
+      ->latest('created_at')->limit(6)->get()
+      ->map(fn ($item) => (object) [
+          'date' => $item->submitted_at ?? $item->created_at,
+          'actor' => $item->user?->name ?? 'Siswa',
+          'action' => 'menyelesaikan kuis',
+          'target' => $item->assessment?->title ?? 'Kuis',
+      ]);
+
+  $threads = \App\Models\ForumThread::query()
+      ->with('author:id,name')
+      ->whereIn('class_id', $classIds)
+      ->latest()->limit(6)->get()
+      ->map(fn ($item) => (object) [
+          'date' => $item->created_at,
+          'actor' => $item->author?->name ?? 'Pengguna',
+          'action' => 'membuka diskusi',
+          'target' => $item->title,
+      ]);
+
+  $recentActivities = $submissions->concat($quizAttempts)->concat($threads)
+      ->sortByDesc('date')->take(6)->values();
+
+  return view('pages.guru.dashboard', compact(
+      'classes', 'materials', 'assessments',
+      'pendingTasks', 'forumThreadsCount', 'recentActivities'
+  ));
  }
  public function teacherQuizzes(){
   $this->teacher();
