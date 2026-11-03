@@ -5,7 +5,7 @@
 
 @section('content')
     @php
-        $isTeacher = Auth::check() && Auth::user()->role === 'guru';
+        $isTeacher = Auth::check() && in_array(Auth::user()->role, ['guru', 'admin'], true);
     @endphp
 
     <style>
@@ -374,7 +374,7 @@
             <h1 class="quiz-main-title">{{ $assessment->title ?? 'Editor Soal Baru' }}</h1>
         </div>
 
-        @if ($isTeacher)
+        @if ($isTeacher && !($locked ?? false))
             <button type="submit" form="quiz-form" class="btn btn-primary">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                     stroke-linecap="round" stroke-linejoin="round">
@@ -403,6 +403,12 @@
     <!-- 1. TAMPILAN GURU (EDITOR KUIS)             -->
     <!-- ========================================== -->
     @if ($isTeacher)
+        @if ($locked ?? false)
+          <p style="background:#fff3de;border:1px solid #f7d59b;border-radius:10px;padding:16px;margin:0 0 18px;color:#704916">Kuis sudah pernah dikerjakan. Untuk menjaga nilai dan jawaban siswa, soal dan pengaturannya tidak dapat diubah.</p>
+        @endif
+        @if ($errors->any())
+          <p style="background:#ffebeb;border:1px solid #efb8b8;border-radius:10px;padding:16px;margin:0 0 18px;color:#9f2424">{{ $errors->first() }}</p>
+        @endif
         <form id="quiz-form" method="POST"
             action="{{ route('teacher.quizzes.update', $assessment) }}">
             @csrf
@@ -449,6 +455,27 @@
                             <label>Deadline Pengumpulan (Opsional)</label>
                             <input type="datetime-local" name="due_at" class="form-control"
                                 value="{{ isset($assessment->due_at) ? \Carbon\Carbon::parse($assessment->due_at)->format('Y-m-d\TH:i') : '' }}">
+                        </div>
+                        <div class="form-group">
+                            <label>Nilai Ketuntasan / KKM</label>
+                            <input type="number" name="passing_score" class="form-control" min="1" max="100"
+                                value="{{ old('passing_score', $assessment->passing_score ?? 70) }}" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Kesempatan Maksimum (termasuk Remedial)</label>
+                            <input type="number" name="max_attempts" class="form-control" min="1" max="5"
+                                value="{{ old('max_attempts', $assessment->max_attempts ?? 2) }}" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Materi Dasar untuk Remedial (Opsional)</label>
+                            <select name="material_id" class="form-control material-choice" data-selected="{{ $assessment->material_id }}">
+                              <option value="">-- Tidak dihubungkan --</option>
+                              @foreach ($materials ?? [] as $material)
+                                <option value="{{ $material->id }}" data-class-id="{{ $material->class_id }}"
+                                  @selected((int) $assessment->material_id === (int) $material->id)>{{ $material->title }}</option>
+                              @endforeach
+                            </select>
+                            <small>Dipakai jika soal tidak punya materi khusus. Hanya materi terbit di kelas yang sama.</small>
                         </div>
                     </div>
 
@@ -538,6 +565,20 @@
                                         class="form-control" value="{{ $q->points ?? 10 }}" min="1" required>
                                 </div>
                             </div>
+                            <div class="form-group" style="margin-top:12px">
+                              <label>Materi Remedial Khusus Soal Ini (Opsional)</label>
+                              <select class="form-control material-choice" name="questions[{{ $index }}][material_id]" data-selected="{{ $q->material_id }}">
+                                <option value="">-- Ikuti materi dasar kuis --</option>
+                                @foreach ($materials ?? [] as $material)
+                                  <option value="{{ $material->id }}" data-class-id="{{ $material->class_id }}"
+                                    @selected((int) $q->material_id === (int) $material->id)>{{ $material->title }}</option>
+                                @endforeach
+                              </select>
+                            </div>
+                            <div class="form-group" style="margin-top:12px">
+                              <label>Pembahasan Jawaban (Opsional)</label>
+                              <textarea class="form-control" name="questions[{{ $index }}][explanation]" rows="2" maxlength="3000">{{ $q->explanation }}</textarea>
+                            </div>
                         </div>
                     </div>
                 @empty
@@ -571,6 +612,12 @@
                                 <div class="form-group"><label>Poin Soal</label><input type="number"
                                         name="questions[0][points]" class="form-control" value="10"></div>
                             </div>
+                            <div class="form-group" style="margin-top:12px"><label>Materi Remedial Khusus Soal Ini</label>
+                              <select class="form-control material-choice" name="questions[0][material_id]"><option value="">-- Ikuti materi dasar kuis --</option></select>
+                            </div>
+                            <div class="form-group" style="margin-top:12px"><label>Pembahasan Jawaban</label>
+                              <textarea class="form-control" name="questions[0][explanation]" maxlength="3000" rows="2"></textarea>
+                            </div>
                         </div>
                     </div>
                 @endforelse
@@ -579,6 +626,9 @@
                 + Tambah Soal Baru
             </button>
         </form>
+        @if ($locked ?? false)
+          <script>document.querySelectorAll('#quiz-form input, #quiz-form select, #quiz-form textarea, #quiz-form button').forEach(el => el.disabled = true);</script>
+        @endif
 
         <script>
             // Toggle Help Text untuk Mode Pengerjaan
@@ -586,6 +636,23 @@
                 const helpBox = document.getElementById('help-mode');
                 helpBox.classList.toggle('active');
             }
+
+            const quizMaterialOptions = @json($materialOptions ?? []);
+            function refreshMaterialSelects() {
+              const activeClass = String(document.querySelector('#quiz-form select[name="class_id"]')?.value ?? '');
+              document.querySelectorAll('#quiz-form select.material-choice').forEach(select => {
+                const previous = String(select.value || select.dataset.selected || '');
+                const firstLabel = select.name === 'material_id' ? '-- Tidak dihubungkan --' : '-- Ikuti materi dasar kuis --';
+                select.replaceChildren(new Option(firstLabel, ''));
+                quizMaterialOptions.filter(m => String(m.class_id) === activeClass).forEach(m => {
+                  select.add(new Option(m.title, String(m.id)));
+                });
+                if ([...select.options].some(o => o.value === previous)) select.value = previous;
+                select.dataset.selected = '';
+              });
+            }
+            document.querySelector('#quiz-form select[name="class_id"]')?.addEventListener('change', refreshMaterialSelects);
+            refreshMaterialSelects();
 
             let qIndex = {{ isset($assessment->questions) ? $assessment->questions->count() : 1 }};
 
@@ -610,9 +677,12 @@
                             <div class="form-group"><label>Kunci Jawaban Benar</label><select name="questions[${qIndex}][correct_answer]" class="form-control"><option value="0">Opsi A</option><option value="1">Opsi B</option><option value="2">Opsi C</option><option value="3">Opsi D</option></select></div>
                             <div class="form-group"><label>Poin Soal</label><input type="number" name="questions[${qIndex}][points]" class="form-control" value="10"></div>
                         </div>
+                        <div class="form-group" style="margin-top:12px"><label>Materi Remedial Khusus Soal Ini</label><select class="form-control material-choice" name="questions[${qIndex}][material_id]"><option value="">-- Ikuti materi dasar kuis --</option></select></div>
+                        <div class="form-group" style="margin-top:12px"><label>Pembahasan Jawaban</label><textarea class="form-control" name="questions[${qIndex}][explanation]" maxlength="3000" rows="2"></textarea></div>
                     </div>
                 </div>`;
                 container.insertAdjacentHTML('beforeend', html);
+                refreshMaterialSelects();
                 qIndex++;
             }
 

@@ -4,10 +4,6 @@
 @section('header_title', 'Manajemen Kuis & Ujian')
 
 @section('content')
-    @php
-        $classes = auth()->user()->teachingClasses()->orderBy('name')->get();
-    @endphp
-
     <style>
         :root {
             --ml-green: #086534;
@@ -449,12 +445,12 @@
                     <div class="quiz-info-left">
                         <!-- Kode Kuis untuk Siswa Join -->
                         <div class="quiz-code-box">
-                            <span class="code-label">Kode Bergabung</span>
+                            <span class="code-label">Kelas / Kode Gabung</span>
                             <div class="code-value-group">
                                 <!-- Asumsi kamu sudah menambahkan kolom quiz_code di database -->
-                                <span class="code-text">{{ $quiz->quiz_code ?? 'XXXXXX' }}</span>
+                                <span class="code-text">{{ optional($classes->firstWhere('id', $quiz->class_id))->join_code ?? '—' }}</span>
                                 <button type="button" class="btn-copy"
-                                    onclick="copyCode('{{ $quiz->quiz_code ?? 'XXXXXX' }}', this)" title="Salin Kode">
+                                    onclick="copyCode('{{ optional($classes->firstWhere('id', $quiz->class_id))->join_code ?? '' }}', this)" title="Salin Kode">
                                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
                                         stroke="currentColor" stroke-width="2" stroke-linecap="round"
                                         stroke-linejoin="round">
@@ -472,6 +468,8 @@
                                     class="badge">{{ optional($classes->firstWhere('id', $quiz->class_id))->name ?? 'Semua Kelas' }}</span>
                                 <span class="badge" style="text-transform: capitalize;">{{ $quiz->type }}</span>
                                 <span class="badge">{{ $quiz->time_limit_minutes }} Menit</span>
+                                <span class="badge">KKM {{ $quiz->passing_score ?? 70 }}</span>
+                                <span class="badge">{{ $quiz->max_attempts }}x kesempatan</span>
                                 <span class="badge badge-status">{{ $quiz->is_published ? 'Aktif' : 'Draft' }}</span>
                             </div>
                             <h2 class="quiz-title">{{ $quiz->title }}</h2>
@@ -480,7 +478,7 @@
 
                     <div class="quiz-actions">
                         <!-- Tombol Edit mengarah ke halaman editor soal penuh (yang akan dibuat terpisah) -->
-                        <a href="#" onclick="alert('Route Editor Soal belum dibuat')" class="btn btn-outline"
+                        <a href="{{ route('teacher.quizzes.edit', $quiz) }}" class="btn btn-outline"
                             title="Edit Soal & Jawaban">
                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                 stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -534,7 +532,7 @@
                                         <td>
                                             <!-- Link menuju halaman Lembar Jawaban Khusus -->
                                             @if ($attempt->status === 'completed' || $attempt->score !== null)
-                                                <a href="#" onclick="alert('Route Lembar Jawaban belum dibuat!')"
+                                                <a href="{{ route('teacher.quizzes.attempt', $attempt) }}"
                                                     class="link-jawaban">
                                                     <svg width="16" height="16" viewBox="0 0 24 24"
                                                         fill="none" stroke="currentColor" stroke-width="2"

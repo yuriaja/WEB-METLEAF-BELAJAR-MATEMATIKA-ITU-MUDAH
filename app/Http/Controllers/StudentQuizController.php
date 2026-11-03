@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Assessment;
 use App\Models\AssessmentAttempt;
+use App\Models\Material;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -45,13 +46,17 @@ class StudentQuizController extends Controller
         $attempts = AssessmentAttempt::query()
             ->where('user_id', $user->id)
             ->whereHas('assessment', fn ($query) => $query->whereIn('class_id', $classIds))
-            ->with('assessment:id,title,type,class_id')
+            ->with('assessment:id,title,type,class_id,passing_score,max_attempts')
             ->orderByDesc('submitted_at')
             ->get();
 
         $attemptCounts = $attempts->countBy('assessment_id');
+        $completedIds = $attempts->filter(fn ($attempt) =>
+            $attempt->score !== null && (float) $attempt->score >= (int) ($attempt->assessment?->passing_score ?? 70)
+        )->pluck('assessment_id')->unique();
         $available = $assessments->filter(fn ($assessment) =>
             ($attemptCounts->get($assessment->id, 0)) < max(1, (int) $assessment->max_attempts)
+            && !$completedIds->contains($assessment->id)
         );
 
         return view('pages.siswa.kuis', compact('available', 'attempts'));
@@ -69,6 +74,13 @@ class StudentQuizController extends Controller
             ->where('user_id', $request->user()->id)
             ->count();
 
+        $passed = AssessmentAttempt::query()->where('assessment_id', $assessment->id)
+            ->where('user_id', $request->user()->id)
+            ->whereNotNull('score')->where('score', '>=', (int) ($assessment->passing_score ?? 70))->exists();
+
+        if ($passed) {
+            return redirect()->route('siswa.kuis')->with('success', 'Kuis sudah tuntas. Tidak perlu remedial.');
+        }
         if ($used >= max(1, (int) $assessment->max_attempts)) {
             return redirect()->route('siswa.kuis')
                 ->with('error', 'Kesempatan mengerjakan kuis ini sudah habis.');
@@ -98,6 +110,11 @@ class StudentQuizController extends Controller
                 ->count();
 
             abort_if($used >= max(1, (int) $assessment->max_attempts), 403, 'Kesempatan kuis sudah habis.');
+            $passed = AssessmentAttempt::query()
+                ->where('assessment_id', $assessment->id)
+                ->where('user_id', $request->user()->id)
+                ->whereNotNull('score')->where('score', '>=', (int) ($assessment->passing_score ?? 70))->exists();
+            abort_if($passed, 403, 'Kuis sudah tuntas. Tidak perlu remedial.');
 
             $questions = $assessment->questions()->get();
             abort_if($questions->isEmpty(), 404, 'Soal kuis belum tersedia.');
@@ -149,13 +166,30 @@ class StudentQuizController extends Controller
         $this->student($request);
         abort_unless($attempt->user_id === $request->user()->id, 403);
 
-        $attempt->load(['assessment', 'answers.question']);
+        $attempt->load(['assessment.material', 'answers.question.material']);
         abort_unless(
             $attempt->assessment?->class_id !== null
                 && $request->user()->classes()->whereKey($attempt->assessment->class_id)->exists(),
             403
         );
 
-        return view('pages.siswa.quiz-result', compact('attempt'));
+        $classId = (int) $attempt->assessment->class_id;
+        $remedialMaterials = $attempt->answers->filter(fn ($answer) => !$answer->is_correct)
+            ->map(fn ($answer) => $answer->question?->material ?: $attempt->assessment->material)
+            ->filter(fn ($material) => $material && $material->is_published && (int) $material->class_id === $classId)
+            ->unique('id')->values();
+        $passingScore = (int) ($attempt->assessment->passing_score ?? 70);
+        $passed = $attempt->score !== null && (float) $attempt->score >= $passingScore;
+        $used = AssessmentAttempt::query()->where('assessment_id', $attempt->assessment_id)
+            ->where('user_id', $request->user()->id)->count();
+        $remaining = max(0, (int) $attempt->assessment->max_attempts - $used);
+        // Percobaan yang sudah tuntas tidak perlu membuka remedial.
+        $everPassed = AssessmentAttempt::query()->where('assessment_id', $attempt->assessment_id)
+            ->where('user_id', $request->user()->id)
+            ->whereNotNull('score')->where('score', '>=', $passingScore)->exists();
+        $canRetry = !$everPassed && $remaining > 0 && (bool) $attempt->assessment->is_published;
+        return view('pages.siswa.quiz-result', compact(
+            'attempt', 'remedialMaterials', 'passingScore', 'passed', 'remaining', 'canRetry'
+        ));
     }
 }

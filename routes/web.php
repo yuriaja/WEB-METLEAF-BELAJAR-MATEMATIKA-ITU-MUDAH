@@ -8,6 +8,7 @@ use App\Http\Controllers\TeacherGradesController;
 use App\Http\Controllers\ForumController;
 use App\Http\Controllers\StudentQuizController;
 use App\Http\Controllers\StudentGradesController;
+use App\Http\Controllers\MaterialController;
 
 /*
 |--------------------------------------------------------------------------
@@ -28,12 +29,20 @@ Route::post('/logout', [ML::class, 'logout'])->name('logout');
 */
 Route::middleware('auth')->group(function () {
     // Tampilan statis
-    Route::view('/materi', 'pages.shared.materi')->name('materi.index');
+    // Materi kelas: terhubung database, berkas privat, dan progres belajar.
+    Route::get('/materi', [MaterialController::class, 'index'])->name('materi.index');
+    Route::post('/materi', [MaterialController::class, 'store'])->name('materi.store');
+    Route::get('/materi/{material}', [MaterialController::class, 'show'])->name('materi.show');
+    Route::put('/materi/{material}', [MaterialController::class, 'update'])->name('materi.update');
+    Route::delete('/materi/{material}', [MaterialController::class, 'destroy'])->name('materi.destroy');
+    Route::patch('/materi/{material}/publikasi', [MaterialController::class, 'publish'])->name('materi.publish');
+    Route::get('/materi/{material}/file', [MaterialController::class, 'file'])->name('materi.file');
+    Route::post('/materi/{material}/progres', [MaterialController::class, 'complete'])->name('materi.complete');
     // Forum: topik dan komentar tersimpan dalam database, akses sesuai kelas.
     Route::get('/forum', [ForumController::class, 'index'])->name('forum.index');
     Route::post('/forum/topik', [ForumController::class, 'store'])->middleware('throttle:20,1')->name('forum.threads.store');
     Route::post('/forum/topik/{thread}/balas', [ForumController::class, 'comment'])->middleware('throttle:40,1')->name('forum.comments.store');
-    Route::view('/tugas', 'pages.shared.tugas')->name('tugas.index');
+    Route::redirect('/tugas', '/kelas/tugas')->name('tugas.index');
     
     // Fitur Kelas Bersama
     Route::prefix('kelas')->name('classroom.')->group(function () {
@@ -55,6 +64,9 @@ Route::middleware('auth')->group(function () {
         // Tugas Kelas (Branch Hakim)
         Route::get('/tugas', [ClassTaskController::class, 'index'])->name('tasks.index');
         Route::post('/tugas', [ClassTaskController::class, 'store'])->name('tasks.store');
+        Route::get('/tugas/{activity}/edit', [ClassTaskController::class, 'edit'])->name('tasks.edit');
+        Route::put('/tugas/{activity}', [ClassTaskController::class, 'update'])->name('tasks.update');
+        Route::delete('/tugas/{activity}', [ClassTaskController::class, 'destroy'])->name('tasks.destroy');
         Route::post('/tugas/{activity}/kumpul', [ClassTaskController::class, 'submit'])->name('tasks.submit');
         Route::patch('/tugas/pengumpulan/{submission}/nilai', [ClassTaskController::class, 'grade'])->name('tasks.grade');
         Route::get('/tugas/pengumpulan/{submission}/file', [ClassTaskController::class, 'download'])->name('tasks.download');
@@ -88,6 +100,7 @@ Route::middleware('auth')->prefix('guru')->name('teacher.')->group(function () {
     Route::get('/kuis', [ClassroomController::class, 'teacherQuizzes'])->name('quizzes');
     Route::post('/kuis/buat', [ClassroomController::class, 'startQuiz'])->name('quizzes.create');
     Route::get('/kuis/{assessment}/edit', [ClassroomController::class, 'editQuiz'])->name('quizzes.edit');
+    Route::get('/kuis/percobaan/{attempt}', [ClassroomController::class, 'quizAttempt'])->name('quizzes.attempt');
     Route::put('/kuis/{assessment}', [ClassroomController::class, 'saveQuiz'])->name('quizzes.update');
     
     // Manajemen Nilai Guru (Branch Hakim)

@@ -27,6 +27,7 @@
     <a href="{{ route('siswa.kuis') }}" style="color:#086534;text-decoration:none;font-weight:650">← Kembali ke daftar kuis</a>
     <h1>{{ $assessment->title }}</h1>
     <p>{{ $assessment->questions->count() }} soal · Kesempatan ke-{{ $used + 1 }} dari {{ max(1, (int) $assessment->max_attempts) }}{{ $assessment->time_limit_minutes ? ' · Alokasi waktu '.$assessment->time_limit_minutes.' menit' : '' }}</p>
+    <p style="margin-top:8px;color:#087344;font-weight:700">Nilai ketuntasan: {{ $assessment->passing_score ?? 70 }}/100. Jika belum tuntas, pelajari kembali materi yang direkomendasikan setelah mengirim jawaban.</p>
   </div>
 
   @if ($errors->any())

@@ -1,6 +1,6 @@
 <?php
 namespace App\Http\Controllers;
-use App\Models\{SchoolClass,Material,Assessment,Question};
+use App\Models\{SchoolClass,Material,Assessment,Question,AssessmentAttempt};
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\{DB,Storage};
 use Illuminate\Support\Str;
@@ -85,8 +85,14 @@ class ClassroomController extends Controller {
  }
  public function teacherQuizzes(){
   $this->teacher();
-  $assessments=Assessment::where('author_id',auth()->id())->withCount('questions')->latest()->get();
-  return view('pages.guru.classroom-quiz',compact('assessments'));
+  $user = auth()->user();
+  $classes = $user->role === 'admin' ? SchoolClass::orderBy('name')->get() : $user->teachingClasses()->orderBy('name')->get();
+  $assessments = Assessment::query()
+   ->whereIn('class_id', $classes->pluck('id'))
+   ->where('author_id', $user->id)
+   ->withCount('questions')->with(['attempts' => fn ($q) => $q->with('user:id,name')->orderByDesc('submitted_at')])
+   ->latest()->get();
+  return view('pages.guru.classroom-quiz', compact('assessments', 'classes'));
  }
  public function startQuiz(Request $r){
   $this->teacher();
@@ -104,7 +110,8 @@ class ClassroomController extends Controller {
    'type'=>$v['type'],
    'time_limit_minutes'=>$v['time_limit_minutes'],
    'is_published'=>false,
-   'max_attempts'=>1,
+   'max_attempts'=>2,
+   'passing_score'=>70,
   ]);
   return redirect()->route('teacher.quizzes.edit',$assessment);
  }
@@ -116,7 +123,13 @@ class ClassroomController extends Controller {
    ? SchoolClass::orderBy('name')->get()
    : $user->teachingClasses()->orderBy('name')->get();
   $assessment->load('questions');
-  return view('pages.shared.see-quiz',compact('assessment','classes'));
+  $materials = Material::query()->whereIn('class_id', $classes->pluck('id'))
+   ->where('is_published', true)->orderBy('title')->get(['id', 'title', 'class_id']);
+  $materialOptions = $materials->map(fn ($item) => [
+   'id' => $item->id, 'title' => $item->title, 'class_id' => $item->class_id,
+  ])->values()->all();
+  $locked = $assessment->attempts()->exists();
+  return view('pages.shared.see-quiz', compact('assessment', 'classes', 'materials', 'materialOptions', 'locked'));
  }
  public function saveQuiz(Request $r,Assessment $assessment){
   $this->teacher();
@@ -127,22 +140,41 @@ class ClassroomController extends Controller {
    'class_id'=>'required|integer',
    'type'=>'required|in:latihan,kuis,ujian',
    'time_limit_minutes'=>'required|integer|between:1,600',
+   'passing_score'=>'required|integer|between:1,100',
+   'max_attempts'=>'required|integer|between:1,5',
+   'material_id'=>'nullable|integer',
    'questions'=>'required|array|min:1|max:50',
    'questions.*.text'=>'required|string|max:3000',
    'questions.*.options'=>'required|array|size:4',
    'questions.*.options.*'=>'required|string|max:1000',
    'questions.*.correct_answer'=>'required|integer|between:0,3',
    'questions.*.points'=>'required|integer|min:1|max:1000',
+   'questions.*.explanation'=>'nullable|string|max:3000',
+   'questions.*.material_id'=>'nullable|integer',
   ]);
   $class=$r->user()->role==='admin'
    ? SchoolClass::findOrFail($v['class_id'])
    : $this->owned((int)$v['class_id']);
+  // Jangan pernah kaitkan soal dengan materi kelas lain atau draft.
+  $materialIds = collect([$v['material_id'] ?? null])
+   ->concat(collect($v['questions'])->pluck('material_id'))
+   ->filter(fn ($id) => $id !== null && $id !== '')->map(fn ($id) => (int) $id)->unique();
+  if ($materialIds->isNotEmpty()) {
+   $allowed = Material::query()->where('class_id', $class->id)->where('is_published', true)
+    ->whereIn('id', $materialIds)->count();
+   if ($allowed !== $materialIds->count()) {
+    throw ValidationException::withMessages(['material_id' => 'Materi remedial wajib terbit dan berada dalam kelas kuis.']);
+   }
+  }
   DB::transaction(function()use($assessment,$v,$class){
    $assessment->update([
     'title'=>$v['title'],
     'class_id'=>$class->id,
     'type'=>$v['type'],
     'time_limit_minutes'=>$v['time_limit_minutes'],
+    'passing_score'=>$v['passing_score'],
+    'max_attempts'=>$v['max_attempts'],
+    'material_id'=>$v['material_id'] ?? null,
     'is_published'=>true,
    ]);
    $assessment->questions()->delete();
@@ -153,11 +185,23 @@ class ClassroomController extends Controller {
      'options'=>$question['options'],
      'correct_answer'=>(string)$question['correct_answer'],
      'points'=>$question['points'],
+     'explanation'=>$question['explanation'] ?? null,
+     'material_id'=>$question['material_id'] ?? null,
      'sort_order'=>$index,
     ]);
    }
   });
   return redirect()->route('teacher.quizzes')->with('success','Kuis berhasil disimpan dan dipublikasikan.');
+ }
+ public function quizAttempt(Request $request, AssessmentAttempt $attempt){
+  $this->teacher();
+  $attempt->load(['assessment', 'answers.question.material', 'user:id,name']);
+  abort_unless($attempt->assessment && $attempt->assessment->class_id, 403);
+  if (auth()->user()->role !== 'admin') {
+   $this->owned((int) $attempt->assessment->class_id);
+   abort_unless((int) $attempt->assessment->author_id === (int) auth()->id(), 403);
+  }
+  return view('pages.guru.quiz-attempt', compact('attempt'));
  }
  public function setActiveClass(Request $r){
   $v=$r->validate(['kelas_id'=>'nullable|integer']);

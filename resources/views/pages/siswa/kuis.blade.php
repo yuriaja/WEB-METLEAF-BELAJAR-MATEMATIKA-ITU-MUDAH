@@ -352,6 +352,7 @@
                 <div class="meta-item">📄 {{ $assessment->questions_count }} soal pilihan ganda</div>
                 <div class="meta-item">⏱ {{ $assessment->time_limit_minutes ? $assessment->time_limit_minutes.' menit (alokasi)' : 'Tanpa alokasi waktu' }}</div>
                 <div class="meta-item">🔁 Maksimal {{ max(1, (int) $assessment->max_attempts) }} percobaan</div>
+                <div class="meta-item">🎯 Ketuntasan: {{ $assessment->passing_score ?? 70 }}/100</div>
               </div>
             </div>
             <div class="card-footer">
@@ -384,6 +385,9 @@
                 <span style="color:#94a3b8"> / 100</span>
               </div>
               <div class="meta-item">{{ $attempt->submitted_at?->format('d M Y H:i') ?? '-' }} · Percobaan {{ $attempt->attempt_number }}</div>
+              <div class="meta-item" style="font-weight:700;color:{{ (float) $attempt->score >= (int) ($attempt->assessment?->passing_score ?? 70) ? '#166534' : '#9a5316' }}">
+                {{ (float) $attempt->score >= (int) ($attempt->assessment?->passing_score ?? 70) ? '✓ Tuntas' : '↻ Belum tuntas, lihat saran remedial' }}
+              </div>
             </div>
             <div class="card-footer">
               <a href="{{ route('siswa.quiz.result', $attempt) }}" class="btn-action btn-view">Lihat Hasil dan Pembahasan</a>

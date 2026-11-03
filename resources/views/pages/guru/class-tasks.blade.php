@@ -430,6 +430,16 @@
         </button>
     </div>
 
+    <form action="{{ route('classroom.tasks.index') }}" method="GET" style="margin: 0 0 1.25rem; display:flex;align-items:center;gap:.75rem; flex-wrap:wrap;">
+        <label for="filter-class-task" style="font-weight:700;">Filter kelas</label>
+        <select id="filter-class-task" name="class_id" class="form-control" style="max-width:280px" onchange="this.form.submit()">
+            <option value="">Semua Kelas</option>
+            @foreach ($classes as $class)
+                <option value="{{ $class->id }}" @selected($selectedClassId === (int) $class->id)>{{ $class->name }}</option>
+            @endforeach
+        </select>
+    </form>
+
     <!-- Modal Buat Tugas Baru -->
     <div id="modal-tugas" class="modal-backdrop">
         <div class="modal-box">
@@ -452,7 +462,7 @@
                         <select name="class_id" class="form-control" required>
                             <option value="">-- Pilih Kelas --</option>
                             @foreach ($classes as $class)
-                                <option value="{{ $class->id }}">{{ $class->name }}
+                                <option value="{{ $class->id }}" @selected(old('class_id') == $class->id)>{{ $class->name }}
                                     {{ $class->school_year ? '(' . $class->school_year . ')' : '' }}</option>
                             @endforeach
                         </select>
@@ -519,24 +529,17 @@
                     </div>
 
                     <div class="task-actions">
-                        <!-- Tombol Edit & Hapus (dengan alert dummy jika belum ada route nya) -->
-                        <button type="button" class="btn btn-outline" onclick="alert('Route Edit Tugas belum dibuat!')"
-                            title="Edit Tugas">
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
-                                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
-                            </svg>
-                        </button>
-                        <button type="button" class="btn btn-danger-outline"
-                            onclick="alert('Route Hapus Tugas belum dibuat!')" title="Hapus Tugas">
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <polyline points="3 6 5 6 21 6"></polyline>
-                                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2">
-                                </path>
-                            </svg>
-                        </button>
+                        <a href="{{ route('classroom.tasks.edit', $task) }}" class="btn btn-outline" title="Edit Tugas">Edit</a>
+                        @if ($task->submissions->isEmpty())
+                            <form action="{{ route('classroom.tasks.destroy', $task) }}" method="POST"
+                                onsubmit="return confirm('Hapus tugas ini? Tindakan ini tidak bisa dibatalkan.');">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="btn btn-danger-outline" title="Hapus Tugas">Hapus</button>
+                            </form>
+                        @else
+                            <span class="task-deadline" title="Sudah ada pengumpulan siswa">Tidak bisa dihapus</span>
+                        @endif
 
                         <!-- Tombol Lihat Detail (Slide down) -->
                         <button type="button" class="btn btn-primary" onclick="toggleTask({{ $task->id }})"
@@ -580,7 +583,7 @@
                                                 {{ $submission->user->name ?? 'Siswa Tidak Dikenal' }}</div>
                                             <div style="color: #64748b; font-size: 0.85rem; margin-top: 0.2rem;">
                                                 Dikumpulkan:
-                                                {{ $submission->created_at ? $submission->created_at->format('d/m/Y H:i') : '-' }}
+                                                {{ $submission->submitted_at ? $submission->submitted_at->format('d/m/Y H:i') : '-' }}
                                             </div>
                                         </td>
 

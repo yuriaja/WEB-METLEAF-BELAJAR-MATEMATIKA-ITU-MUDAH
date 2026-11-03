@@ -111,7 +111,7 @@
     <div
         class="w-full md:w-[440px] lg:w-[480px] h-full glass-panel z-20 flex flex-col justify-center px-8 lg:px-12 absolute md:relative bottom-0 md:bottom-auto pointer-events-auto rounded-t-[3rem] md:rounded-none md:rounded-l-[3rem] border-t md:border-t-0 border-white overflow-y-auto py-10">
 
-        <form action="{{ url('/api/mathleaf/login') }}" method="POST" class="flex flex-col gap-5">
+        <form action="/api/mathleaf/login" method="POST" class="flex flex-col gap-5">
             @csrf
 
             <!-- Notifikasi Sukses Daftar -->
@@ -160,11 +160,11 @@
             </button>
 
             <p class="text-center text-sm text-emerald-800 mt-4 font-medium">
-                Belum punya akun? <a href="{{ url('/daftar') }}"
+                Belum punya akun? <a href="/daftar"
                     class="text-emerald-600 font-bold hover:underline">Daftar Gratis</a>
             </p>
             <div class="text-center mt-6 text-xs text-emerald-700 opacity-60">
-                <a href="{{ url('/') }}" class="hover:underline">← Kembali ke Beranda</a>
+                <a href="/" class="hover:underline">← Kembali ke Beranda</a>
             </div>
         </form>
     </div>
@@ -182,6 +182,10 @@
 
             form.addEventListener('submit', async (event) => {
                 event.preventDefault();
+
+                const submitButton = form.querySelector('button[type="submit"]');
+                if (submitButton.disabled) return;
+
                 if (!errorMessage) {
                     errorMessage = document.createElement('div');
                     errorMessage.setAttribute('role', 'alert');
@@ -191,13 +195,18 @@
                     form.prepend(errorMessage);
                 }
                 errorMessage.textContent = '';
+                errorMessage.hidden = true;
 
-                const submitButton = form.querySelector('button[type="submit"]');
+                const buttonLabel = submitButton.textContent;
                 submitButton.disabled = true;
+                submitButton.textContent = 'Masuk...';
 
                 try {
-                    const response = await fetch(form.action, {
+                    // URL relatif memastikan request memakai domain & HTTPS yang dibuka pengguna.
+                    const response = await fetch(form.getAttribute('action'), {
                         method: 'POST',
+                        mode: 'same-origin',
+                        credentials: 'same-origin',
                         headers: {
                             'Accept': 'application/json',
                             'Content-Type': 'application/json',
@@ -206,26 +215,43 @@
                         },
                         body: JSON.stringify(Object.fromEntries(new FormData(form))),
                     });
-                    const result = await response.json();
 
+                    if (response.status === 419) {
+                        throw new Error('Sesi halaman sudah kedaluwarsa. Muat ulang halaman, lalu coba lagi.');
+                    }
+
+                    const contentType = response.headers.get('content-type') || '';
+                    if (!contentType.includes('application/json')) {
+                        throw new Error(`Server tidak mengirim respons JSON (HTTP ${response.status}). Periksa route dan server Laravel.`);
+                    }
+
+                    const result = await response.json();
                     if (!response.ok) {
                         const firstError = Object.values(result.errors || {}).flat()[0];
                         throw new Error(firstError || result.message || 'Gagal masuk. Silakan coba lagi.');
                     }
 
                     if (!result.redirect) {
-                        throw new Error('Berhasil masuk, tetapi tujuan setelah masuk tidak tersedia.');
+                        throw new Error('Berhasil masuk, tetapi alamat halaman tujuan belum tersedia.');
                     }
 
-                    window.location.assign(result.redirect);
+                    // Jaga redirect tetap di host saat ini (termasuk bila backend memberi URL localhost/HTTP).
+                    const target = new URL(String(result.redirect), window.location.origin);
+                    if (!['http:', 'https:'].includes(target.protocol)) {
+                        throw new Error('Alamat tujuan setelah login tidak valid.');
+                    }
+                    window.location.assign(target.pathname + target.search + target.hash);
                 } catch (error) {
-                    errorMessage.textContent =
-                        error.message || 'Tidak dapat terhubung ke server. Periksa koneksi lalu coba lagi.';
+                    errorMessage.hidden = false;
+                    errorMessage.textContent = error instanceof TypeError
+                        ? 'Gagal menghubungi server. Periksa koneksi ngrok, pastikan Laravel masih berjalan, lalu coba lagi.'
+                        : (error.message || 'Terjadi kesalahan. Coba lagi.');
+                } finally {
                     submitButton.disabled = false;
+                    submitButton.textContent = buttonLabel;
                 }
             });
 
-            // 1. Logika Role Switcher
             roleBtns.forEach(btn => {
                 btn.addEventListener('click', () => {
                     roleBtns.forEach(b => {

@@ -86,25 +86,73 @@ class MathLeafController extends Controller
         abort_if($r->user()->role==='siswa' && (!$assessment->is_published || ($assessment->class_id && !in_array($assessment->class_id,$this->classIds($r)))),404);
         $q=$assessment->questions()->get();
         if($r->user()->role==='siswa')$q->makeHidden(['correct_answer','explanation']);
-        return response()->json(['assessment'=>$assessment->only('id','title','type','max_attempts','time_limit_minutes'),'questions'=>$q]);
+        return response()->json(['assessment'=>$assessment->only('id','title','type','max_attempts','passing_score','time_limit_minutes'),'questions'=>$q]);
     }
     public function submitAssessment(Request $r,Assessment $assessment) {
-        abort_unless($assessment->is_published,404); abort_if($assessment->class_id && !in_array($assessment->class_id,$this->classIds($r)) && $r->user()->role==='siswa',403);
-        $v=$r->validate(['answers'=>'required|array','answers.*.question_id'=>'required|integer','answers.*.answer'=>'nullable|string|max:10000']);
-        return DB::transaction(function() use($r,$assessment,$v){
-            $u=$r->user();$count=AssessmentAttempt::where('assessment_id',$assessment->id)->where('user_id',$u->id)->lockForUpdate()->count();
-            abort_if($count >= $assessment->max_attempts,422,'Batas percobaan habis');
-            $questions=$assessment->questions()->get()->keyBy('id');$submitted=collect($v['answers'])->keyBy('question_id');$max=$questions->sum('points');$total=0;$manual=false;
-            $attempt=AssessmentAttempt::create(['assessment_id'=>$assessment->id,'user_id'=>$u->id,'attempt_number'=>$count+1,'status'=>'submitted','submitted_at'=>now()]);
-            foreach($questions as $q){
-                $answer=(string)($submitted->get($q->id)['answer']??'');$automatic=in_array($q->type,['multiple_choice','short_answer']);
-                $correct=$automatic && mb_strtolower(trim($answer))===mb_strtolower(trim((string)$q->correct_answer));
-                $awarded=$automatic?($correct?$q->points:0):null;if(!$automatic)$manual=true;$total+=$awarded??0;
-                AssessmentAnswer::create(['assessment_attempt_id'=>$attempt->id,'question_id'=>$q->id,'answer_text'=>$answer,'is_correct'=>$automatic?$correct:null,'points_awarded'=>$awarded,'feedback'=>$automatic?$q->explanation:null]);
+        // Endpoint API mengikuti aturan yang sama dengan halaman kuis siswa.
+        abort_unless($r->user()->role === 'siswa', 403);
+        abort_unless($assessment->is_published && $assessment->class_id, 403);
+        abort_unless(in_array((int) $assessment->class_id, array_map('intval', $this->classIds($r)), true), 403);
+        $v = $r->validate([
+            'answers' => 'required|array',
+            'answers.*.question_id' => 'required|integer',
+            'answers.*.answer' => 'nullable|string|max:10000',
+        ]);
+
+        return DB::transaction(function () use ($r, $assessment, $v) {
+            $assessment = Assessment::query()->lockForUpdate()->findOrFail($assessment->id);
+            abort_unless($assessment->is_published, 403);
+            $u = $r->user();
+            $count = AssessmentAttempt::query()
+                ->where('assessment_id', $assessment->id)->where('user_id', $u->id)->count();
+            abort_if($count >= max(1, (int) $assessment->max_attempts), 422, 'Batas percobaan habis.');
+            $alreadyPassed = AssessmentAttempt::query()
+                ->where('assessment_id', $assessment->id)->where('user_id', $u->id)
+                ->whereNotNull('score')->where('score', '>=', (int) ($assessment->passing_score ?? 70))->exists();
+            abort_if($alreadyPassed, 422, 'Kuis sudah tuntas; remedial tidak diperlukan.');
+
+            $questions = $assessment->questions()->get()->keyBy('id');
+            $submitted = collect($v['answers'])->keyBy('question_id');
+            $expected = $questions->keys()->map(fn ($id) => (string) $id)->sort()->values()->all();
+            $provided = $submitted->keys()->map(fn ($id) => (string) $id)->sort()->values()->all();
+            if ($expected !== $provided || $questions->isEmpty() || count($v['answers']) !== $submitted->count()) {
+                throw ValidationException::withMessages(['answers' => 'Jawab setiap soal tepat satu kali.']);
             }
-            $attempt->update(['score'=>$manual?null:($max?round($total/$max*100,2):0),'status'=>$manual?'needs_grading':'graded']);
-            return response()->json(['attempt_id'=>$attempt->id,'score'=>$attempt->score,'status'=>$attempt->status,'correct'=>$attempt->answers()->where('is_correct',true)->count(),'total'=>$questions->count(),'review'=>$attempt->answers()->with('question')->get()->map(fn($a)=>['question'=>$a->question->question_text,'answer'=>$a->answer_text,'correct_answer'=>$a->question->correct_answer,'explanation'=>$a->feedback,'is_correct'=>$a->is_correct])],201);
-        });
+
+            $max = $questions->sum('points'); $total = 0; $manual = false;
+            $attempt = AssessmentAttempt::create([
+                'assessment_id' => $assessment->id, 'user_id' => $u->id,
+                'attempt_number' => $count + 1, 'status' => 'submitted', 'submitted_at' => now(),
+            ]);
+            foreach ($questions as $q) {
+                $answer = (string) ($submitted->get($q->id)['answer'] ?? '');
+                $automatic = in_array($q->type, ['multiple_choice', 'short_answer'], true);
+                $correct = $automatic && mb_strtolower(trim($answer)) === mb_strtolower(trim((string) $q->correct_answer));
+                $awarded = $automatic ? ($correct ? $q->points : 0) : null;
+                if (! $automatic) { $manual = true; }
+                $total += $awarded ?? 0;
+                AssessmentAnswer::create([
+                    'assessment_attempt_id' => $attempt->id, 'question_id' => $q->id,
+                    'answer_text' => $answer, 'is_correct' => $automatic ? $correct : null,
+                    'points_awarded' => $awarded, 'feedback' => $automatic ? $q->explanation : null,
+                ]);
+            }
+            $attempt->update([
+                'score' => $manual ? null : ($max ? round($total / $max * 100, 2) : 0),
+                'status' => $manual ? 'needs_grading' : 'graded',
+            ]);
+            return response()->json([
+                'attempt_id' => $attempt->id, 'score' => $attempt->score, 'status' => $attempt->status,
+                'passing_score' => $assessment->passing_score ?? 70,
+                'correct' => $attempt->answers()->where('is_correct', true)->count(),
+                'total' => $questions->count(),
+                'review' => $attempt->answers()->with('question')->get()->map(fn ($a) => [
+                    'question' => $a->question?->question_text, 'answer' => $a->answer_text,
+                    'correct_answer' => $a->question?->correct_answer, 'explanation' => $a->feedback,
+                    'is_correct' => $a->is_correct,
+                ]),
+            ], 201);
+        }, 3);
     }
     public function submissions(Request $r) {
         $q=Submission::with(['activity','user','group']);if($r->user()->role==='siswa') $q->where('user_id',$r->user()->id);
