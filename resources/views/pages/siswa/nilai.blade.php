@@ -11,6 +11,11 @@
     @endphp
 
     <style>
+        .app-content {
+            font-size: 11.2px;
+        }
+
+
         :root {
             --ml-green: #086534;
             --ml-green-hover: #064d27;
@@ -18,7 +23,7 @@
         }
 
         body {
-            font-size: 16px;
+            font-size: 12.8px;
             background-color: #f8fafc;
         }
 
@@ -30,7 +35,7 @@
         }
 
         .page-heading h1 {
-            font-size: 2.2rem;
+            font-size: 1.76rem;
             color: #0f172a;
             margin: 0.5rem 0;
             font-weight: 900;
@@ -43,7 +48,7 @@
 
         .page-heading p {
             color: #475569;
-            font-size: 1.1rem;
+            font-size: 0.88rem;
             margin: 0;
             line-height: 1.6;
         }
@@ -54,7 +59,7 @@
             border: 1px solid #cbd5e1;
             padding: 0.5rem 1rem;
             border-radius: 8px;
-            font-size: 0.95rem;
+            font-size: 0.76rem;
             font-weight: 600;
             color: #475569;
             display: inline-flex;
@@ -112,14 +117,14 @@
         }
 
         .stat-label {
-            font-size: 0.95rem;
+            font-size: 0.76rem;
             color: #64748b;
             font-weight: 600;
             margin-bottom: 0.4rem;
         }
 
         .stat-value {
-            font-size: 2rem;
+            font-size: 1.6rem;
             font-weight: 800;
             color: #0f172a;
             line-height: 1;
@@ -130,13 +135,13 @@
         }
 
         .stat-value small {
-            font-size: 1rem;
+            font-size: 0.8rem;
             color: #64748b;
             font-weight: 600;
         }
 
         .stat-desc {
-            font-size: 0.85rem;
+            font-size: 0.68rem;
             color: #94a3b8;
             font-weight: 500;
         }
@@ -173,7 +178,7 @@
         }
 
         .panel-head h2 {
-            font-size: 1.5rem;
+            font-size: 1.2rem;
             margin: 0;
             color: #0f172a;
             font-weight: 800;
@@ -197,7 +202,7 @@
             background: #f8fafc;
             padding: 1rem 1.2rem;
             text-align: left;
-            font-size: 0.95rem;
+            font-size: 0.76rem;
             color: #64748b;
             font-weight: 700;
             border-bottom: 2px solid #e2e8f0;
@@ -207,7 +212,7 @@
             padding: 1.2rem;
             border-bottom: 1px solid #f1f5f9;
             color: #334155;
-            font-size: 1rem;
+            font-size: 0.8rem;
         }
 
         .custom-table tr:hover td {
@@ -216,13 +221,13 @@
 
         .custom-table td b {
             color: #0f172a;
-            font-size: 1.1rem;
+            font-size: 0.88rem;
         }
 
         .badge {
             padding: 0.4rem 0.8rem;
             border-radius: 20px;
-            font-size: 0.85rem;
+            font-size: 0.68rem;
             font-weight: 700;
             display: inline-flex;
             align-items: center;
@@ -319,7 +324,7 @@
         }
 
         .drawer-header h2 {
-            font-size: 1.2rem;
+            font-size: 0.96rem;
             margin: 0;
             color: #0f172a;
             display: flex;
@@ -372,7 +377,7 @@
 
         .growth-info strong {
             display: block;
-            font-size: 1.05rem;
+            font-size: 0.84rem;
             color: #0f172a;
             margin-bottom: 0.2rem;
         }
@@ -382,12 +387,12 @@
             align-items: center;
             gap: 0.3rem;
             color: #64748b;
-            font-size: 0.85rem;
+            font-size: 0.68rem;
             font-weight: 500;
         }
 
         .growth-percentage {
-            font-size: 1.1rem;
+            font-size: 0.88rem;
             font-weight: 800;
             color: var(--ml-green);
         }
@@ -456,7 +461,7 @@
     <div class="page-heading">
         <div>
             <span class="eyebrow"
-                style="display: inline-flex; align-items: center; gap: 0.4rem; font-weight: 700; color: #086534; font-size: 0.9rem; letter-spacing: 0.05em; text-transform: uppercase;">
+                style="display: inline-flex; align-items: center; gap: 0.4rem; font-weight: 700; color: #086534; font-size: 0.72rem; letter-spacing: 0.05em; text-transform: uppercase;">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                     stroke-linecap="round" stroke-linejoin="round">
                     <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>

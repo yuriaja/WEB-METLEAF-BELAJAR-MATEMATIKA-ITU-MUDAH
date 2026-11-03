@@ -26,9 +26,13 @@ class TeacherGradesController extends Controller
             'class_id' => ['nullable', 'integer'],
         ]);
 
-        $selectedClassId = $request->filled('class_id')
-            ? (int) $request->query('class_id')
-            : null;
+        $sessionClassId = $request->session()->get('kelas_aktif_id');
+        $selectedClassId = $request->query->has('class_id')
+            ? ($request->filled('class_id') ? (int) $request->query('class_id') : null)
+            : ($sessionClassId !== null ? (int) $sessionClassId : null);
+        if ($selectedClassId && !$classes->contains('id', $selectedClassId)) {
+            $selectedClassId = null;
+        }
 
         // Guru tidak boleh melihat kelas orang lain
         if ($selectedClassId !== null) {
@@ -41,6 +45,7 @@ class TeacherGradesController extends Controller
         $classIds = $selectedClassId !== null
             ? [$selectedClassId]
             : $classes->pluck('id')->all();
+        $activeClass = $classes->firstWhere('id', $request->session()->get('kelas_aktif_id'));
 
         // Pengumpulan tugas
         $taskQuery = Submission::query()->whereHas(
@@ -112,6 +117,7 @@ return view('pages.guru.teacher-grades', compact(
             'students',
             'classes',
             'selectedClassId',
+            'activeClass',
             'taskCount',
             'taskGradedCount',
             'taskAverage',
@@ -158,8 +164,12 @@ return view('pages.guru.teacher-grades', compact(
         $classes = $user->teachingClasses()
             ->get(['id', 'name']);
 
-        $selectedClassId = $request->filled('class_id')
-            ? (int) $request->query('class_id')
+        $sessionClassId = $request->session()->get('kelas_aktif_id');
+        $selectedClassId = $request->query->has('class_id')
+            ? ($request->filled('class_id') ? (int) $request->query('class_id') : null)
+            : ($sessionClassId !== null ? (int) $sessionClassId : null);
+        $selectedClassId = $selectedClassId && $classes->contains('id', $selectedClassId)
+            ? $selectedClassId
             : null;
 
         // Cegah akses ke nilai kelas guru lain
@@ -390,9 +400,11 @@ return view('pages.guru.teacher-grades', compact(
         // Guru tidak boleh mengakses siswa kelas lain
         abort_if($classes->isEmpty(), 403);
 
-        $selectedClassId = $request->filled('class_id')
-            ? (int) $request->query('class_id')
-            : null;
+        $selectedClassId = $request->query->has('class_id')
+            ? ($request->filled('class_id') ? (int) $request->query('class_id') : null)
+            : ($request->session()->has('kelas_aktif_id')
+                ? (int) $request->session()->get('kelas_aktif_id')
+                : null);
 
         if ($selectedClassId !== null) {
             abort_unless(

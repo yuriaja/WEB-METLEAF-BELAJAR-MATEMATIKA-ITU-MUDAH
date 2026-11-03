@@ -25,7 +25,7 @@ Route::post('/logout', [ML::class, 'logout'])->name('logout');
 */
 Route::middleware('auth')->group(function () {
     // Tampilan statis
-    Route::view('/materi', 'pages.shared.materi')->name('materi.index');
+    Route::get('/materi', [ClassroomController::class, 'materialsPage'])->name('materi.index');
     Route::view('/forum', 'pages.shared.forum')->name('forum.index');
     Route::view('/tugas', 'pages.shared.tugas')->name('tugas.index');
     
@@ -65,7 +65,7 @@ Route::middleware('auth')->group(function () {
     Route::view('/dashboard', 'pages.siswa.dashboard')->name('siswa.dashboard');
     Route::view('/video', 'pages.siswa.video')->name('siswa.video');
     Route::view('/latihan', 'pages.siswa.latihan')->name('siswa.latihan');
-    Route::view('/kuis', 'pages.siswa.kuis')->name('siswa.kuis');
+    Route::get('/kuis', [ClassroomController::class, 'studentQuizzes'])->name('siswa.kuis');
     Route::view('/nilai', 'pages.siswa.nilai')->name('siswa.nilai');
 });
 
@@ -76,6 +76,12 @@ Route::middleware('auth')->group(function () {
 */
 Route::middleware('auth')->prefix('guru')->name('teacher.')->group(function () {
     Route::get('/', [ClassroomController::class, 'teacherDashboard'])->name('dashboard');
+
+    // Manajemen materi guru
+    Route::get('/materi/buat', [ClassroomController::class, 'createMaterial'])->name('materials.create');
+    Route::post('/materi', [ClassroomController::class, 'storeMaterial'])->name('materials.store');
+    Route::get('/materi/{material}/edit', [ClassroomController::class, 'editMaterial'])->name('materials.edit');
+    Route::put('/materi/{material}', [ClassroomController::class, 'updateMaterial'])->name('materials.update');
     
     // Manajemen Kuis Guru
     Route::get('/kuis', [ClassroomController::class, 'teacherQuizzes'])->name('quizzes');

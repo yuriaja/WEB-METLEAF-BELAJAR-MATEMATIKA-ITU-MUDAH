@@ -398,7 +398,6 @@
                     </svg>
                 </button>
             </div>
-            <!-- Action diarahkan ke pembuatan kuis (controller akan generate quiz_code dan redirect ke editor) -->
             <form method="POST" action="{{ route('teacher.quizzes.create') }}">
                 @csrf
                 <div class="modal-body">
@@ -449,20 +448,9 @@
                     <div class="quiz-info-left">
                         <!-- Kode Kuis untuk Siswa Join -->
                         <div class="quiz-code-box">
-                            <span class="code-label">Kode Bergabung</span>
+                            <span class="code-label">Jumlah Soal</span>
                             <div class="code-value-group">
-                                <!-- Asumsi kamu sudah menambahkan kolom quiz_code di database -->
-                                <span class="code-text">{{ $quiz->quiz_code ?? 'XXXXXX' }}</span>
-                                <button type="button" class="btn-copy"
-                                    onclick="copyCode('{{ $quiz->quiz_code ?? 'XXXXXX' }}', this)" title="Salin Kode">
-                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
-                                        stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                        stroke-linejoin="round">
-                                        <rect x="9" y="9" width="13" height="13" rx="2" ry="2">
-                                        </rect>
-                                        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-                                    </svg>
-                                </button>
+                                <span class="code-text">{{ $quiz->questions_count }}</span>
                             </div>
                         </div>
 
@@ -479,8 +467,7 @@
                     </div>
 
                     <div class="quiz-actions">
-                        <!-- Tombol Edit mengarah ke halaman editor soal penuh (yang akan dibuat terpisah) -->
-                        <a href="#" onclick="alert('Route Editor Soal belum dibuat')" class="btn btn-outline"
+                        <a href="{{ route('teacher.quizzes.edit', $quiz) }}" class="btn btn-outline"
                             title="Edit Soal & Jawaban">
                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                 stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -585,18 +572,6 @@
     </div>
 
     <script>
-        // Fitur Copy Kode Kuis
-        function copyCode(code, btn) {
-            navigator.clipboard.writeText(code).then(() => {
-                const originalIcon = btn.innerHTML;
-                btn.innerHTML =
-                    `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>`;
-                setTimeout(() => {
-                    btn.innerHTML = originalIcon;
-                }, 2000);
-            });
-        }
-
         // Modal
         const modalKuis = document.getElementById('modal-kuis');
 

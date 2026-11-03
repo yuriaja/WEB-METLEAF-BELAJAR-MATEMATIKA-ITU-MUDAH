@@ -5,7 +5,20 @@
 
 @section('content')
     @php
-        $userName = Auth::user()->name ?? 'Karin';
+        $userName = Auth::user()->name;
+        $classMap = $classes->keyBy('id');
+        $availableAssessments = $assessments->filter(
+            fn($assessment) => $assessment->attempts->count() < $assessment->max_attempts,
+        );
+        $completedAssessments = $assessments->filter(fn($assessment) => $assessment->attempts->isNotEmpty());
+        $activeClass = $activeClassId ? $classes->firstWhere('id', $activeClassId) : null;
+
+        // Tampilan per jenis penilaian
+        $typeMeta = [
+            'latihan' => ['label' => 'Latihan', 'tone' => 0, 'sym' => 'x²'],
+            'kuis' => ['label' => 'Kuis', 'tone' => 1, 'sym' => '?'],
+            'ujian' => ['label' => 'Ujian', 'tone' => 2, 'sym' => 'A+'],
+        ];
     @endphp
 
     <style>
@@ -13,505 +26,580 @@
             --ml-green: #086534;
             --ml-green-hover: #064d27;
             --ml-green-light: #edf8f0;
-            --ml-green-border: #bbf0cb;
+            --ml-green-soft: #dff3e5;
         }
 
-        body {
-            font-size: 16px;
-            background-color: #f8fafc;
+        /* ---------- Heading ---------- */
+        .qz-head {
+            margin-bottom: 1.8rem;
         }
 
-        .page-heading {
-            margin-bottom: 2.5rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-end;
+        .qz-head h1 {
+            font-size: clamp(1.8rem, 3vw, 2.3rem);
+            font-weight: 800;
+            color: #14301f;
+            margin: 0 0 .4rem;
+            line-height: 1.2;
         }
 
-        .page-heading h1 {
-            font-size: 2.2rem;
-            color: #0f172a;
-            margin: 0.5rem 0;
-            font-weight: 900;
-            letter-spacing: -0.5px;
-        }
-
-        .page-heading p {
+        .qz-head p {
+            margin: 0;
             color: #475569;
             font-size: 1.1rem;
-            margin: 0;
-            line-height: 1.6;
         }
 
-        /* TAB FILTER */
-        .filter-tabs {
-            display: flex;
-            gap: 0.5rem;
-            margin-bottom: 2rem;
-            background: #ffffff;
-            padding: 0.5rem;
-            border-radius: 10px;
-            width: max-content;
-            border: 1px solid #e2e8f0;
-            box-shadow: 0 1px 3px rgba(15, 23, 42, 0.02);
-        }
-
-        .tab-btn {
-            background: transparent;
-            border: none;
-            padding: 0.75rem 1.5rem;
-            border-radius: 6px;
-            font-weight: 700;
-            font-size: 1rem;
-            color: #64748b;
-            cursor: pointer;
-            transition: all 0.2s;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .tab-btn.selected {
+        .qz-alert {
+            padding: .9rem 1.1rem;
+            border-radius: 12px;
+            margin-bottom: 1.2rem;
+            font-size: 1.02rem;
             background: var(--ml-green-light);
-            color: var(--ml-green);
+            border: 1px solid #bfe0c9;
+            color: #1f4d33;
+            animation: qzUp .4s ease both;
         }
 
-        .badge {
-            padding: 0.3rem 0.8rem;
-            border-radius: 20px;
-            font-size: 0.8rem;
-            font-weight: 700;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.3rem;
-        }
-
-        .badge.green {
-            background: #dcfce7;
-            color: #16a34a;
-            border: 1px solid #bbf7d0;
-        }
-
-        .badge.orange {
-            background: #ffedd5;
-            color: #c2410c;
-            border: 1px solid #fed7aa;
-        }
-
-        .badge.gray {
-            background: #f1f5f9;
-            color: #475569;
-            border: 1px solid #e2e8f0;
-        }
-
-        .badge.blue {
-            background: #e0f2fe;
-            color: #0284c7;
-            border: 1px solid #bae6fd;
-        }
-
-        /* QUIZ GRID (Modern Cards) */
-        .quiz-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-            gap: 1.5rem;
-        }
-
-        .quiz-card {
-            background: #ffffff;
-            border: 1px solid #e2e8f0;
-            border-radius: 16px;
-            box-shadow: 0 4px 6px rgba(15, 23, 42, 0.03);
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
-        }
-
-        .quiz-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 12px 20px rgba(15, 23, 42, 0.06);
-            border-color: #cbd5e1;
-        }
-
-        .card-header {
-            padding: 1.5rem;
-            border-bottom: 1px dashed #e2e8f0;
-            position: relative;
-        }
-
-        .card-header h3 {
-            margin: 0 0 0.5rem 0;
-            color: #0f172a;
-            font-size: 1.25rem;
-            font-weight: 800;
-            line-height: 1.4;
-        }
-
-        .quiz-type-icon {
-            position: absolute;
-            right: 1.5rem;
-            top: 1.5rem;
-            width: 40px;
-            height: 40px;
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .icon-ujian {
-            background: #fee2e2;
-            color: #dc2626;
-        }
-
-        .icon-latihan {
-            background: var(--ml-green-light);
-            color: var(--ml-green);
-        }
-
-        .icon-kuis {
-            background: #e0f2fe;
-            color: #0284c7;
-        }
-
-        .card-body {
-            padding: 1.5rem;
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-        }
-
-        .quiz-meta {
-            display: flex;
-            flex-direction: column;
-            gap: 0.5rem;
-        }
-
-        .meta-item {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            color: #475569;
-            font-size: 0.95rem;
-        }
-
-        .meta-item svg {
-            color: #94a3b8;
-        }
-
-        .card-footer {
-            padding: 1.25rem 1.5rem;
-            background: #f8fafc;
-            border-top: 1px solid #e2e8f0;
-            margin-top: auto;
-        }
-
-        .btn-action {
-            width: 100%;
-            display: inline-flex;
-            justify-content: center;
-            align-items: center;
-            gap: 0.5rem;
-            padding: 0.8rem;
-            border-radius: 8px;
-            font-weight: 700;
-            font-size: 1rem;
-            cursor: pointer;
-            transition: all 0.2s;
-            text-decoration: none;
-            border: none;
-        }
-
-        .btn-start {
-            background: var(--ml-green);
-            color: white;
-        }
-
-        .btn-start:hover {
-            background: var(--ml-green-hover);
-        }
-
-        .btn-view {
-            background: #ffffff;
-            color: var(--ml-green);
-            border: 1px solid var(--ml-green-border);
-        }
-
-        .btn-view:hover {
-            background: var(--ml-green-light);
-        }
-
-        .btn-disabled {
-            background: #f1f5f9;
-            color: #94a3b8;
-            cursor: not-allowed;
-        }
-
-        .empty-state {
-            grid-column: 1 / -1;
-            text-align: center;
-            padding: 4rem 2rem;
-            background: #ffffff;
-            border: 2px dashed #cbd5e1;
-            border-radius: 16px;
-        }
-
-        .empty-state h3 {
-            font-size: 1.5rem;
-            color: #0f172a;
-            margin: 1rem 0 0.5rem;
-        }
-
-        .empty-state p {
-            color: #64748b;
-            font-size: 1.05rem;
-        }
-
-        /* Animasi Tab */
-        .tab-content {
-            display: none;
-            animation: fadeIn 0.3s ease;
-        }
-
-        .tab-content.active {
-            display: block;
-        }
-
-        @keyframes fadeIn {
+        @keyframes qzUp {
             from {
                 opacity: 0;
-                transform: translateY(10px);
+                transform: translateY(18px) scale(.97);
             }
 
             to {
                 opacity: 1;
-                transform: translateY(0);
+                transform: none;
+            }
+        }
+
+        /* ---------- Tab ---------- */
+        .qz-tabs {
+            display: inline-flex;
+            gap: .35rem;
+            padding: 6px;
+            margin-bottom: 1.6rem;
+            background: #e3f3e7;
+            border-radius: 999px;
+            max-width: 100%;
+            overflow-x: auto;
+            scrollbar-width: none;
+        }
+
+        .qz-tabs::-webkit-scrollbar {
+            display: none;
+        }
+
+        .qz-tab {
+            display: inline-flex;
+            align-items: center;
+            gap: .55rem;
+            white-space: nowrap;
+            border: 0;
+            background: transparent;
+            color: #3f5f4b;
+            font-family: inherit;
+            font-size: 1rem;
+            font-weight: 700;
+            padding: .65rem 1.2rem;
+            border-radius: 999px;
+            cursor: pointer;
+            transition: background .25s, color .25s, box-shadow .25s, transform .15s;
+        }
+
+        .qz-tab:hover {
+            background: rgba(8, 101, 52, .1);
+            color: var(--ml-green);
+        }
+
+        .qz-tab:active {
+            transform: scale(.96);
+        }
+
+        .qz-tab.selected {
+            background: var(--ml-green);
+            color: #fff;
+            box-shadow: 0 4px 12px rgba(8, 101, 52, .3);
+        }
+
+        .qz-tab .cnt {
+            min-width: 1.5rem;
+            padding: .1rem .5rem;
+            border-radius: 999px;
+            font-size: .8rem;
+            text-align: center;
+            background: rgba(8, 101, 52, .12);
+            color: var(--ml-green);
+            transition: background .25s, color .25s;
+        }
+
+        .qz-tab.selected .cnt {
+            background: rgba(255, 255, 255, .22);
+            color: #fff;
+        }
+
+        .qz-pane {
+            display: none;
+        }
+
+        .qz-pane.active {
+            display: block;
+        }
+
+        /* ---------- Kartu ---------- */
+        .qz-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(min(320px, 100%), 1fr));
+            gap: 1.4rem;
+            align-items: stretch;
+        }
+
+        .qz-card {
+            display: flex;
+            flex-direction: column;
+            background: #fff;
+            border: 1px solid #dfe9e2;
+            border-radius: 18px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(8, 101, 52, .04);
+            transition: transform .25s ease, box-shadow .25s ease;
+            animation: qzUp .55s cubic-bezier(.2, .8, .2, 1) both;
+            animation-delay: var(--d, 0ms);
+        }
+
+        .qz-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 14px 30px rgba(15, 23, 42, .1);
+        }
+
+        .qz-cover {
+            position: relative;
+            padding: 1.2rem 1.4rem 1.3rem;
+            min-height: 132px;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            overflow: hidden;
+        }
+
+        .qz-tone-0 {
+            background: linear-gradient(135deg, #e3f5e9, #c8ebd3);
+        }
+
+        .qz-tone-1 {
+            background: linear-gradient(135deg, #fff6d6, #fde9a0);
+        }
+
+        .qz-tone-2 {
+            background: linear-gradient(135deg, #ffeadb, #ffd2b0);
+        }
+
+        .qz-tone-done {
+            background: linear-gradient(135deg, #e9f7ee, #d4efdc);
+        }
+
+        .qz-sym {
+            position: absolute;
+            right: -4px;
+            top: 2px;
+            font-size: 4.4rem;
+            font-weight: 800;
+            color: rgba(8, 101, 52, .12);
+            transform: rotate(-8deg);
+            pointer-events: none;
+            user-select: none;
+        }
+
+        .qz-chip {
+            position: relative;
+            align-self: flex-start;
+            display: inline-flex;
+            align-items: center;
+            gap: .4rem;
+            background: rgba(255, 255, 255, .8);
+            color: #2f5a42;
+            border-radius: 999px;
+            padding: .28rem .8rem;
+            font-size: .9rem;
+            font-weight: 800;
+            margin-bottom: .6rem;
+        }
+
+        .qz-cover h2 {
+            position: relative;
+            margin: 0;
+            font-size: 1.4rem;
+            line-height: 1.25;
+            font-weight: 800;
+            color: #14301f;
+            overflow-wrap: anywhere;
+        }
+
+        .qz-class {
+            position: relative;
+            margin: .35rem 0 0;
+            font-size: .98rem;
+            color: #3f6b50;
+            font-weight: 600;
+        }
+
+        .qz-body {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            padding: 1.2rem 1.4rem;
+        }
+
+        .qz-stats {
+            display: flex;
+            flex-wrap: wrap;
+            gap: .55rem;
+        }
+
+        .qz-stat {
+            display: inline-flex;
+            align-items: center;
+            gap: .45rem;
+            background: var(--ml-green-light);
+            color: var(--ml-green);
+            border: 1px solid #cfe8d6;
+            border-radius: 999px;
+            padding: .35rem .85rem;
+            font-size: .95rem;
+            font-weight: 700;
+        }
+
+        .qz-note {
+            margin: 0;
+            color: #475569;
+            font-size: 1rem;
+        }
+
+        .qz-note b {
+            color: #14301f;
+        }
+
+        .qz-foot {
+            margin-top: auto;
+            padding: 0 1.4rem 1.4rem;
+        }
+
+        .qz-btn {
+            display: inline-flex;
+            width: 100%;
+            align-items: center;
+            justify-content: center;
+            gap: .5rem;
+            border: 0;
+            border-radius: 10px;
+            padding: .8rem 1.2rem;
+            background: var(--ml-green);
+            color: #fff;
+            font-family: inherit;
+            font-size: 1rem;
+            font-weight: 700;
+            text-decoration: none;
+            transition: background .2s, transform .15s, box-shadow .2s;
+        }
+
+        .qz-btn:hover {
+            background: var(--ml-green-hover);
+            box-shadow: 0 6px 16px rgba(8, 101, 52, .25);
+        }
+
+        .qz-btn:active {
+            transform: scale(.97);
+        }
+
+        .qz-btn.soft {
+            background: var(--ml-green-light);
+            color: var(--ml-green);
+            border: 1.5px solid #cfe8d6;
+        }
+
+        .qz-btn.soft:hover {
+            background: var(--ml-green-soft);
+            box-shadow: none;
+        }
+
+        /* ---------- Cincin nilai ---------- */
+        .qz-score {
+            display: flex;
+            align-items: center;
+            gap: 1.1rem;
+        }
+
+        .qz-ring {
+            position: relative;
+            width: 96px;
+            height: 96px;
+            flex-shrink: 0;
+        }
+
+        .qz-ring svg {
+            transform: rotate(-90deg);
+        }
+
+        .qz-ring .bg {
+            stroke: #e3efe6;
+        }
+
+        .qz-ring .fg {
+            stroke-linecap: round;
+            stroke-dasharray: 213.6;
+            animation: qzRing 1.1s cubic-bezier(.2, .8, .2, 1) both .2s;
+        }
+
+        .qz-ring.good .fg {
+            stroke: #22a35a;
+        }
+
+        .qz-ring.mid .fg {
+            stroke: #f59e0b;
+        }
+
+        .qz-ring.low .fg {
+            stroke: #ef4444;
+        }
+
+        @keyframes qzRing {
+            from {
+                stroke-dashoffset: 213.6;
+            }
+        }
+
+        .qz-ring strong {
+            position: absolute;
+            inset: 0;
+            display: grid;
+            place-items: center;
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: #14301f;
+        }
+
+        .qz-score small {
+            display: block;
+            color: #64748b;
+            font-size: .85rem;
+            font-weight: 800;
+            letter-spacing: .08em;
+        }
+
+        .qz-score span {
+            color: #475569;
+            font-size: 1rem;
+        }
+
+        /* ---------- Kosong ---------- */
+        .qz-empty {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 3rem 1.5rem;
+            background: #fff;
+            border: 1px dashed #86c79a;
+            border-radius: 18px;
+            animation: qzUp .5s ease both;
+        }
+
+        .qz-empty svg {
+            color: var(--ml-green);
+            margin-bottom: .8rem;
+        }
+
+        .qz-empty h2 {
+            margin: 0 0 .4rem;
+            font-size: 1.3rem;
+            color: #14301f;
+        }
+
+        .qz-empty p {
+            margin: 0;
+            color: #64748b;
+            font-size: 1.05rem;
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+
+            .qz-card,
+            .qz-empty,
+            .qz-alert,
+            .qz-ring .fg {
+                animation: none !important;
+            }
+
+            .qz-card {
+                transition: none;
             }
         }
     </style>
 
-    <div class="page-heading">
-        <div>
-            <span class="eyebrow"
-                style="display: inline-flex; align-items: center; gap: 0.4rem; font-weight: 700; color: #086534; font-size: 0.9rem; letter-spacing: 0.05em; text-transform: uppercase;">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                    stroke-linecap="round" stroke-linejoin="round">
-                    <circle cx="12" cy="8" r="6"></circle>
-                    <path d="m8 13-2 8 6-3 6 3-2-8"></path>
-                </svg>
-                RUANG BERTUMBUHMU
-            </span>
-            <h1>Saatnya Uji Pemahamanmu, {{ $userName }}!</h1>
-            <p>Bukan tentang sempurna, tapi tentang sejauh mana kamu sudah bertumbuh.</p>
-        </div>
+    <div class="qz-head">
+        <h1>Kuis & Evaluasi</h1>
+        <p>
+            Halo, {{ $userName }}.
+            @if ($activeClass)
+                Kuis untuk kelas {{ $activeClass->name }}.
+            @else
+                Kuis dari semua kelas yang kamu ikuti.
+            @endif
+        </p>
     </div>
 
-    <div class="filter-tabs">
-        <button type="button" class="tab-btn selected" id="tab-btn-tersedia" onclick="switchTab('tersedia')">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                stroke-linecap="round" stroke-linejoin="round">
-                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-                <polyline points="22 4 12 14.01 9 11.01"></polyline>
-            </svg>
-            Kuis Tersedia
-            <!-- Misal ada 2 kuis baru (Angka dinamis nantinya) -->
-            <span
-                style="background: #ef4444; color: white; padding: 2px 8px; border-radius: 12px; font-size: 0.75rem;">2</span>
+    @if (session('success'))
+        <div role="status" class="qz-alert">{{ session('success') }}</div>
+    @endif
+
+    <div class="qz-tabs" role="tablist" aria-label="Filter kuis">
+        <button type="button" class="qz-tab selected" id="tab-btn-tersedia" onclick="switchTab('tersedia')">
+            Kuis tersedia <span class="cnt">{{ $availableAssessments->count() }}</span>
         </button>
-        <button type="button" class="tab-btn" id="tab-btn-selesai" onclick="switchTab('selesai')">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                stroke-linecap="round" stroke-linejoin="round">
-                <path d="M12 20h9"></path>
-                <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
-            </svg>
-            Riwayat Pengerjaan
+        <button type="button" class="qz-tab" id="tab-btn-selesai" onclick="switchTab('selesai')">
+            Riwayat pengerjaan <span class="cnt">{{ $completedAssessments->count() }}</span>
         </button>
     </div>
 
-    <!-- TAB 1: KUIS TERSEDIA (BELUM DIKERJAKAN) -->
-    <div id="tab-tersedia" class="tab-content active">
-        <div class="quiz-grid">
-
-            <!-- CARD DUMMY: MODE UJIAN (Fullscreen) -->
-            <div class="quiz-card">
-                <div class="card-header">
-                    <span class="badge orange" style="margin-bottom: 0.8rem;">Evaluasi Tengah Semester</span>
-                    <h3 style="padding-right: 3rem;">Ujian Bilangan Bulat & Pecahan</h3>
-                    <div class="quiz-type-icon icon-ujian" title="Mode Ujian (Layar Penuh)">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-                            <line x1="9" y1="3" x2="9" y2="21"></line>
-                        </svg>
+    {{-- ================= KUIS TERSEDIA ================= --}}
+    <div id="tab-tersedia" class="qz-pane active">
+        <div class="qz-grid">
+            @forelse ($availableAssessments->values() as $i => $assessment)
+                @php
+                    $latestAttempt = $assessment->attempts->first();
+                    $meta = $typeMeta[$assessment->type] ?? $typeMeta['latihan'];
+                    $left = max(0, $assessment->max_attempts - $assessment->attempts->count());
+                @endphp
+                <article class="qz-card" style="--d: {{ $i * 80 }}ms">
+                    <div class="qz-cover qz-tone-{{ $meta['tone'] }}">
+                        <span class="qz-sym">{{ $meta['sym'] }}</span>
+                        <span class="qz-chip">{{ $meta['label'] }}</span>
+                        <h2>{{ $assessment->title }}</h2>
+                        <p class="qz-class">{{ $classMap->get($assessment->class_id)?->name ?? 'Semua kelas' }}</p>
                     </div>
-                </div>
-                <div class="card-body">
-                    <p style="margin:0; color:#475569; font-size:0.95rem; line-height:1.5;">Ujian komprehensif Bab 1.
-                        Membutuhkan konsentrasi penuh.</p>
-                    <div class="quiz-meta" style="margin-top: 0.5rem;">
-                        <div class="meta-item">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                stroke-width="2">
-                                <circle cx="12" cy="12" r="10"></circle>
-                                <polyline points="12 6 12 12 16 14"></polyline>
-                            </svg>
-                            Durasi: 60 Menit
+                    <div class="qz-body">
+                        <div class="qz-stats">
+                            <span class="qz-stat">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <line x1="8" y1="6" x2="21" y2="6"></line>
+                                    <line x1="8" y1="12" x2="21" y2="12"></line>
+                                    <line x1="8" y1="18" x2="21" y2="18"></line>
+                                    <line x1="3" y1="6" x2="3.01" y2="6"></line>
+                                    <line x1="3" y1="12" x2="3.01" y2="12"></line>
+                                    <line x1="3" y1="18" x2="3.01" y2="18"></line>
+                                </svg>
+                                {{ $assessment->questions_count }} soal
+                            </span>
+                            <span class="qz-stat">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <circle cx="12" cy="12" r="9"></circle>
+                                    <path d="M12 7v5l3 2"></path>
+                                </svg>
+                                {{ $assessment->time_limit_minutes ? $assessment->time_limit_minutes . ' menit' : 'Tanpa batas waktu' }}
+                            </span>
                         </div>
-                        <div class="meta-item">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                stroke-width="2">
-                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-                                <polyline points="14 2 14 8 20 8"></polyline>
-                                <line x1="16" y1="13" x2="8" y2="13"></line>
-                                <line x1="16" y1="17" x2="8" y2="17"></line>
-                                <polyline points="10 9 9 9 8 9"></polyline>
-                            </svg>
-                            Jumlah: 20 Soal
-                        </div>
-                        <div class="meta-item" style="color: #ef4444;">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                stroke-width="2">
-                                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
-                                <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
-                            </svg>
-                            Mode: Ujian Ketat (Fullscreen)
-                        </div>
+                        <p class="qz-note">
+                            Percobaan tersisa: <b>{{ $left }}</b> dari {{ $assessment->max_attempts }}
+                            @if ($latestAttempt)
+                                <br>Nilai terakhir: <b>{{ number_format((float) $latestAttempt->score, 1) }}</b>
+                            @endif
+                        </p>
                     </div>
-                </div>
-                <div class="card-footer">
-                    <!-- LINK MENUJU PREVIEW-KUIS -->
-                    <!-- Asumsi rute untuk memulai kuis adalah 'siswa.quizzes.start' dengan ID kuis -->
-                    <a href="{{ url('/siswa/kuis/1/kerjakan') }}" class="btn-action btn-start">
-                        Mulai Ujian
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <line x1="5" y1="12" x2="19" y2="12"></line>
-                            <polyline points="12 5 19 12 12 19"></polyline>
-                        </svg>
-                    </a>
-                </div>
-            </div>
-
-            <!-- CARD DUMMY: MODE LATIHAN BIASA -->
-            <div class="quiz-card">
-                <div class="card-header">
-                    <span class="badge blue" style="margin-bottom: 0.8rem;">Latihan Harian</span>
-                    <h3 style="padding-right: 3rem;">Latihan: Operasi Hitung Campuran</h3>
-                    <div class="quiz-type-icon icon-latihan" title="Mode Latihan Santai">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M12 20V10"></path>
-                            <path d="M18 20V4"></path>
-                            <path d="M6 20v-4"></path>
-                        </svg>
+                    <div class="qz-foot">
+                        <a href="{{ route('classroom.quiz.take', $assessment) }}" class="qz-btn">
+                            {{ $latestAttempt ? 'Coba Lagi' : 'Mulai ' . $meta['label'] }}
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="5" y1="12" x2="19" y2="12"></line>
+                                <polyline points="12 5 19 12 12 19"></polyline>
+                            </svg>
+                        </a>
                     </div>
+                </article>
+            @empty
+                <div class="qz-empty">
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+                        <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                    </svg>
+                    <h2>Belum ada kuis tersedia</h2>
+                    <p>Kuis yang diterbitkan guru untuk kelasmu akan muncul di sini.</p>
                 </div>
-                <div class="card-body">
-                    <p style="margin:0; color:#475569; font-size:0.95rem; line-height:1.5;">Pertajam insting berhitungmu
-                        dengan latihan ringan ini.</p>
-                    <div class="quiz-meta" style="margin-top: 0.5rem;">
-                        <div class="meta-item">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                stroke-width="2">
-                                <circle cx="12" cy="12" r="10"></circle>
-                                <polyline points="12 6 12 12 16 14"></polyline>
-                            </svg>
-                            Durasi: 30 Menit
-                        </div>
-                        <div class="meta-item">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                stroke-width="2">
-                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-                                <polyline points="14 2 14 8 20 8"></polyline>
-                                <line x1="16" y1="13" x2="8" y2="13"></line>
-                                <line x1="16" y1="17" x2="8" y2="17"></line>
-                                <polyline points="10 9 9 9 8 9"></polyline>
-                            </svg>
-                            Jumlah: 10 Soal
-                        </div>
-                        <div class="meta-item">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                stroke-width="2">
-                                <polyline points="20 6 9 17 4 12"></polyline>
-                            </svg>
-                            Mode: Latihan Bebas
-                        </div>
-                    </div>
-                </div>
-                <div class="card-footer">
-                    <!-- LINK MENUJU PREVIEW-KUIS -->
-                    <a href="{{ url('/siswa/kuis/2/kerjakan') }}" class="btn-action btn-start"
-                        style="background: #0ea5e9;">
-                        Mulai Latihan
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <polygon points="5 3 19 12 5 21 5 3"></polygon>
-                        </svg>
-                    </a>
-                </div>
-            </div>
-
+            @endforelse
         </div>
     </div>
 
-    <!-- TAB 2: RIWAYAT PENGERJAAN (KUIS SELESAI) -->
-    <div id="tab-selesai" class="tab-content">
-        <div class="quiz-grid">
-
-            <!-- CARD DUMMY: KUIS YANG SUDAH DIKERJAKAN -->
-            <div class="quiz-card" style="opacity: 0.9;">
-                <div class="card-header" style="background: #f8fafc;">
-                    <span class="badge green" style="margin-bottom: 0.8rem;">
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                            stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
-                            <polyline points="20 6 9 17 4 12"></polyline>
-                        </svg>
-                        Selesai Dikerjakan
-                    </span>
-                    <h3>Kuis: Pengenalan Garis Bilangan</h3>
-                </div>
-                <div class="card-body">
-                    <div style="text-align: center; margin: 1rem 0;">
-                        <span
-                            style="display: block; color: #64748b; font-size: 0.9rem; font-weight: 600; text-transform: uppercase;">Skor
-                            Akhir</span>
-                        <strong style="font-size: 3rem; color: var(--ml-green); line-height: 1;">85</strong>
-                        <span style="font-size: 1.2rem; color: #94a3b8;">/ 100</span>
+    {{-- ================= RIWAYAT PENGERJAAN ================= --}}
+    <div id="tab-selesai" class="qz-pane">
+        <div class="qz-grid">
+            @forelse ($completedAssessments->values() as $i => $assessment)
+                @php
+                    $latestAttempt = $assessment->attempts->first();
+                    $meta = $typeMeta[$assessment->type] ?? $typeMeta['latihan'];
+                    $score = (float) $latestAttempt->score;
+                    $pct = max(0, min(100, $score));
+                    $offset = round(213.6 * (1 - $pct / 100), 1);
+                    $level = $score >= 75 ? 'good' : ($score >= 50 ? 'mid' : 'low');
+                @endphp
+                <article class="qz-card" style="--d: {{ $i * 80 }}ms">
+                    <div class="qz-cover qz-tone-done">
+                        <span class="qz-sym">✓</span>
+                        <span class="qz-chip">{{ $meta['label'] }} · Selesai</span>
+                        <h2>{{ $assessment->title }}</h2>
+                        <p class="qz-class">{{ $classMap->get($assessment->class_id)?->name ?? 'Semua kelas' }}</p>
                     </div>
-                    <div class="quiz-meta" style="background: #f1f5f9; padding: 1rem; border-radius: 8px;">
-                        <div class="meta-item">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                stroke-width="2">
-                                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-                                <line x1="16" y1="2" x2="16" y2="6"></line>
-                                <line x1="8" y1="2" x2="8" y2="6"></line>
-                                <line x1="3" y1="10" x2="21" y2="10"></line>
-                            </svg>
-                            Dikerjakan: 12 Okt 2026, 14:30
+                    <div class="qz-body">
+                        <div class="qz-score">
+                            <div class="qz-ring {{ $level }}">
+                                <svg width="96" height="96" viewBox="0 0 80 80" aria-hidden="true">
+                                    <circle class="bg" cx="40" cy="40" r="34" fill="none"
+                                        stroke-width="9">
+                                    </circle>
+                                    <circle class="fg" cx="40" cy="40" r="34" fill="none"
+                                        stroke-width="9" style="stroke-dashoffset: {{ $offset }}"></circle>
+                                </svg>
+                                <strong>{{ number_format($score, 0) }}</strong>
+                            </div>
+                            <div>
+                                <small>NILAI TERAKHIR</small>
+                                <span>{{ number_format($score, 1) }} / 100</span>
+                            </div>
                         </div>
+                        <p class="qz-note">
+                            Dikerjakan: <b>{{ $latestAttempt->submitted_at?->format('d M Y, H:i') ?? '—' }}</b><br>
+                            Percobaan <b>{{ $latestAttempt->attempt_number }}</b> dari {{ $assessment->max_attempts }}
+                        </p>
                     </div>
+                    @if ($assessment->attempts->count() < $assessment->max_attempts)
+                        <div class="qz-foot">
+                            <a href="{{ route('classroom.quiz.take', $assessment) }}" class="qz-btn soft">Coba Lagi</a>
+                        </div>
+                    @endif
+                </article>
+            @empty
+                <div class="qz-empty">
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                        <polyline points="14 2 14 8 20 8"></polyline>
+                    </svg>
+                    <h2>Belum ada riwayat pengerjaan</h2>
+                    <p>Kuis yang sudah kamu kerjakan akan muncul di sini.</p>
                 </div>
-                <div class="card-footer">
-                    <a href="{{ url('/rapor') }}" class="btn-action btn-view">
-                        Lihat Rapor Detail
-                    </a>
-                </div>
-            </div>
-
+            @endforelse
         </div>
     </div>
 
     <script>
         function switchTab(tabId) {
-            // Hapus status active/selected dari semua tab
-            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('selected'));
-            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
-
-            // Tambahkan status active ke tab yang diklik
-            document.getElementById('tab-btn-' + tabId).classList.add('selected');
-            document.getElementById('tab-' + tabId).classList.add('active');
+            document.querySelectorAll('.qz-tab').forEach(function(button) {
+                button.classList.toggle('selected', button.id === 'tab-btn-' + tabId);
+            });
+            // display none -> block memutar ulang animasi masuk kartu
+            document.querySelectorAll('.qz-pane').forEach(function(pane) {
+                pane.classList.toggle('active', pane.id === 'tab-' + tabId);
+            });
         }
     </script>
 @endsection

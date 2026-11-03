@@ -5,6 +5,11 @@
 
 @section('content')
     <style>
+        .app-content {
+            font-size: 11.2px;
+        }
+
+
         :root {
             --ml-green: #086534;
             --ml-green-hover: #064d27;
@@ -19,14 +24,14 @@
         }
 
         .page-heading h1 {
-            font-size: 1.8rem;
+            font-size: 1.44rem;
             color: #0f172a;
             margin: 0.5rem 0;
         }
 
         .page-heading p {
             color: #64748b;
-            font-size: 1rem;
+            font-size: 0.8rem;
             margin: 0;
         }
 
@@ -39,12 +44,14 @@
             padding: 0.5rem 1rem;
             border-radius: 20px;
             font-weight: 700;
-            font-size: 0.85rem;
+            font-size: 0.68rem;
         }
 
         /* BANNER DINAMIS & CANVAS INTERAKTIF */
         .dashboard-banner {
-            background: #0f172a;
+            background: var(--ml-green-light);
+            /* Latar hijau terang menyatu dengan tema */
+            border: 1px solid #bbf7d0;
             border-radius: 12px;
             padding: 2rem;
             margin-bottom: 2rem;
@@ -54,7 +61,7 @@
             overflow: hidden;
             position: relative;
             min-height: 220px;
-            box-shadow: 0 4px 6px rgba(15, 23, 42, 0.1);
+            box-shadow: 0 4px 6px rgba(8, 101, 52, 0.05);
         }
 
         .banner-text-content {
@@ -64,15 +71,17 @@
         }
 
         .banner-text-content h2 {
-            color: white;
-            font-size: 1.8rem;
+            color: var(--ml-green-hover);
+            /* Teks judul hijau tua */
+            font-size: 1.44rem;
             margin: 0.5rem 0 1rem 0;
             line-height: 1.3;
         }
 
         .banner-text-content p {
-            color: #cbd5e1;
-            font-size: 1rem;
+            color: #334155;
+            /* Teks deskripsi gelap agar mudah dibaca */
+            font-size: 0.8rem;
             margin-bottom: 1.5rem;
             line-height: 1.5;
         }
@@ -89,7 +98,7 @@
             align-items: center;
             gap: 0.5rem;
             text-decoration: none;
-            font-size: 0.95rem;
+            font-size: 0.76rem;
             transition: background 0.2s;
             position: relative;
             z-index: 2;
@@ -118,15 +127,14 @@
             right: 20px;
             background: #ef4444;
             color: white;
-            width: 32px;
-            height: 32px;
+            width: 28px;
+            height: 28px;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1rem;
+            font-size: 0.8rem;
             font-weight: bold;
-            border: 3px solid #0f172a;
             z-index: 2;
             cursor: pointer;
             animation: bounce 2s infinite;
@@ -193,7 +201,7 @@
 
         .popup-header h3 {
             margin: 0;
-            font-size: 1.1rem;
+            font-size: 0.88rem;
             color: #0f172a;
             display: flex;
             align-items: center;
@@ -236,7 +244,7 @@
 
         .notif-list-item small {
             color: #64748b;
-            font-size: 0.8rem;
+            font-size: 0.64rem;
         }
 
         /* Stats Grid */
@@ -276,14 +284,14 @@
         }
 
         .stat-label {
-            font-size: 0.85rem;
+            font-size: 0.68rem;
             color: #64748b;
             font-weight: 600;
             margin-bottom: 0.25rem;
         }
 
         .stat-value {
-            font-size: 1.5rem;
+            font-size: 1.2rem;
             font-weight: 700;
             color: #0f172a;
             line-height: 1;
@@ -291,7 +299,7 @@
         }
 
         .stat-desc {
-            font-size: 0.75rem;
+            font-size: 0.6rem;
             color: #94a3b8;
         }
 
@@ -346,7 +354,7 @@
         }
 
         .panel-head h2 {
-            font-size: 1.25rem;
+            font-size: 1rem;
             margin: 0;
             color: #0f172a;
         }
@@ -370,12 +378,12 @@
             display: block;
             color: #0f172a;
             margin-bottom: 0.2rem;
-            font-size: 0.95rem;
+            font-size: 0.76rem;
         }
 
         .activity-row small {
             color: #64748b;
-            font-size: 0.85rem;
+            font-size: 0.68rem;
         }
 
         .schedule-row {
@@ -401,7 +409,7 @@
         }
 
         .date-block small {
-            font-size: 0.65rem;
+            font-size: 0.52rem;
             color: #64748b;
             font-weight: 600;
             margin-top: 0.1rem;
@@ -411,7 +419,7 @@
     <div class="page-heading">
         <div>
             <span class="eyebrow"
-                style="display: inline-flex; align-items: center; gap: 0.4rem; font-weight: 700; color: #086534; font-size: 0.8rem; letter-spacing: 0.05em; text-transform: uppercase;">
+                style="display: inline-flex; align-items: center; gap: 0.4rem; font-weight: 700; color: #086534; font-size: 0.64rem; letter-spacing: 0.05em; text-transform: uppercase;">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                     stroke-linecap="round" stroke-linejoin="round">
                     <path d="M11 20A7 7 0 0 1 4 13C4 5 14 3 21 3c0 7-2 17-10 17Z"></path>
@@ -419,7 +427,7 @@
                 </svg>
                 RUANG BERTUMBUHMU
             </span>
-            <h1>Halo, {{ Auth::user()->name ?? 'Karin' }}! Selamat Datang! 👋</h1>
+            <h1>Halo, {{ Auth::user()->name ?? 'Karin' }}! Selamat Datang!</h1>
             <p>Hari yang baik untuk belajar hal baru. Yuk, lanjutkan petualanganmu!</p>
         </div>
         <span class="badge-date">
@@ -450,7 +458,7 @@
     <section class="dashboard-banner">
         <div class="banner-text-content">
             <span class="eyebrow"
-                style="color: var(--ml-green-border); font-size: 0.8rem; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase;">MATHLEAF
+                style="color: var(--ml-green-border); font-size: 0.64rem; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase;">MATHLEAF
                 NOTIFICATIONS</span>
             <h2>{{ $bannerTitle }}</h2>
             <p>{{ $bannerDesc }}</p>
@@ -510,8 +518,8 @@
                         <small>Batas waktu: Besok, 23:59</small>
                     </div>
                     <a href="#" class="btn-primary"
-                        style="width: 100%; margin-top: 1rem; justify-content: center; background: #0f172a;">Lihat Semua
-                        Notifikasi</a>
+                        style="width: 100%; margin-top: 1rem; justify-content: center; background: #0f172a;">Tandai sudah
+                        dibaca.</a>
                 @endif
             </div>
         </div>
@@ -575,7 +583,7 @@
                 <div class="panel-head">
                     <h2>Aktivitas Terbaru</h2>
                     <span
-                        style="background: #f1f5f9; padding: 0.3rem 0.6rem; border-radius: 4px; font-size: 0.8rem; font-weight: 600; color: #475569;">Minggu
+                        style="background: #f1f5f9; padding: 0.3rem 0.6rem; border-radius: 4px; font-size: 0.64rem; font-weight: 600; color: #475569;">Minggu
                         ini</span>
                 </div>
                 <div class="activity-row">
@@ -613,21 +621,21 @@
 
         <div>
             <section class="panel">
-                <h2 style="font-size: 1.25rem; margin: 0 0 1.5rem 0; color: #0f172a;">Jadwal Kelas</h2>
+                <h2 style="font-size: 1rem; margin: 0 0 1.5rem 0; color: #0f172a;">Jadwal Kelas</h2>
                 <div class="schedule-row">
                     <div class="date-block">16<small>OKT</small></div>
                     <div>
-                        <strong style="display:block; color:#0f172a; font-size:0.95rem; margin-bottom:0.2rem;">Eksplorasi
+                        <strong style="display:block; color:#0f172a; font-size:0.76rem; margin-bottom:0.2rem;">Eksplorasi
                             Operasi Bilangan</strong>
-                        <small style="color:#64748b; font-size:0.8rem;">Jumat · 08.00 – 09.20</small>
+                        <small style="color:#64748b; font-size:0.64rem;">Jumat · 08.00 – 09.20</small>
                     </div>
                 </div>
                 <div class="schedule-row">
                     <div class="date-block">19<small>OKT</small></div>
                     <div>
-                        <strong style="display:block; color:#0f172a; font-size:0.95rem; margin-bottom:0.2rem;">Investigasi
+                        <strong style="display:block; color:#0f172a; font-size:0.76rem; margin-bottom:0.2rem;">Investigasi
                             Kelompok</strong>
-                        <small style="color:#64748b; font-size:0.8rem;">Senin · 08.00 – 09.20</small>
+                        <small style="color:#64748b; font-size:0.64rem;">Senin · 08.00 – 09.20</small>
                     </div>
                 </div>
             </section>
@@ -639,8 +647,8 @@
                     <path d="M11 20A7 7 0 0 1 4 13C4 5 14 3 21 3c0 7-2 17-10 17Z"></path>
                     <path d="M4 21c0-6 5-11 11-14"></path>
                 </svg>
-                <h3 style="margin: 0 0 0.5rem 0; color: #0f172a; font-size: 1.1rem;">Tetap semangat!</h3>
-                <p style="color: #334155; font-size: 0.95rem; line-height: 1.5; margin-bottom: 0;">"Hal hebat tumbuh dari
+                <h3 style="margin: 0 0 0.5rem 0; color: #0f172a; font-size: 0.88rem;">Tetap semangat!</h3>
+                <p style="color: #334155; font-size: 0.76rem; line-height: 1.5; margin-bottom: 0;">"Hal hebat tumbuh dari
                     langkah kecil yang dilakukan setiap hari."</p>
             </section>
         </div>

@@ -367,23 +367,13 @@
                                 <line x1="19" y1="8" x2="19" y2="14"></line>
                                 <line x1="22" y1="11" x2="16" y2="11"></line>
                             </svg>
-                            Kelas: {{ $classes->pluck('name')->join(', ') }}
+                            Kelas:
+                            {{ $selectedClassId !== null ? ($classes->firstWhere('id', $selectedClassId)?->name ?? '—') : $classes->pluck('name')->join(', ') }}
                         </span>
                     </div>
                 </div>
             </div>
 
-            <form method="GET" action="{{ route('teacher.grades.student', $student->id) }}" class="filter-form">
-                <select name="class_id" class="form-select">
-                    <option value="">Semua Kelas</option>
-                    @foreach ($classes as $class)
-                        <option value="{{ $class->id }}" @selected($selectedClassId === (int) $class->id)>
-                            {{ $class->name }}
-                        </option>
-                    @endforeach
-                </select>
-                <button type="submit" class="btn btn-primary" style="padding: 0.6rem 1.25rem;">Tampilkan</button>
-            </form>
         </div>
     </section>
 
