@@ -414,242 +414,244 @@
             font-weight: 600;
             margin-top: 0.1rem;
         }
+
+        /* Upgrade 4: statistik dari database dengan desain MathLeaf lama */
+        .ml4-insight-bar { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:1rem; margin-bottom:1.4rem; }
+        .ml4-insight-bar a { display:flex; gap:.4rem; flex-direction:column; text-decoration:none; background:#fff; border:1px solid #bbf7d0; border-radius:10px; padding:.9rem 1rem; color:#086534; }
+        .ml4-insight-bar strong { font-size:1.5rem; }
+        .ml4-insight-bar span { color:#475569; font-weight:600; font-size:.76rem; }
+        .ml4-empty-banner { display:flex; flex-direction:column; gap:.4rem; padding:1rem 1.25rem; margin-bottom:1rem; border:1px solid #bbf7d0; border-radius:10px; background:#edf8f0; font-size:.85rem; color:#334155; }
+        .ml4-empty-banner strong { color:#064d27; }
+        .ml4-empty-banner a,.ml4-more,.ml4-task-link { text-decoration:none; color:#086534; font-weight:700; }
+        .ml4-more { font-size:.75rem; }
+        .ml4-activity-row a { color:#0f172a; text-decoration:none; }
+        .ml4-empty { color:#64748b; font-size:.8rem; padding:.8rem 0; }
+        .ml4-gap-top { margin-top:1rem; }
+        .ml4-material-row { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:.4rem; padding:.65rem 0; border-bottom:1px solid #edf2f7; align-items:center; }
+        .ml4-material-row a { color:#064d27; font-weight:650; text-decoration:none; overflow-wrap:anywhere; }
+        .ml4-material-row span { color:#475569; font-size:.8rem; }
+        .ml4-progress-track { height:7px; background:#d1fae5; border-radius:8px; overflow:hidden; grid-column:span 2; }
+        .ml4-progress-track > div { height:100%; background:#086534; border-radius:8px; }
+        .ml4-task-link { display:flex; align-items:center; gap:.8rem; color:inherit; padding:.6rem 0; }
+        .ml4-task-link strong { display:block; color:#0f172a; }
+        .ml4-task-link small { display:block; color:#64748b; margin-top:.3rem; }
+        .ml4-overdue { font-size:.78rem; color:#b91c1c; font-weight:650; }
+        .ml4-quiz-row { display:flex; align-items:center; justify-content:space-between; gap:.75rem; padding:.75rem 0; border-bottom:1px solid #edf2f7; }
+        .ml4-quiz-row strong { display:block; color:#0f172a; font-size:.83rem; }
+        .ml4-quiz-row small { display:block; color:#64748b; font-size:.74rem; margin-top:.2rem; }
+        .ml4-quiz-row a { color:#086534; font-size:.75rem; text-decoration:none; font-weight:700; white-space:nowrap; }
+        @media(max-width:620px){ .ml4-insight-bar{gap:.5rem;} .ml4-insight-bar a{padding:.7rem;} .ml4-insight-bar strong{font-size:1.15rem;} .ml4-insight-bar span{font-size:.65rem;} }
     </style>
 
     <div class="page-heading">
         <div>
-            <span class="eyebrow"
-                style="display: inline-flex; align-items: center; gap: 0.4rem; font-weight: 700; color: #086534; font-size: 0.64rem; letter-spacing: 0.05em; text-transform: uppercase;">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                    stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M11 20A7 7 0 0 1 4 13C4 5 14 3 21 3c0 7-2 17-10 17Z"></path>
-                    <path d="M4 21c0-6 5-11 11-14"></path>
-                </svg>
-                RUANG BERTUMBUHMU
-            </span>
-            <h1>Halo, {{ Auth::user()->name ?? 'Karin' }}! Selamat Datang!</h1>
-            <p>Hari yang baik untuk belajar hal baru. Yuk, lanjutkan petualanganmu!</p>
+            <span class="eyebrow" style="color:#086534;font-weight:700;letter-spacing:.05em;text-transform:uppercase;">RUANG BERTUMBUHMU</span>
+            <h1>Halo, {{ auth()->user()->name }}! Selamat Datang!</h1>
+            <p>
+                @if($activeClass)
+                    Ringkasan pembelajaran kelas {{ $activeClass->name }}.
+                @else
+                    Ringkasan pembelajaran dari kelas yang kamu ikuti.
+                @endif
+            </p>
         </div>
-        <span class="badge-date">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                stroke-linecap="round" stroke-linejoin="round">
-                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-                <line x1="16" y1="2" x2="16" y2="6"></line>
-                <line x1="8" y1="2" x2="8" y2="6"></line>
-                <line x1="3" y1="10" x2="21" y2="10"></line>
-            </svg>
-            {{ \Carbon\Carbon::now()->translatedFormat('l, d F Y') }}
-        </span>
+        <span class="badge-date">{{ now()->translatedFormat('l, d F Y') }}</span>
     </div>
 
     @php
-        // Variabel ini akan dilempar ke Javascript untuk menentukan jumlah daun 3D
-        $unreadCount = 2; // Ubah ke 0 untuk melihat banner tanpa notifikasi/tumbuhan
-
-        $bannerTitle =
-            $unreadCount > 0 ? "Ada $unreadCount tugas menantimu." : 'Matahari cerah, hari ini kosong dari tugas.';
-        $bannerDesc =
-            $unreadCount > 0
-                ? 'Ayo selesaikan tugas-tugas di bawah ini agar tumbuhan pemahamanmu makin rimbun! Klik tumbuhan di samping untuk melihat detail.'
-                : 'Hebat! Kamu sudah menyelesaikan semua tugas. Lanjutkan petualangan dengan mengulang materi terdahulu atau membaca E-Modul baru.';
+        $unreadCount = $pendingCount + $remedialQuizzes->count();
+        $bannerTitle = $unreadCount > 0
+            ? "Ada {$unreadCount} hal yang perlu kamu kerjakan."
+            : 'Semua tugas dan remedialmu sudah beres!';
+        $bannerDesc = $unreadCount > 0
+            ? 'Cek tugas yang belum dikumpulkan dan kuis yang bisa diremedial. Klik tanaman untuk melihat rinciannya.'
+            : 'Lanjutkan belajar dengan membaca materi atau mengerjakan kuis baru.';
     @endphp
 
-    <!-- Banner Utama -->
     <section class="dashboard-banner">
         <div class="banner-text-content">
-            <span class="eyebrow"
-                style="color: var(--ml-green-border); font-size: 0.64rem; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase;">MATHLEAF
-                NOTIFICATIONS</span>
+            <span class="eyebrow" style="color:#086534;font-size:.68rem;font-weight:700;letter-spacing:.05em;">MATHLEAF · AKTIVITASMU</span>
             <h2>{{ $bannerTitle }}</h2>
             <p>{{ $bannerDesc }}</p>
-            <a class="btn-primary" href="{{ url('/materi') }}">
-                Lanjutkan Petualangan
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                    stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M5 12h14"></path>
-                    <path d="m12 5 7 7-7 7"></path>
-                </svg>
+            <a class="btn-primary" href="{{ $pendingCount ? route('classroom.tasks.index') : route('materi.index') }}">
+                {{ $pendingCount ? 'Lihat Tugas' : 'Lanjut Belajar' }} →
             </a>
         </div>
-
-        <!-- Area Canvas Interaktif Tumbuhan -->
-        <canvas id="dashboardPlantCanvas" onclick="openInteractivePopup()" title="Klik untuk lihat notifikasi"></canvas>
-        <!-- Badge Merah (Muncul jika ada notif > 0) -->
+        <canvas id="dashboardPlantCanvas" onclick="openInteractivePopup()" title="Klik untuk melihat aktivitas belajar"></canvas>
         <div id="notifBadge" class="notif-badge-overlay" onclick="openInteractivePopup()">{{ $unreadCount }}</div>
     </section>
 
-    <!-- Pop-up Overlay -->
-    <div id="interactive-popup" class="custom-popup-overlay">
+    <div id="interactive-popup" class="custom-popup-overlay" role="dialog" aria-modal="true" aria-label="Aktivitas yang perlu dikerjakan">
         <div class="custom-popup-box">
             <div class="popup-header">
-                <h3>
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--ml-green)"
-                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
-                    </svg>
-                    Notifikasi MathLeaf
-                </h3>
-                <button class="popup-close" onclick="closeInteractivePopup()">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <line x1="18" y1="6" x2="6" y2="18"></line>
-                        <line x1="6" y1="6" x2="18" y2="18"></line>
-                    </svg>
-                </button>
+                <h3>Aktivitas MathLeaf</h3>
+                <button type="button" class="popup-close" onclick="closeInteractivePopup()" aria-label="Tutup">✕</button>
             </div>
             <div class="popup-body">
-                @if ($unreadCount == 0)
-                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#f59e0b"
-                        stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom: 1rem;">
-                        <circle cx="12" cy="12" r="10"></circle>
-                        <path d="M8 14s1.5 2 4 2 4-2 4-2"></path>
-                        <line x1="9" y1="9" x2="9.01" y2="9"></line>
-                        <line x1="15" y1="9" x2="15.01" y2="9"></line>
-                    </svg>
-                    <p><strong>Belum ada tugas atau materi baru!</strong><br>Yuk, jangan tunggu gurumu. Cek lagi pelajaran
-                        terdahulu atau eksplorasi materi lain. Terus belajar, satu langkah kecil setiap hari 🌱</p>
+                @if($unreadCount === 0)
+                    <p>Belum ada tugas tertunda atau kuis remedial. Terus belajar, satu langkah setiap hari! 🌱</p>
                 @else
-                    <div class="notif-list-item">
-                        <strong>Tugas Baru: Pecahan Lanjutan</strong>
-                        <small>Diberikan oleh Guru Budi · 1 jam yang lalu</small>
-                    </div>
-                    <div class="notif-list-item">
-                        <strong>Kuis Terjadwal: Bilangan Bulat</strong>
-                        <small>Batas waktu: Besok, 23:59</small>
-                    </div>
-                    <a href="#" class="btn-primary"
-                        style="width: 100%; margin-top: 1rem; justify-content: center; background: #0f172a;">Tandai sudah
-                        dibaca.</a>
+                    @foreach($pendingTasks->take(4) as $task)
+                        <div class="notif-list-item">
+                            <strong>Tugas: {{ $task->title }}</strong>
+                            <small>{{ $task->due_at ? 'Deadline: '.$task->due_at->translatedFormat('d M Y H:i') : 'Tanpa deadline' }}</small>
+                        </div>
+                    @endforeach
+                    @foreach($remedialQuizzes->take(3) as $quiz)
+                        <div class="notif-list-item">
+                            <strong>Remedial: {{ $quiz->title }}</strong>
+                            <small>Sisa kesempatan: {{ max(0, (int)$quiz->max_attempts - $quiz->attempts->count()) }}</small>
+                        </div>
+                    @endforeach
+                    <a class="btn-primary" style="width:100%;justify-content:center;margin-top:.6rem;" href="{{ route('classroom.tasks.index') }}">Buka Daftar Tugas →</a>
                 @endif
             </div>
         </div>
     </div>
 
-    <!-- Statistik 4 Kotak -->
+    @if($classes->isEmpty())
+        <div class="ml4-empty-banner">
+            <strong>Belum ada kelas yang diikuti.</strong>
+            Gabung kelas menggunakan kode dari guru agar materi, tugas, dan nilai muncul di sini.
+            <a href="{{ route('classroom.home') }}">Gabung kelas →</a>
+        </div>
+    @endif
+
     <div class="stats-grid">
         <div class="stat-card">
-            <span class="stat-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"
-                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M12 20v-6M6 20V10M18 20V4"></path>
-                </svg></span>
+            <span class="stat-icon">🌱</span>
             <div class="stat-content">
-                <span class="stat-label">Progres Pembelajaran</span><span class="stat-value">65%</span><span
-                    class="stat-desc">Terus bertumbuh, ya!</span>
+                <span class="stat-label">Progres Materi</span>
+                <span class="stat-value">{{ $materialProgress }}%</span>
+                <span class="stat-desc">{{ $materialsCompleted }} dari {{ $materials->count() }} materi selesai</span>
             </div>
         </div>
         <div class="stat-card">
-            <span class="stat-icon" style="background: #e0f2fe; color: #0284c7;"><svg width="20" height="20"
-                    viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                    stroke-linejoin="round">
-                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-                    <polyline points="22 4 12 14.01 9 11.01"></polyline>
-                </svg></span>
+            <span class="stat-icon" style="background:#e0f2fe;color:#0284c7;">✓</span>
             <div class="stat-content">
-                <span class="stat-label">Tugas Selesai</span><span class="stat-value">8</span><span
-                    class="stat-desc">dari 12 tugas belajar</span>
+                <span class="stat-label">Tugas Dikumpulkan</span>
+                <span class="stat-value">{{ $submittedCount }}</span>
+                <span class="stat-desc">dari {{ $tasks->count() }} tugas</span>
             </div>
         </div>
         <div class="stat-card">
-            <span class="stat-icon" style="background: #fef2f2; color: #dc2626;"><svg width="20" height="20"
-                    viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                    stroke-linejoin="round">
-                    <circle cx="12" cy="12" r="10"></circle>
-                    <line x1="12" y1="8" x2="12" y2="12"></line>
-                    <line x1="12" y1="16" x2="12.01" y2="16"></line>
-                </svg></span>
+            <span class="stat-icon" style="background:#fef2f2;color:#dc2626;">!</span>
             <div class="stat-content">
-                <span class="stat-label">Tugas Belum Selesai</span><span class="stat-value">4</span><span
-                    class="stat-desc">Yuk, selesaikan bertahap</span>
+                <span class="stat-label">Tugas Belum Selesai</span>
+                <span class="stat-value">{{ $pendingCount }}</span>
+                <span class="stat-desc">{{ $overdueCount }} sudah melewati deadline</span>
             </div>
         </div>
         <div class="stat-card">
-            <span class="stat-icon" style="background: #fef9c3; color: #ca8a04;"><svg width="20" height="20"
-                    viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                    stroke-linejoin="round">
-                    <polygon
-                        points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2">
-                    </polygon>
-                </svg></span>
+            <span class="stat-icon" style="background:#fef9c3;color:#ca8a04;">★</span>
             <div class="stat-content">
-                <span class="stat-label">Rata-rata Nilai</span><span class="stat-value">85</span><span
-                    class="stat-desc">Pemahamanmu semakin baik</span>
+                <span class="stat-label">Rata-rata Nilai</span>
+                <span class="stat-value">{{ $averageScore === null ? '—' : number_format($averageScore, 1, ',', '.') }}</span>
+                <span class="stat-desc">Nilai kuis terbaru dan tugas dinilai</span>
             </div>
         </div>
+    </div>
+
+    <div class="ml4-insight-bar">
+        <a href="{{ route('siswa.kuis') }}">
+            <strong>{{ $availableQuizzes->count() }}</strong><span>Kuis tersedia</span>
+        </a>
+        <a href="{{ route('siswa.kuis') }}">
+            <strong>{{ $remedialQuizzes->count() }}</strong><span>Remedial tersedia</span>
+        </a>
+        <a href="{{ route('materi.index') }}">
+            <strong>{{ $materials->count() }}</strong><span>Materi terbit</span>
+        </a>
     </div>
 
     <div class="dashboard-columns">
         <div>
             <section class="panel">
                 <div class="panel-head">
-                    <h2>Aktivitas Terbaru</h2>
-                    <span
-                        style="background: #f1f5f9; padding: 0.3rem 0.6rem; border-radius: 4px; font-size: 0.64rem; font-weight: 600; color: #475569;">Minggu
-                        ini</span>
+                    <h2>Aktivitas Belajarmu</h2>
+                    <a class="ml4-more" href="{{ route('siswa.nilai') }}">Lihat nilai →</a>
                 </div>
-                <div class="activity-row">
-                    <span class="stat-icon" style="width:32px; height:32px;"><svg width="16" height="16"
-                            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                            stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-                            <polyline points="14 2 14 8 20 8"></polyline>
-                            <line x1="16" y1="13" x2="8" y2="13"></line>
-                            <line x1="16" y1="17" x2="8" y2="17"></line>
-                            <polyline points="10 9 9 9 8 9"></polyline>
-                        </svg></span>
-                    <div><strong>Menyelesaikan kuis Bilangan Bulat · Nilai 85</strong><small>Hari ini, 09.30</small></div>
+                @forelse($recentActivities as $activity)
+                    <div class="activity-row ml4-activity-row">
+                        <span class="stat-icon" style="width:32px;height:32px;">✓</span>
+                        <div>
+                            <a href="{{ $activity->url }}"><strong>{{ $activity->title }}</strong></a>
+                            <small>{{ $activity->detail }} · {{ $activity->date?->diffForHumans() ?? '-' }}</small>
+                        </div>
+                    </div>
+                @empty
+                    <p class="ml4-empty">Belum ada aktivitas belajar. Mulailah dari materi atau tugas kelas.</p>
+                @endforelse
+            </section>
+
+            <section class="panel ml4-gap-top">
+                <div class="panel-head">
+                    <h2>Materi untuk Dilanjutkan</h2>
+                    <a class="ml4-more" href="{{ route('materi.index') }}">Semua materi →</a>
                 </div>
-                <div class="activity-row">
-                    <span class="stat-icon" style="width:32px; height:32px;"><svg width="16" height="16"
-                            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                            stroke-linecap="round" stroke-linejoin="round">
-                            <path
-                                d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z">
-                            </path>
-                        </svg></span>
-                    <div><strong>Mengirim pertanyaan tentang bilangan negatif</strong><small>Kemarin, 14.15</small></div>
-                </div>
-                <div class="activity-row">
-                    <span class="stat-icon" style="width:32px; height:32px;"><svg width="16" height="16"
-                            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                            stroke-linecap="round" stroke-linejoin="round">
-                            <polygon points="6 3 20 12 6 21 6 3"></polygon>
-                        </svg></span>
-                    <div><strong>Menonton Video Operasi Bilangan</strong><small>12 Oktober, 10.00</small></div>
-                </div>
+                @forelse($incompleteMaterials as $material)
+                    @php $percent = (int)($progressById[$material->id]->progress_percent ?? 0); @endphp
+                    <div class="ml4-material-row">
+                        <a href="{{ route('materi.show', $material) }}">{{ $material->title }}</a>
+                        <span>{{ $percent }}%</span>
+                        <div class="ml4-progress-track"><div style="width:{{ $percent }}%"></div></div>
+                    </div>
+                @empty
+                    <p class="ml4-empty">Belum ada materi yang perlu dilanjutkan.</p>
+                @endforelse
             </section>
         </div>
 
         <div>
             <section class="panel">
-                <h2 style="font-size: 1rem; margin: 0 0 1.5rem 0; color: #0f172a;">Jadwal Kelas</h2>
-                <div class="schedule-row">
-                    <div class="date-block">16<small>OKT</small></div>
-                    <div>
-                        <strong style="display:block; color:#0f172a; font-size:0.76rem; margin-bottom:0.2rem;">Eksplorasi
-                            Operasi Bilangan</strong>
-                        <small style="color:#64748b; font-size:0.64rem;">Jumat · 08.00 – 09.20</small>
-                    </div>
+                <div class="panel-head">
+                    <h2>Deadline Tugas Terdekat</h2>
+                    <a class="ml4-more" href="{{ route('classroom.tasks.index') }}">Lihat tugas →</a>
                 </div>
-                <div class="schedule-row">
-                    <div class="date-block">19<small>OKT</small></div>
-                    <div>
-                        <strong style="display:block; color:#0f172a; font-size:0.76rem; margin-bottom:0.2rem;">Investigasi
-                            Kelompok</strong>
-                        <small style="color:#64748b; font-size:0.64rem;">Senin · 08.00 – 09.20</small>
-                    </div>
-                </div>
+                @forelse($upcomingTasks as $task)
+                    <a class="schedule-row ml4-task-link" href="{{ route('classroom.tasks.index') }}">
+                        <div class="date-block">{{ $task->due_at->format('d') }}<small>{{ strtoupper($task->due_at->translatedFormat('M')) }}</small></div>
+                        <div><strong>{{ $task->title }}</strong><small>Deadline {{ $task->due_at->translatedFormat('d M Y, H:i') }}</small></div>
+                    </a>
+                @empty
+                    <p class="ml4-empty">Belum ada deadline tugas mendatang.</p>
+                @endforelse
+                @if($overdueCount > 0)
+                    <p class="ml4-overdue">{{ $overdueCount }} tugas belum dikumpulkan dan sudah melewati deadline.</p>
+                @endif
             </section>
-
-            <section
-                style="background: var(--ml-green-light); border: 1px solid var(--ml-green-border); border-radius: 8px; padding: 1.5rem; text-align: center;">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--ml-green)"
-                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom: 0.5rem;">
-                    <path d="M11 20A7 7 0 0 1 4 13C4 5 14 3 21 3c0 7-2 17-10 17Z"></path>
-                    <path d="M4 21c0-6 5-11 11-14"></path>
-                </svg>
-                <h3 style="margin: 0 0 0.5rem 0; color: #0f172a; font-size: 0.88rem;">Tetap semangat!</h3>
-                <p style="color: #334155; font-size: 0.76rem; line-height: 1.5; margin-bottom: 0;">"Hal hebat tumbuh dari
-                    langkah kecil yang dilakukan setiap hari."</p>
+            <section class="panel ml4-gap-top">
+                <div class="panel-head">
+                    <h2>Kuis & Remedial</h2>
+                    <a class="ml4-more" href="{{ route('siswa.kuis') }}">Lihat semua →</a>
+                </div>
+                @forelse($availableQuizzes->take(4) as $quiz)
+                    <div class="ml4-quiz-row">
+                        <div><strong>{{ $quiz->title }}</strong><small>{{ $quiz->attempts->count() > 0 ? 'Remedial' : 'Kuis baru' }} · KKM {{ $quiz->passing_score ?? 70 }}</small></div>
+                        <a href="{{ route('classroom.quiz.take', $quiz) }}">Kerjakan →</a>
+                    </div>
+                @empty
+                    <p class="ml4-empty">Belum ada kuis yang perlu dikerjakan.</p>
+                @endforelse
+            </section>
+            <section class="panel ml4-gap-top">
+                <div class="panel-head">
+                    <h2>Diskusi Kelas Terbaru</h2>
+                    <a class="ml4-more" href="{{ route('forum.index') }}">Buka forum →</a>
+                </div>
+                @forelse($recentForumThreads as $thread)
+                    <div class="ml4-quiz-row">
+                        <div>
+                            <a href="{{ route('forum.index', ['class_id' => $thread->class_id], false) }}"><strong>{{ $thread->title }}</strong></a>
+                            <small>{{ $thread->schoolClass?->name ?? 'Kelas' }} · {{ $thread->created_at?->diffForHumans() }}
+                                @if($thread->is_pinned) · Disematkan @endif
+                                @if($thread->is_locked) · Dikunci @endif
+                            </small>
+                        </div>
+                    </div>
+                @empty
+                    <p class="ml4-empty">Belum ada diskusi kelas. Kamu bisa memulai pertanyaan baru di forum.</p>
+                @endforelse
             </section>
         </div>
     </div>

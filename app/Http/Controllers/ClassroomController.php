@@ -78,9 +78,28 @@ class ClassroomController extends Controller {
   $recentActivities = $submissions->concat($quizAttempts)->concat($threads)
       ->sortByDesc('date')->take(6)->values();
 
+  $publishedMaterialCount = Material::query()->whereIn('class_id', $classIds)
+      ->where('is_published', true)->count();
+  $publishedQuizCount = Assessment::query()->whereIn('class_id', $classIds)
+      ->where('is_published', true)->count();
+  $totalTasks = \App\Models\Activity::query()->where('mode', 'tugas')
+      ->whereIn('class_id', $classIds)->count();
+  $averageQuizScore = \App\Models\AssessmentAttempt::query()
+      ->whereNotNull('score')
+      ->whereHas('assessment', fn ($query) => $query->whereIn('class_id', $classIds))
+      ->avg('score');
+  $upcomingTaskDeadlines = \App\Models\Activity::query()
+      ->where('mode', 'tugas')->whereIn('class_id', $classIds)
+      ->whereNotNull('due_at')->where('due_at', '>=', now())
+      ->orderBy('due_at')->limit(4)->get(['id', 'title', 'due_at', 'class_id']);
+  $uniqueStudentCount = \Illuminate\Support\Facades\DB::table('class_user')
+      ->whereIn('class_id', $classIds)->distinct()->count('user_id');
+
   return view('pages.guru.dashboard', compact(
       'classes', 'materials', 'assessments',
-      'pendingTasks', 'forumThreadsCount', 'recentActivities'
+      'pendingTasks', 'forumThreadsCount', 'recentActivities',
+      'publishedMaterialCount', 'publishedQuizCount', 'totalTasks', 'averageQuizScore',
+      'upcomingTaskDeadlines', 'uniqueStudentCount'
   ));
  }
  public function materialsPage(){

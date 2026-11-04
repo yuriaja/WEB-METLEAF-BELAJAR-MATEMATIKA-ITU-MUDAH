@@ -8,6 +8,7 @@ use App\Http\Controllers\TeacherGradesController;
 use App\Http\Controllers\ForumController;
 use App\Http\Controllers\StudentQuizController;
 use App\Http\Controllers\StudentGradesController;
+use App\Http\Controllers\StudentDashboardController;
 use App\Http\Controllers\MaterialController;
 
 /*
@@ -42,6 +43,11 @@ Route::middleware('auth')->group(function () {
     Route::get('/forum', [ForumController::class, 'index'])->name('forum.index');
     Route::post('/forum/topik', [ForumController::class, 'store'])->middleware('throttle:20,1')->name('forum.threads.store');
     Route::post('/forum/topik/{thread}/balas', [ForumController::class, 'comment'])->middleware('throttle:40,1')->name('forum.comments.store');
+    Route::put('/forum/topik/{thread}', [ForumController::class, 'update'])->middleware('throttle:20,1')->name('forum.threads.update');
+    Route::delete('/forum/topik/{thread}', [ForumController::class, 'destroy'])->middleware('throttle:20,1')->name('forum.threads.destroy');
+    Route::patch('/forum/topik/{thread}/semat', [ForumController::class, 'togglePin'])->middleware('throttle:20,1')->name('forum.threads.pin');
+    Route::patch('/forum/topik/{thread}/kunci', [ForumController::class, 'toggleLock'])->middleware('throttle:20,1')->name('forum.threads.lock');
+    Route::delete('/forum/balasan/{comment}', [ForumController::class, 'destroyComment'])->middleware('throttle:20,1')->name('forum.comments.destroy');
     Route::redirect('/tugas', '/kelas/tugas')->name('tugas.index');
     
     // Fitur Kelas Bersama
@@ -80,7 +86,7 @@ Route::middleware('auth')->group(function () {
 */
 Route::middleware('auth')->group(function () {
     // Rute yang seringkali menyebabkan 404 jika dipanggil dari Blade tetapi file di /siswa tidak ada.
-    Route::view('/dashboard', 'pages.siswa.dashboard')->name('siswa.dashboard');
+    Route::get('/dashboard', [StudentDashboardController::class, 'index'])->name('siswa.dashboard');
     Route::view('/video', 'pages.siswa.video')->name('siswa.video');
     Route::view('/latihan', 'pages.siswa.latihan')->name('siswa.latihan');
     Route::get('/kuis', [StudentQuizController::class, 'index'])->name('siswa.kuis');

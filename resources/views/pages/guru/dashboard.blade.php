@@ -267,6 +267,20 @@
         .activity-text strong {
             color: #0f172a;
         }
+
+        /* Upgrade 4: ringkasan berbasis database, mengikuti tema hijau MathLeaf */
+        .ml4-teacher-insights { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:1rem; margin:0 0 1rem; }
+        .ml4-teacher-insight { display:flex; flex-direction:column; gap:.25rem; background:#fff; border:1px solid #bbf7d0; border-radius:10px; padding:1rem; min-width:0; }
+        .ml4-teacher-insight span { font-size:.77rem; color:#475569; font-weight:600; }
+        .ml4-teacher-insight strong { font-size:1.55rem; color:#064d27; }
+        .ml4-teacher-insight a,.ml4-teacher-deadlines a { color:#086534; text-decoration:none; font-size:.75rem; font-weight:700; }
+        .ml4-teacher-deadlines { background:white; border:1px solid #bbf7d0; border-radius:10px; padding:1rem 1.25rem; margin-bottom:1rem; }
+        .ml4-teacher-deadline-row { display:flex; justify-content:space-between; gap:1rem; padding:.7rem 0; border-bottom:1px solid #e2e8f0; font-size:.82rem; }
+        .ml4-teacher-deadline-row:last-child { border-bottom:0; }
+        .ml4-teacher-deadline-row span { color:#475569; flex-shrink:0; }
+        .ml4-empty { color:#64748b; font-size:.82rem; margin:0; }
+        @media(max-width:900px) { .ml4-teacher-insights { grid-template-columns:repeat(2,minmax(0,1fr)); }}
+        @media(max-width:500px) { .ml4-teacher-insights { grid-template-columns:1fr; } .ml4-teacher-deadline-row { flex-direction:column; gap:.2rem; }}
     </style>
 
     <!-- HEADER -->
@@ -310,7 +324,7 @@
                 </svg>
             </div>
             <div class="stat-body">
-                <span class="stat-value">{{ isset($classes) ? $classes->sum('students_count') : 0 }}</span>
+                <span class="stat-value">{{ $uniqueStudentCount }}</span>
                 <span class="stat-label">Total Siswa</span>
             </div>
         </div>
@@ -345,6 +359,40 @@
         </div>
     </div>
 
+    <div class="ml4-teacher-insights" aria-label="Ringkasan pembelajaran">
+        <div class="ml4-teacher-insight">
+            <span>Materi terbit</span><strong>{{ $publishedMaterialCount }}</strong>
+            <a href="{{ route('materi.index') }}">Kelola materi →</a>
+        </div>
+        <div class="ml4-teacher-insight">
+            <span>Kuis terbit</span><strong>{{ $publishedQuizCount }}</strong>
+            <a href="{{ route('teacher.quizzes') }}">Kelola kuis →</a>
+        </div>
+        <div class="ml4-teacher-insight">
+            <span>Total tugas</span><strong>{{ $totalTasks }}</strong>
+            <a href="{{ route('classroom.tasks.index') }}">Lihat tugas →</a>
+        </div>
+        <div class="ml4-teacher-insight">
+            <span>Rata-rata nilai kuis</span>
+            <strong>{{ $averageQuizScore === null ? '—' : number_format((float) $averageQuizScore, 1, ',', '.') }}</strong>
+            <a href="{{ route('teacher.grades') }}">Rekap nilai →</a>
+        </div>
+    </div>
+    <div class="ml4-teacher-deadlines">
+        <div class="panel-header">
+            <h2 class="panel-title">Batas Waktu Tugas Terdekat</h2>
+            <a href="{{ route('classroom.tasks.index') }}">Lihat semua tugas →</a>
+        </div>
+        @forelse ($upcomingTaskDeadlines as $task)
+            <div class="ml4-teacher-deadline-row">
+                <strong>{{ $task->title }}</strong>
+                <span>{{ $task->due_at->translatedFormat('d M Y, H:i') }}</span>
+            </div>
+        @empty
+            <p class="ml4-empty">Belum ada tugas dengan deadline mendatang di kelasmu.</p>
+        @endforelse
+    </div>
+
     <!-- PANEL BAWAH -->
     <div class="dashboard-two-cols">
 
@@ -375,7 +423,7 @@
                     <span class="action-arrow">→</span>
                 </a>
 
-                <a href="{{ route('classroom.home') }}" class="action-item">
+                <a href="{{ route('materi.index') }}" class="action-item">
                     <div class="action-left">
                         <span class="action-icon">
                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"

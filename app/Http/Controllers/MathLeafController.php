@@ -205,6 +205,7 @@ class MathLeafController extends Controller
     }
     public function comment(Request $r, ForumThread $thread) {
         abort_unless(ForumAccess::canAccess($r->user(), $thread->class_id), 403);
+        abort_if($thread->is_locked, 403, 'Diskusi ini telah dikunci oleh guru.');
         $v = $r->validate(['body' => 'required|string|max:10000']);
         return response()->json(ForumComment::create([
             'forum_thread_id' => $thread->id,

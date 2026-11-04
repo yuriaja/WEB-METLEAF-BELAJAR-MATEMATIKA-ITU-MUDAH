@@ -429,6 +429,21 @@
         .forum-pages a:hover { text-decoration:underline; }
         .forum-modal-class { display:block; width:100%; margin:0.4rem 0 1rem; border:1px solid #cbd5e1; border-radius:6px; padding:0.7rem; }
         .reply-empty { margin-top:1rem; color:#64748b; }
+        .forum-controls { display:flex; align-items:center; flex-wrap:wrap; gap:.45rem; margin:.75rem 0; }
+        .forum-controls form { margin:0; }
+        .forum-small-btn { display:inline-flex; align-items:center; padding:.4rem .65rem; border:1px solid #cbd5e1; background:#fff; color:#086534; border-radius:7px; font-size:.72rem; font-weight:700; cursor:pointer; }
+        .forum-small-btn:hover { background:#edf8f0; }
+        .forum-danger { color:#b91c1c; border-color:#fecaca; }
+        .forum-tags { display:inline-flex; gap:.35rem; align-items:center; margin-left:.45rem; }
+        .forum-tag { display:inline-flex; padding:.22rem .5rem; border-radius:30px; background:#eaf7ee; color:#086534; font-size:.66rem; font-weight:700; }
+        .forum-tag-locked { background:#f1f5f9; color:#475569; }
+        .forum-filter input { min-width:145px; flex:1; padding:.7rem; border:1px solid #cbd5e1; border-radius:8px; }
+        .forum-filter select { min-width:125px; }
+        .forum-muted { color:#64748b; font-size:.74rem; }
+        .forum-reply-card { display:flex; gap:1rem; justify-content:space-between; }
+        .forum-reply-card > div { min-width:0; flex:1; }
+        .forum-reply-delete { align-self:flex-start; }
+        .forum-edit-modal { max-width:560px; }
     </style>
 
     <div class="page-heading">
@@ -453,6 +468,9 @@
     @if($errors->forum_reply->any())
         <div class="forum-alert forum-alert-error" role="alert">{{ $errors->forum_reply->first() }}</div>
     @endif
+    @if($errors->edit_thread->any())
+        <div class="forum-alert forum-alert-error" role="alert">{{ $errors->edit_thread->first() }}</div>
+    @endif
 
     <form method="GET" action="{{ route('forum.index', [], false) }}" class="forum-filter">
         <label for="forum-filter-class"><strong>Pilih kelas:</strong></label>
@@ -462,7 +480,15 @@
                 <option value="{{ $class->id }}" @selected($selectedClassId === (int) $class->id)>{{ $class->name }}</option>
             @endforeach
         </select>
-        <button type="submit" class="btn-primary">Tampilkan Diskusi</button>
+        <label for="forum-search" class="forum-muted">Cari:</label>
+        <input id="forum-search" name="q" type="search" maxlength="100" value="{{ $query }}" placeholder="Judul atau isi topik">
+        <label for="forum-mode" class="forum-muted">Lihat:</label>
+        <select name="mode" id="forum-mode">
+            <option value="all" @selected($mode === 'all')>Semua topik</option>
+            <option value="mine" @selected($mode === 'mine')>Topik saya</option>
+            <option value="unanswered" @selected($mode === 'unanswered')>Belum dibalas</option>
+        </select>
+        <button type="submit" class="btn-primary">Cari Topik</button>
     </form>
 
     <div class="two-columns">
@@ -489,8 +515,37 @@
                         </div>
                         <h3>
                             <button type="button" class="forum-link" onclick="openDrawer({{ $thread->id }})">{{ $thread->title }}</button>
+                            <span class="forum-tags">
+                                @if($thread->is_pinned)<span class="forum-tag">📌 Disematkan</span>@endif
+                                @if($thread->is_locked)<span class="forum-tag forum-tag-locked">🔒 Dikunci</span>@endif
+                            </span>
                         </h3>
                         <p style="white-space:pre-line;overflow-wrap:anywhere;">{{ $thread->body }}</p>
+                        @php
+                            $canModerateThread = $isModerator && \App\Support\ForumAccess::canModerate(auth()->user(), (int) $thread->class_id);
+                            $isOwnThread = (int)$thread->user_id === (int)auth()->id();
+                        @endphp
+                        <div class="forum-controls">
+                            @if($canModerateThread || ($isOwnThread && !$thread->is_locked))
+                                <button type="button" class="forum-small-btn" onclick="openForumEdit({{ $thread->id }})">Edit topik</button>
+                            @endif
+                            @if($canModerateThread)
+                                <form method="POST" action="{{ route('forum.threads.pin', $thread, false) }}">@csrf @method('PATCH')
+                                    <input type="hidden" name="return_path" value="{{ request()->getRequestUri() }}">
+                                    <button type="submit" class="forum-small-btn">{{ $thread->is_pinned ? 'Lepas sematan' : 'Sematkan' }}</button>
+                                </form>
+                                <form method="POST" action="{{ route('forum.threads.lock', $thread, false) }}">@csrf @method('PATCH')
+                                    <input type="hidden" name="return_path" value="{{ request()->getRequestUri() }}">
+                                    <button type="submit" class="forum-small-btn">{{ $thread->is_locked ? 'Buka diskusi' : 'Kunci diskusi' }}</button>
+                                </form>
+                            @endif
+                            @if($canModerateThread || ($isOwnThread && !$thread->is_locked && $thread->comments_count === 0))
+                                <form method="POST" action="{{ route('forum.threads.destroy', $thread, false) }}" onsubmit="return confirm('Hapus topik ini? Balasan yang ada juga akan terhapus.')">@csrf @method('DELETE')
+                                    <input type="hidden" name="return_path" value="{{ request()->getRequestUri() }}">
+                                    <button type="submit" class="forum-small-btn forum-danger">Hapus topik</button>
+                                </form>
+                            @endif
+                        </div>
                         @foreach($thread->comments->take(2) as $comment)
                             <div class="reply">
                                 <b>{{ $comment->author?->name ?? 'Pengguna' }} · {{ in_array($comment->author?->role, ['guru', 'admin'], true) ? 'Guru' : 'Siswa' }}</b>
@@ -587,6 +642,25 @@
         </form>
     </div>
 
+    <!-- Edit topik asli, tidak mengubah class_id maupun pemilik topik -->
+    <div class="modal-backdrop" id="forum-edit-modal" role="presentation">
+        <form class="modal forum-edit-modal" id="forum-edit-form" method="POST" action="#">
+            @csrf @method('PUT')
+            <input type="hidden" name="return_path" value="{{ request()->getRequestUri() }}">
+            <div class="modal-head">
+                <h2>Edit Topik Diskusi</h2>
+                <button type="button" aria-label="Tutup" onclick="closeForumEdit()">✕</button>
+            </div>
+            <div class="field">
+                <label for="forum-edit-title">Judul Topik</label>
+                <input id="forum-edit-title" name="title" maxlength="255" required>
+                <label for="forum-edit-body">Isi Topik</label>
+                <textarea class="answer-input" id="forum-edit-body" name="body" maxlength="10000" required></textarea>
+            </div>
+            <button type="submit" class="btn-primary" style="width:100%;justify-content:center;">Simpan Perubahan</button>
+        </form>
+    </div>
+
     <!-- Drawer detail diskusi tetap dipakai, kini memuat judul dan komentar asli -->
     <div class="drawer-overlay" id="drawer-overlay" onclick="closeDrawer()"></div>
     <div class="topic-drawer" id="topic-drawer" role="dialog" aria-label="Detail diskusi" aria-modal="true">
@@ -615,9 +689,12 @@
             <form id="forum-reply-form" method="POST" action="#">
                 @csrf
                 <input type="hidden" name="return_path" value="{{ request()->getRequestUri() }}">
-                <label for="forum-reply-body" style="display:block;margin-bottom:.5rem;font-weight:600;">Tulis Balasan</label>
-                <textarea id="forum-reply-body" name="body" class="answer-input" style="min-height:80px;margin-bottom:.5rem;" maxlength="10000" required placeholder="Balas diskusi ini..."></textarea>
-                <button type="submit" class="btn-primary" style="width:100%;justify-content:center;">Kirim Balasan</button>
+                <p id="forum-locked-notice" class="forum-muted" style="display:none;">🔒 Diskusi dikunci guru. Balasan baru tidak diizinkan.</p>
+                <div id="forum-reply-fields">
+                    <label for="forum-reply-body" style="display:block;margin-bottom:.5rem;font-weight:600;">Tulis Balasan</label>
+                    <textarea id="forum-reply-body" name="body" class="answer-input" style="min-height:80px;margin-bottom:.5rem;" maxlength="10000" required placeholder="Balas diskusi ini..."></textarea>
+                    <button type="submit" class="btn-primary" style="width:100%;justify-content:center;">Kirim Balasan</button>
+                </div>
             </form>
         </div>
     </div>
@@ -637,6 +714,23 @@
             if (event.target === this) closeForumModal();
         });
 
+        function openForumEdit(id) {
+            const thread = forumThreadData[String(id)];
+            if (!thread || !thread.canEdit) return;
+            document.getElementById('forum-edit-form').action = thread.editUrl;
+            document.getElementById('forum-edit-title').value = thread.title;
+            document.getElementById('forum-edit-body').value = thread.body;
+            document.getElementById('forum-edit-modal').classList.add('active');
+        }
+
+        function closeForumEdit() {
+            document.getElementById('forum-edit-modal').classList.remove('active');
+        }
+
+        document.getElementById('forum-edit-modal').addEventListener('click', function (event) {
+            if (event.target === this) closeForumEdit();
+        });
+
         function openDrawer(id) {
             const thread = forumThreadData[String(id)];
             if (!thread) return;
@@ -649,6 +743,9 @@
             document.getElementById('drawer-reply-count').textContent = 'Balasan (' + thread.comments.length + ')';
             document.getElementById('forum-reply-form').action = thread.replyUrl;
             document.getElementById('forum-reply-body').value = '';
+            document.getElementById('forum-reply-fields').style.display = thread.locked ? 'none' : '';
+            document.getElementById('forum-locked-notice').style.display = thread.locked ? '' : 'none';
+            document.getElementById('forum-reply-body').required = !thread.locked;
 
             const replies = document.getElementById('drawer-replies');
             replies.replaceChildren();
@@ -662,14 +759,35 @@
 
             thread.comments.forEach(function (item) {
                 const card = document.createElement('div');
-                card.className = 'reply';
+                card.className = 'reply forum-reply-card';
+                const body = document.createElement('div');
                 const name = document.createElement('b');
                 name.textContent = item.author + ' · ' + item.role;
                 const content = document.createElement('p');
                 content.textContent = item.body;
                 content.style.whiteSpace = 'pre-line';
                 content.style.overflowWrap = 'anywhere';
-                card.append(name, content);
+                body.append(name, content);
+                card.appendChild(body);
+                if (item.canDelete) {
+                    const form = document.createElement('form');
+                    form.method = 'POST';
+                    form.action = item.deleteUrl;
+                    form.className = 'forum-reply-delete';
+                    const token = document.createElement('input');
+                    token.type = 'hidden'; token.name = '_token'; token.value = {{ \Illuminate\Support\Js::from(csrf_token()) }};
+                    const method = document.createElement('input');
+                    method.type = 'hidden'; method.name = '_method'; method.value = 'DELETE';
+                    const returnPath = document.createElement('input');
+                    returnPath.type = 'hidden'; returnPath.name = 'return_path'; returnPath.value = window.location.pathname + window.location.search;
+                    const button = document.createElement('button');
+                    button.type = 'submit'; button.className = 'forum-small-btn forum-danger'; button.textContent = 'Hapus';
+                    form.addEventListener('submit', function (event) {
+                        if (!confirm('Hapus balasan ini?')) event.preventDefault();
+                    });
+                    form.append(token, method, returnPath, button);
+                    card.appendChild(form);
+                }
                 replies.appendChild(card);
             });
 
@@ -685,6 +803,7 @@
         document.addEventListener('keydown', function (event) {
             if (event.key === 'Escape') {
                 closeForumModal();
+                closeForumEdit();
                 closeDrawer();
             }
         });
