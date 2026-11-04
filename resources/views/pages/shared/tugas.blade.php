@@ -10,6 +10,11 @@
     @endphp
 
     <style>
+        .app-content {
+            font-size: 11.2px;
+        }
+
+
         :root {
             --ml-green: #086534;
             --ml-green-hover: #064d27;
@@ -24,7 +29,7 @@
         }
 
         .page-heading h1 {
-            font-size: 1.8rem;
+            font-size: 1.44rem;
             color: #0f172a;
             margin: 0.5rem 0;
             font-weight: 800;
@@ -32,7 +37,7 @@
 
         .page-heading p {
             color: #64748b;
-            font-size: 1rem;
+            font-size: 0.8rem;
             margin: 0;
             line-height: 1.6;
         }
@@ -60,20 +65,20 @@
         }
 
         .panel h2 {
-            font-size: 1.25rem;
+            font-size: 1rem;
             color: #0f172a;
             margin-top: 0;
             margin-bottom: 1.2rem;
         }
 
         .panel h3 {
-            font-size: 1.1rem;
+            font-size: 0.88rem;
             color: #0f172a;
             margin: 1.5rem 0 0.8rem 0;
         }
 
         .panel p {
-            font-size: 1rem;
+            font-size: 0.8rem;
             line-height: 1.6;
             color: #334155;
         }
@@ -95,7 +100,7 @@
             padding: 0.5rem 1rem;
             border-radius: 6px;
             font-weight: 600;
-            font-size: 0.95rem;
+            font-size: 0.76rem;
             color: #64748b;
             cursor: pointer;
             transition: all 0.2s;
@@ -120,7 +125,7 @@
             color: var(--ml-green);
             padding: 0.4rem 0.8rem;
             border-radius: 20px;
-            font-size: 0.85rem;
+            font-size: 0.68rem;
             font-weight: 700;
         }
 
@@ -152,7 +157,7 @@
             border: 1px solid #e2e8f0;
             padding: 0.4rem 1rem;
             border-radius: 20px;
-            font-size: 0.9rem;
+            font-size: 0.72rem;
             font-weight: 600;
             color: #475569;
         }
@@ -180,13 +185,13 @@
             align-items: center;
             justify-content: center;
             font-weight: 800;
-            font-size: 1.1rem;
+            font-size: 0.88rem;
             color: #0f172a;
             line-height: 1;
         }
 
         .date-block small {
-            font-size: 0.7rem;
+            font-size: 0.56rem;
             color: #64748b;
             font-weight: 700;
             margin-top: 0.2rem;
@@ -219,12 +224,12 @@
         }
 
         .upload-zone b {
-            font-size: 1rem;
+            font-size: 0.8rem;
             color: #0f172a;
         }
 
         .upload-zone p {
-            font-size: 0.85rem;
+            font-size: 0.68rem;
             color: #64748b;
             margin-top: 0.5rem;
         }
@@ -246,7 +251,7 @@
             display: inline-flex;
             align-items: center;
             gap: 0.5rem;
-            font-size: 0.95rem;
+            font-size: 0.76rem;
             margin-top: 1rem;
         }
 
@@ -260,7 +265,7 @@
         }
 
         .status-box .big-score {
-            font-size: 3rem;
+            font-size: 2.4rem;
             font-weight: 800;
             color: #cbd5e1;
             line-height: 1;
@@ -282,14 +287,14 @@
         .chat-bubble b {
             display: block;
             color: #0f172a;
-            font-size: 0.95rem;
+            font-size: 0.76rem;
             margin-bottom: 0.2rem;
         }
 
         .chat-bubble p {
             margin: 0;
             color: #334155;
-            font-size: 0.95rem;
+            font-size: 0.76rem;
         }
 
         /* FORMAT BALASAN GURU (Style Forum) */
@@ -304,13 +309,13 @@
 
         .reply b {
             display: block;
-            font-size: 0.95rem;
+            font-size: 0.76rem;
             color: #0f172a;
             margin-bottom: 0.3rem;
         }
 
         .reply p {
-            font-size: 0.95rem;
+            font-size: 0.76rem;
             color: #475569;
             margin: 0;
         }
@@ -320,7 +325,7 @@
             padding: 0.8rem;
             border: 1px solid #cbd5e1;
             border-radius: 8px;
-            font-size: 0.95rem;
+            font-size: 0.76rem;
             font-family: inherit;
             resize: vertical;
             min-height: 80px;
@@ -342,7 +347,7 @@
     <div class="page-heading">
         <div>
             <span class="eyebrow"
-                style="display: inline-flex; align-items: center; gap: 0.4rem; font-weight: 700; color: #086534; font-size: 0.8rem; letter-spacing: 0.05em; text-transform: uppercase;">
+                style="display: inline-flex; align-items: center; gap: 0.4rem; font-weight: 700; color: #086534; font-size: 0.64rem; letter-spacing: 0.05em; text-transform: uppercase;">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                     stroke-linecap="round" stroke-linejoin="round">
                     <path d="M11 20A7 7 0 0 1 4 13C4 5 14 3 21 3c0 7-2 17-10 17Z"></path>
@@ -388,10 +393,10 @@
                 <div class="detail-kegiatan-box">
                     <div class="date-block">19<small>OKT</small></div>
                     <div>
-                        <strong style="display:block; color:#0f172a; font-size:1.05rem; margin-bottom:0.2rem;">Batas
+                        <strong style="display:block; color:#0f172a; font-size:0.84rem; margin-bottom:0.2rem;">Batas
                             Pengumpulan</strong>
-                        <small style="color:#64748b; font-size:0.9rem;">Senin, 19 Oktober 2026 · 23.59</small>
-                        <p style="margin: 0.4rem 0 0 0; font-size: 0.9rem;">Jadwal Presentasi: 21 Okt (5 mnt/kelompok)</p>
+                        <small style="color:#64748b; font-size:0.72rem;">Senin, 19 Oktober 2026 · 23.59</small>
+                        <p style="margin: 0.4rem 0 0 0; font-size: 0.72rem;">Jadwal Presentasi: 21 Okt (5 mnt/kelompok)</p>
                     </div>
                 </div>
 
@@ -438,9 +443,9 @@
                     <div class="date-block" style="background: #f1f5f9; color: #94a3b8; border-color: #e2e8f0;">
                         12<small>OKT</small></div>
                     <div>
-                        <strong style="display:block; color:#0f172a; font-size:1.05rem; margin-bottom:0.2rem;">Tugas Telah
+                        <strong style="display:block; color:#0f172a; font-size:0.84rem; margin-bottom:0.2rem;">Tugas Telah
                             Ditutup</strong>
-                        <small style="color:#64748b; font-size:0.9rem;">Dikumpulkan: 12 Oktober 2026 · 14.30</small>
+                        <small style="color:#64748b; font-size:0.72rem;">Dikumpulkan: 12 Oktober 2026 · 14.30</small>
                     </div>
                 </div>
 
@@ -448,7 +453,7 @@
                     <div
                         style="margin-top: 1.5rem; padding: 1.2rem; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px;">
                         <h3 style="margin-top:0;">File yang Dikumpulkan:</h3>
-                        <p style="margin-bottom:0; font-size: 0.95rem;">📄 <b>Refleksi_{{ $userName }}.pdf</b>
+                        <p style="margin-bottom:0; font-size: 0.76rem;">📄 <b>Refleksi_{{ $userName }}.pdf</b>
                             (Terkirim)</p>
                     </div>
                 @endif
@@ -463,16 +468,16 @@
 
                 <!-- Tampilan untuk Tab Kelompok -->
                 <div id="status-kelompok" class="status-box">
-                    <strong style="color: #64748b; font-size: 0.95rem;">Nilai Kelompok:</strong>
+                    <strong style="color: #64748b; font-size: 0.76rem;">Nilai Kelompok:</strong>
                     <div class="big-score">- / 100</div>
-                    <span class="badge yellow" style="font-size: 0.8rem;">Menunggu Pengumpulan</span>
+                    <span class="badge yellow" style="font-size: 0.64rem;">Menunggu Pengumpulan</span>
                 </div>
 
                 <!-- Tampilan untuk Tab Individu -->
                 <div id="status-individu" class="status-box graded hidden-panel">
-                    <strong style="color: #64748b; font-size: 0.95rem;">Nilai Akhir:</strong>
+                    <strong style="color: #64748b; font-size: 0.76rem;">Nilai Akhir:</strong>
                     <div class="big-score">92 / 100</div>
-                    <span class="badge green" style="font-size: 0.8rem;">Tuntas</span>
+                    <span class="badge green" style="font-size: 0.64rem;">Tuntas</span>
                 </div>
             </section>
 
@@ -483,7 +488,7 @@
                 @if ($isTeacher)
                     <div
                         style="background: #f8fafc; padding: 0.8rem; border-radius: 8px; margin-bottom: 1.5rem; border: 1px dashed #cbd5e1;">
-                        <p style="margin:0; font-size:0.85rem; color:#475569;">Pantauan Guru: Kelompok Daun Cerdas</p>
+                        <p style="margin:0; font-size:0.68rem; color:#475569;">Pantauan Guru: Kelompok Daun Cerdas</p>
                     </div>
                 @endif
 

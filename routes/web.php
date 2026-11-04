@@ -95,6 +95,12 @@ Route::middleware('auth')->group(function () {
 */
 Route::middleware('auth')->prefix('guru')->name('teacher.')->group(function () {
     Route::get('/', [ClassroomController::class, 'teacherDashboard'])->name('dashboard');
+
+    // Manajemen materi guru
+    Route::get('/materi/buat', [ClassroomController::class, 'createMaterial'])->name('materials.create');
+    Route::post('/materi', [ClassroomController::class, 'storeMaterial'])->name('materials.store');
+    Route::get('/materi/{material}/edit', [ClassroomController::class, 'editMaterial'])->name('materials.edit');
+    Route::put('/materi/{material}', [ClassroomController::class, 'updateMaterial'])->name('materials.update');
     
     // Manajemen Kuis Guru
     Route::get('/kuis', [ClassroomController::class, 'teacherQuizzes'])->name('quizzes');

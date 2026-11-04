@@ -14,7 +14,10 @@
 
         body {
             background-color: #f8fafc;
-            font-size: 16px;
+        }
+
+        .app-content {
+            font-size: 11.2px;
         }
 
         /* PAGE HEADER */
@@ -28,7 +31,7 @@
         }
 
         .page-heading h1 {
-            font-size: 2.2rem;
+            font-size: 1.76rem;
             color: #0f172a;
             margin: 0.5rem 0;
             font-weight: 900;
@@ -37,7 +40,7 @@
 
         .page-heading p {
             color: #475569;
-            font-size: 1.1rem;
+            font-size: 0.88rem;
             margin: 0;
             line-height: 1.6;
         }
@@ -48,7 +51,7 @@
             justify-content: center;
             gap: 0.5rem;
             padding: 0.75rem 1.25rem;
-            font-size: 0.95rem;
+            font-size: 0.76rem;
             font-weight: 600;
             border-radius: 8px;
             cursor: pointer;
@@ -80,16 +83,30 @@
         /* STATS GRID */
         .stats-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-            gap: 1.5rem;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 1rem;
             margin-bottom: 2.5rem;
         }
 
+        @media (max-width: 900px) {
+            .stats-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+        }
+
+        @media (max-width: 520px) {
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
         .stat-card {
+            position: relative;
+            overflow: hidden;
             background: #ffffff;
             border: 1px solid #e2e8f0;
             border-radius: 16px;
-            padding: 1.5rem;
+            padding: 1.25rem;
             display: flex;
             flex-direction: column;
             box-shadow: 0 4px 6px rgba(15, 23, 42, 0.03);
@@ -104,27 +121,37 @@
         .stat-icon-wrap {
             display: flex;
             align-items: center;
-            justify-content: space-between;
             margin-bottom: 1rem;
         }
 
         .stat-label {
-            font-size: 0.95rem;
+            padding-right: 3rem;
+            font-size: 0.76rem;
             color: #64748b;
             font-weight: 600;
         }
 
         .stat-icon {
-            width: 40px;
-            height: 40px;
-            border-radius: 10px;
+            position: absolute;
+            top: 0.75rem;
+            right: 0.75rem;
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
+            opacity: 0.72;
+            pointer-events: none;
+        }
+
+        .stat-icon svg {
+            width: 30px;
+            height: 30px;
         }
 
         .stat-value {
-            font-size: 2.5rem;
+            font-size: 2rem;
             font-weight: 800;
             color: #0f172a;
             line-height: 1;
@@ -132,7 +159,7 @@
         }
 
         .stat-desc {
-            font-size: 0.85rem;
+            font-size: 0.68rem;
             color: #94a3b8;
             font-weight: 500;
         }
@@ -159,7 +186,7 @@
         }
 
         .panel-head h2 {
-            font-size: 1.25rem;
+            font-size: 1rem;
             margin: 0;
             color: #0f172a;
             font-weight: 800;
@@ -181,7 +208,7 @@
             border-radius: 8px;
             border: 1px solid #cbd5e1;
             background: #f8fafc;
-            font-size: 0.95rem;
+            font-size: 0.76rem;
             color: #334155;
             font-weight: 500;
             outline: none;
@@ -234,13 +261,13 @@
             align-items: center;
             justify-content: center;
             font-weight: 700;
-            font-size: 1.1rem;
+            font-size: 0.88rem;
         }
 
         .student-name {
             font-weight: 700;
             color: #0f172a;
-            font-size: 1rem;
+            font-size: 0.8rem;
         }
 
         .student-arrow {
@@ -268,7 +295,7 @@
             background: #f8fafc;
             padding: 1rem 1.25rem;
             text-align: left;
-            font-size: 0.9rem;
+            font-size: 0.72rem;
             color: #64748b;
             font-weight: 700;
             border-bottom: 2px solid #e2e8f0;
@@ -280,7 +307,7 @@
             padding: 1.25rem;
             border-bottom: 1px solid #f1f5f9;
             color: #334155;
-            font-size: 0.95rem;
+            font-size: 0.76rem;
             vertical-align: middle;
         }
 
@@ -295,7 +322,7 @@
         .badge {
             padding: 0.3rem 0.8rem;
             border-radius: 20px;
-            font-size: 0.8rem;
+            font-size: 0.64rem;
             font-weight: 700;
             display: inline-flex;
             align-items: center;
@@ -323,7 +350,7 @@
         }
 
         .pagination-link {
-            font-size: 0.95rem;
+            font-size: 0.76rem;
             font-weight: 600;
             color: var(--ml-green);
             text-decoration: none;
@@ -337,16 +364,111 @@
         }
 
         .pagination-info {
-            font-size: 0.9rem;
+            font-size: 0.72rem;
             color: #64748b;
             font-weight: 500;
+        }
+
+        .grades-toast {
+            position: fixed;
+            top: 84px;
+            right: 24px;
+            z-index: 9998;
+            width: min(380px, calc(100vw - 24px));
+            display: flex;
+            align-items: flex-start;
+            gap: 0.8rem;
+            padding: 0.95rem 1rem;
+            border: 1px solid #fde68a;
+            border-left: 5px solid #f59e0b;
+            border-radius: 12px;
+            background: #fff;
+            box-shadow: 0 12px 30px rgba(15, 23, 42, .2);
+            animation: gradesToastIn .45s cubic-bezier(.2, .8, .2, 1) both;
+        }
+
+        .grades-toast.out {
+            animation: gradesToastOut .3s ease both;
+        }
+
+        .grades-toast .toast-icon {
+            color: #d97706;
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+
+        .grades-toast b {
+            display: block;
+            color: #0f172a;
+            font-size: 0.84rem;
+        }
+
+        .grades-toast p {
+            margin: 2px 0 0;
+            color: #475569;
+            font-size: 0.76rem;
+            line-height: 1.45;
+        }
+
+        .grades-toast a {
+            color: #086534;
+            font-weight: 700;
+            text-decoration: underline;
+        }
+
+        .grades-toast .toast-close {
+            margin-left: auto;
+            padding: 0 0.2rem;
+            border: 0;
+            background: transparent;
+            color: #94a3b8;
+            font-size: 1.04rem;
+            line-height: 1;
+            cursor: pointer;
+        }
+
+        .grades-toast .toast-close:hover {
+            color: #475569;
+        }
+
+        @keyframes gradesToastIn {
+            from {
+                opacity: 0;
+                transform: translateY(-14px) scale(.96);
+            }
+
+            to {
+                opacity: 1;
+                transform: none;
+            }
+        }
+
+        @keyframes gradesToastOut {
+            to {
+                opacity: 0;
+                transform: translateY(-10px) scale(.96);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .grades-toast {
+                top: 72px;
+                right: 12px;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .grades-toast,
+            .grades-toast.out {
+                animation: none !important;
+            }
         }
     </style>
 
     <div class="page-heading">
         <div>
             <span class="eyebrow"
-                style="display: inline-flex; align-items: center; gap: 0.4rem; font-weight: 700; color: #086534; font-size: 0.9rem; letter-spacing: 0.05em; text-transform: uppercase;">
+                style="display: inline-flex; align-items: center; gap: 0.4rem; font-weight: 700; color: #086534; font-size: 0.72rem; letter-spacing: 0.05em; text-transform: uppercase;">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                     stroke-linecap="round" stroke-linejoin="round">
                     <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
@@ -378,12 +500,55 @@
         </div>
     </div>
 
+    @if ($selectedClassId === null && $activeClass)
+        <div class="grades-toast" id="grades-class-toast" role="status">
+            <svg class="toast-icon" width="22" height="22" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                aria-hidden="true">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="12" y1="8" x2="12" y2="12"></line>
+                <line x1="12" y1="16" x2="12.01" y2="16"></line>
+            </svg>
+            <div>
+                <b>Rekap menampilkan semua kelas</b>
+                <p>
+                    <a href="{{ route('teacher.grades', ['class_id' => $activeClass->id]) }}">
+                        Klik di sini untuk hanya menampilkan kelas {{ $activeClass->name }}.
+                    </a>
+                </p>
+            </div>
+            <button type="button" class="toast-close" aria-label="Tutup notifikasi">&times;</button>
+        </div>
+        <script>
+            (function() {
+                var toast = document.getElementById('grades-class-toast');
+                if (!toast) return;
+
+                var timeout;
+
+                function dismiss() {
+                    if (!toast || toast.classList.contains('out')) return;
+                    toast.classList.add('out');
+                    window.setTimeout(function() {
+                        if (toast) toast.remove();
+                    }, 300);
+                }
+
+                toast.querySelector('.toast-close').addEventListener('click', function() {
+                    window.clearTimeout(timeout);
+                    dismiss();
+                });
+                timeout = window.setTimeout(dismiss, 7000);
+            })();
+        </script>
+    @endif
+
     <!-- STATISTIK KESELURUHAN -->
     <div class="stats-grid">
         <div class="stat-card">
             <div class="stat-icon-wrap">
                 <span class="stat-label">Tugas Dikumpulkan</span>
-                <span class="stat-icon" style="background: #e0f2fe; color: #0284c7;">
+                <span class="stat-icon" style="background: rgba(224, 242, 254, 0.75); color: #0284c7;">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                         stroke-width="2">
                         <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
@@ -396,7 +561,7 @@
         <div class="stat-card">
             <div class="stat-icon-wrap">
                 <span class="stat-label">Kuis Dikerjakan</span>
-                <span class="stat-icon" style="background: #f3e8ff; color: #9333ea;">
+                <span class="stat-icon" style="background: rgba(243, 232, 255, 0.75); color: #9333ea;">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                         stroke-width="2">
                         <circle cx="12" cy="8" r="6"></circle>
@@ -410,7 +575,7 @@
         <div class="stat-card">
             <div class="stat-icon-wrap">
                 <span class="stat-label">Rata-rata Tugas</span>
-                <span class="stat-icon" style="background: var(--ml-green-light); color: var(--ml-green);">
+                <span class="stat-icon" style="background: rgba(237, 248, 240, 0.8); color: var(--ml-green);">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                         stroke-width="2">
                         <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
@@ -425,7 +590,7 @@
         <div class="stat-card">
             <div class="stat-icon-wrap">
                 <span class="stat-label">Rata-rata Kuis</span>
-                <span class="stat-icon" style="background: #fef9c3; color: #ca8a04;">
+                <span class="stat-icon" style="background: rgba(254, 249, 195, 0.8); color: #ca8a04;">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                         stroke-width="2">
                         <polygon
@@ -480,7 +645,7 @@
                 </a>
             @empty
                 <div
-                    style="grid-column: 1 / -1; text-align: center; padding: 2rem; color: #64748b; font-size: 1rem; border: 1px dashed #cbd5e1; border-radius: 8px;">
+                    style="grid-column: 1 / -1; text-align: center; padding: 2rem; color: #64748b; font-size: 0.8rem; border: 1px dashed #cbd5e1; border-radius: 8px;">
                     Belum ada siswa dalam kelas yang dipilih.
                 </div>
             @endforelse
@@ -502,7 +667,7 @@
                 Rekap Pengumpulan Tugas
             </h2>
             <a href="{{ route('classroom.tasks.index') }}" class="btn btn-outline-green"
-                style="font-size: 0.85rem; padding: 0.5rem 1rem;">
+                style="font-size: 0.68rem; padding: 0.5rem 1rem;">
                 Kelola Tugas
             </a>
         </div>
@@ -544,7 +709,7 @@
                             <td>
                                 @if ($submission->score !== null)
                                     <strong
-                                        style="color: var(--ml-green); font-size: 1.1rem;">{{ number_format($submission->score, 1) }}</strong>
+                                        style="color: var(--ml-green); font-size: 0.88rem;">{{ number_format($submission->score, 1) }}</strong>
                                 @else
                                     <span style="color: #94a3b8;">—</span>
                                 @endif
@@ -632,7 +797,7 @@
                             <td>
                                 @if ($attempt->score !== null)
                                     <strong
-                                        style="color: var(--ml-green); font-size: 1.1rem;">{{ number_format($attempt->score, 1) }}</strong>
+                                        style="color: var(--ml-green); font-size: 0.88rem;">{{ number_format($attempt->score, 1) }}</strong>
                                 @else
                                     <span style="color: #94a3b8;">—</span>
                                 @endif

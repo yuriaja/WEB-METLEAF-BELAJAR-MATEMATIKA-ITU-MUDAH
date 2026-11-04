@@ -5,6 +5,11 @@
 
 @section('content')
     <style>
+        .app-content {
+            font-size: 11.2px;
+        }
+
+
         :root {
             --ml-green: #086534;
             --ml-green-hover: #064d27;
@@ -16,14 +21,14 @@
         }
 
         .page-heading h1 {
-            font-size: 1.8rem;
+            font-size: 1.44rem;
             color: #0f172a;
             margin-bottom: 0.5rem;
         }
 
         .page-heading p {
             color: #64748b;
-            font-size: 1rem;
+            font-size: 0.8rem;
         }
 
         .panel {
@@ -41,14 +46,14 @@
             color: var(--ml-green);
             padding: 0.3rem 0.8rem;
             border-radius: 20px;
-            font-size: 0.8rem;
+            font-size: 0.64rem;
             font-weight: 700;
             margin-bottom: 1rem;
         }
 
         .panel h2 {
             margin: 0 0 0.5rem 0;
-            font-size: 1.25rem;
+            font-size: 1rem;
             color: #0f172a;
         }
 
@@ -116,7 +121,7 @@
             border: 1px solid #cbd5e1;
             border-radius: 6px;
             margin-top: 0.5rem;
-            font-size: 1rem;
+            font-size: 0.8rem;
             outline: none;
         }
 
@@ -159,7 +164,7 @@
             padding: 0.5rem 1rem;
             min-width: 40px;
             text-align: center;
-            font-size: 1.1rem;
+            font-size: 0.88rem;
         }
 
         .btn-primary {
@@ -173,7 +178,7 @@
             display: inline-flex;
             align-items: center;
             gap: 0.5rem;
-            font-size: 1rem;
+            font-size: 0.8rem;
             margin-top: 1rem;
         }
 
@@ -185,7 +190,7 @@
     <div class="page-heading">
         <div>
             <span class="eyebrow"
-                style="display: inline-flex; align-items: center; gap: 0.4rem; font-weight: 700; color: #086534; font-size: 0.8rem; letter-spacing: 0.05em; text-transform: uppercase; margin-bottom: 0.5rem;">
+                style="display: inline-flex; align-items: center; gap: 0.4rem; font-weight: 700; color: #086534; font-size: 0.64rem; letter-spacing: 0.05em; text-transform: uppercase; margin-bottom: 0.5rem;">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                     stroke-linecap="round" stroke-linejoin="round">
                     <path d="M11 20A7 7 0 0 1 4 13C4 5 14 3 21 3c0 7-2 17-10 17Z"></path>

@@ -59,7 +59,7 @@
                     Math<span class="text-emerald-500">Leaf</span>
                 </h1>
             </div>
-            <h2 class="text-3xl font-bold text-emerald-900 mb-4">Mulai Bertumbuh 🌱</h2>
+            <h2 class="text-3xl font-bold text-emerald-900 mb-4">Mulai Bertumbuh </h2>
             <p class="text-lg text-emerald-800 font-medium max-w-md">Daftar secara gratis dan mulai petualangan
                 matematikamu bersama kami.</p>
         </div>
@@ -158,7 +158,8 @@
                         headers: {
                             'Accept': 'application/json',
                             'Content-Type': 'application/json',
-                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')
+                                .content,
                             'X-Requested-With': 'XMLHttpRequest',
                         },
                         body: JSON.stringify(Object.fromEntries(new FormData(form))),
@@ -176,7 +177,8 @@
                     const result = await response.json();
                     if (!response.ok) {
                         const firstError = Object.values(result.errors || {}).flat()[0];
-                        throw new Error(firstError || result.message || 'Pendaftaran gagal. Silakan coba lagi.');
+                        throw new Error(firstError || result.message ||
+                            'Pendaftaran gagal. Silakan coba lagi.');
                     }
 
                     if (!result.redirect) {

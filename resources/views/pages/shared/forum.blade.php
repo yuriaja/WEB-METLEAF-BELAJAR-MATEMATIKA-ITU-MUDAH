@@ -10,6 +10,11 @@
     @endphp
 
     <style>
+        .app-content {
+            font-size: 11.2px;
+        }
+
+
         :root {
             --ml-green: #086534;
             --ml-green-hover: #064d27;
@@ -17,7 +22,7 @@
         }
 
         body {
-            font-size: 16px;
+            font-size: 12.8px;
         }
 
         .page-heading {
@@ -28,7 +33,7 @@
         }
 
         .page-heading h1 {
-            font-size: 2rem;
+            font-size: 1.6rem;
             color: #0f172a;
             margin: 0.5rem 0;
             font-weight: 800;
@@ -36,7 +41,7 @@
 
         .page-heading p {
             color: #475569;
-            font-size: 1.1rem;
+            font-size: 0.88rem;
             margin: 0;
             line-height: 1.6;
         }
@@ -52,7 +57,7 @@
             display: inline-flex;
             align-items: center;
             gap: 0.5rem;
-            font-size: 1rem;
+            font-size: 0.8rem;
             transition: background 0.2s;
         }
 
@@ -91,7 +96,7 @@
         }
 
         .panel-head h2 {
-            font-size: 1.4rem;
+            font-size: 1.12rem;
             margin: 0;
             color: #0f172a;
             font-weight: 700;
@@ -102,7 +107,7 @@
             color: var(--ml-green);
             padding: 0.4rem 0.8rem;
             border-radius: 20px;
-            font-size: 0.9rem;
+            font-size: 0.72rem;
             font-weight: 700;
         }
 
@@ -132,30 +137,30 @@
             align-items: center;
             justify-content: center;
             font-weight: 700;
-            font-size: 1.2rem;
+            font-size: 0.96rem;
             flex-shrink: 0;
         }
 
         .thread-title strong {
             display: block;
-            font-size: 1.1rem;
+            font-size: 0.88rem;
             color: #0f172a;
         }
 
         .thread-title small {
             color: #64748b;
-            font-size: 0.9rem;
+            font-size: 0.72rem;
         }
 
         .thread h3 {
-            font-size: 1.3rem;
+            font-size: 1.04rem;
             color: #0f172a;
             margin: 0 0 0.5rem 0;
             line-height: 1.4;
         }
 
         .thread p {
-            font-size: 1.05rem;
+            font-size: 0.84rem;
             color: #334155;
             line-height: 1.6;
             margin-bottom: 1rem;
@@ -172,13 +177,13 @@
 
         .reply b {
             display: block;
-            font-size: 1rem;
+            font-size: 0.8rem;
             color: #0f172a;
             margin-bottom: 0.4rem;
         }
 
         .reply p {
-            font-size: 1rem;
+            font-size: 0.8rem;
             color: #475569;
             margin: 0;
         }
@@ -186,7 +191,7 @@
         .field label {
             display: block;
             font-weight: 600;
-            font-size: 1.1rem;
+            font-size: 0.88rem;
             margin-bottom: 0.5rem;
             color: #0f172a;
         }
@@ -196,7 +201,7 @@
             padding: 1rem;
             border: 1px solid #cbd5e1;
             border-radius: 8px;
-            font-size: 1.05rem;
+            font-size: 0.84rem;
             font-family: inherit;
             resize: vertical;
             min-height: 100px;
@@ -214,7 +219,7 @@
         }
 
         .side-panel-box h3 {
-            font-size: 1.2rem;
+            font-size: 0.96rem;
             color: #0f172a;
             margin-bottom: 1rem;
             display: flex;
@@ -249,14 +254,14 @@
 
         .topic-item strong {
             display: block;
-            font-size: 1rem;
+            font-size: 0.8rem;
             color: #0f172a;
             margin-bottom: 0.3rem;
             line-height: 1.3;
         }
 
         .topic-item small {
-            font-size: 0.85rem;
+            font-size: 0.68rem;
             color: #64748b;
         }
 
@@ -304,7 +309,7 @@
         }
 
         .modal-head h2 {
-            font-size: 1.4rem;
+            font-size: 1.12rem;
             margin: 0;
         }
 
@@ -320,7 +325,7 @@
             padding: 0.8rem;
             border: 1px solid #cbd5e1;
             border-radius: 6px;
-            font-size: 1rem;
+            font-size: 0.8rem;
             margin-bottom: 1rem;
         }
 
@@ -373,7 +378,7 @@
         }
 
         .drawer-header h2 {
-            font-size: 1.3rem;
+            font-size: 1.04rem;
             margin: 0;
             color: #0f172a;
             display: flex;

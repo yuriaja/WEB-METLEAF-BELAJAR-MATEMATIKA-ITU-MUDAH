@@ -394,7 +394,6 @@
                     </svg>
                 </button>
             </div>
-            <!-- Action diarahkan ke pembuatan kuis (controller akan generate quiz_code dan redirect ke editor) -->
             <form method="POST" action="{{ route('teacher.quizzes.create') }}">
                 @csrf
                 <div class="modal-body">
@@ -468,6 +467,7 @@
                                     class="badge">{{ optional($classes->firstWhere('id', $quiz->class_id))->name ?? 'Semua Kelas' }}</span>
                                 <span class="badge" style="text-transform: capitalize;">{{ $quiz->type }}</span>
                                 <span class="badge">{{ $quiz->time_limit_minutes }} Menit</span>
+                                <span class="badge">{{ $quiz->questions_count }} soal</span>
                                 <span class="badge">KKM {{ $quiz->passing_score ?? 70 }}</span>
                                 <span class="badge">{{ $quiz->max_attempts }}x kesempatan</span>
                                 <span class="badge badge-status">{{ $quiz->is_published ? 'Aktif' : 'Draft' }}</span>
@@ -583,16 +583,14 @@
     </div>
 
     <script>
-        // Fitur Copy Kode Kuis
+        // Salin kode kelas dari kartu kuis.
         function copyCode(code, btn) {
+            if (!code) return;
             navigator.clipboard.writeText(code).then(() => {
-                const originalIcon = btn.innerHTML;
-                btn.innerHTML =
-                    `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>`;
-                setTimeout(() => {
-                    btn.innerHTML = originalIcon;
-                }, 2000);
-            });
+                const old = btn.innerHTML;
+                btn.textContent = '✓';
+                setTimeout(() => { btn.innerHTML = old; }, 1600);
+            }).catch(() => { alert('Gagal menyalin kode. Silakan salin manual.'); });
         }
 
         // Modal
