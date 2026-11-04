@@ -179,7 +179,10 @@ class ClassTaskController extends Controller
 
         $oldFile = $submission->file_path;
         if ($request->hasFile('file')) {
-            $submission->file_path = $request->file('file')->store('mathleaf/tasks', 'local');
+            $uploadedFile = $request->file('file');
+            $submission->file_path = $uploadedFile->store('mathleaf/tasks', 'local');
+            $submission->original_file_name = \Illuminate\Support\Str::limit($uploadedFile->getClientOriginalName(), 240, '');
+            $submission->file_size_bytes = $uploadedFile->getSize();
         }
         $submission->content = $data['content'] ?? $submission->content;
         $submission->study_group_id = null;
@@ -221,6 +224,21 @@ class ClassTaskController extends Controller
         /** @var \Illuminate\Filesystem\FilesystemAdapter $disk */
         $disk = Storage::disk('local');
         abort_unless($submission->file_path && $disk->exists($submission->file_path), 404);
-        return $disk->download($submission->file_path);
+
+        // Pratinjau hanya untuk format aman yang didukung browser; izin akses tetap diperiksa di atas.
+        $extension = strtolower(pathinfo($submission->file_path, PATHINFO_EXTENSION));
+        if ($request->boolean('preview') && in_array($extension, ['pdf', 'jpg', 'jpeg', 'png'], true)) {
+            $mime = match ($extension) {
+                'pdf' => 'application/pdf',
+                'png' => 'image/png',
+                default => 'image/jpeg',
+            };
+            return response()->file($disk->path($submission->file_path), [
+                'Content-Type' => $mime,
+                'X-Content-Type-Options' => 'nosniff',
+                'Content-Security-Policy' => "default-src 'none'; sandbox",
+            ]);
+        }
+        return $disk->download($submission->file_path, $submission->original_file_name ?: null);
     }
 }

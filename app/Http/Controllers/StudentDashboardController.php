@@ -66,6 +66,9 @@ class StudentDashboardController extends Controller
         $quizzes = Assessment::query()
             ->whereIn('class_id', $classIds)
             ->where('is_published', true)
+            ->whereNull('archived_at')
+            ->where(fn ($q) => $q->whereNull('starts_at')->orWhere('starts_at', '<=', now()))
+            ->where(fn ($q) => $q->whereNull('due_at')->orWhere('due_at', '>', now()))
             ->whereHas('questions')
             ->with(['attempts' => fn ($query) => $query->where('user_id', $user->id)->latest('created_at')])
             ->latest()->get();

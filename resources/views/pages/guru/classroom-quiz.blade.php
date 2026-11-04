@@ -76,6 +76,22 @@
             border-color: #f87171;
         }
 
+        .quiz-top-links { display:flex; align-items:center; gap:.7rem; flex-wrap:wrap; margin:0 0 1.5rem; }
+        .quiz-top-links a { text-decoration:none; border:1px solid #bbf0cb; border-radius:8px; padding:.65rem .95rem; color:#075d30; font-weight:700; }
+        .quiz-top-links a.selected { background:#086534; color:white; }
+        .quiz-notice { border-radius:10px; padding:.9rem 1.1rem; margin-bottom:1rem; background:#edf8f0; border:1px solid #bbf0cb; color:#086534; }
+        .quiz-confirm-title { font-weight:700; color:#0f172a; overflow-wrap:anywhere; }
+        .quiz-archive-hint { color:#475569; line-height:1.6; }
+        .quiz-card .quiz-actions { flex-wrap:wrap; }
+        /* MATHLEAF UPGRADE 6 — Jadwal kuis */
+        .ml6-schedule { margin: 0 1.5rem 1rem; padding: 14px 16px; background: #f3fbf6; border: 1px solid #ccebd7; border-radius: 12px; }
+        .ml6-schedule summary { cursor: pointer; color: #086534; font-weight: 800; }
+        .ml6-schedule form { display:flex; flex-wrap:wrap; gap: 10px; margin-top:14px; align-items:end; }
+        .ml6-schedule label { font-weight:700; color:#14532d; font-size:.85rem; display:block; margin-bottom:5px; }
+        .ml6-schedule input { border:1px solid #bedfcb; border-radius:9px; padding:10px 12px; color:#1b4330; min-width:190px; max-width:100%; }
+        .ml6-schedule button { border:0; border-radius:10px; padding:11px 16px; background:#086534; color:white; font-weight:700; cursor:pointer; }
+        .ml6-status { color:#276749; font-size:.83rem; margin-top:7px; display:block; font-weight:650; }
+        @media(max-width:640px) { .ml6-schedule form { display:block; } .ml6-schedule form > div { margin-bottom:12px; } .ml6-schedule input { width:100%; } }
         /* Kuis List */
         .quiz-list {
             display: flex;
@@ -366,7 +382,154 @@
             background: #f8fafc;
             border-radius: 0 0 8px 8px;
         }
-    </style>
+    /* MATHLEAF QUIZ UI V2 */
+.quiz-card {
+    border: 1px solid #dcebe2;
+    border-radius: 18px;
+    box-shadow: 0 6px 20px rgba(6,80,43,.06);
+    transition: box-shadow .2s ease;
+}
+
+.quiz-card:hover {
+    box-shadow: 0 12px 28px rgba(6,80,43,.10);
+}
+
+.quiz-card .quiz-header {
+    display: grid;
+    grid-template-columns: minmax(0,1fr) 320px;
+    gap: 20px;
+    align-items: center;
+    padding: 22px 24px;
+}
+
+.quiz-card .quiz-info-left {
+    min-width: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 18px;
+}
+
+.quiz-card .quiz-meta-group {
+    flex: 1;
+    min-width: 210px;
+}
+
+.quiz-card .quiz-badges {
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.quiz-card .badge {
+    border-radius: 9px;
+    padding: 5px 9px;
+}
+
+.quiz-card .quiz-actions {
+    display: grid;
+    grid-template-columns: repeat(2,minmax(0,1fr));
+    gap: 10px;
+    width: 100%;
+    align-items: stretch;
+}
+
+.quiz-card .quiz-actions > form {
+    margin: 0;
+    min-width: 0;
+}
+
+.quiz-card .quiz-actions > form[hidden] {
+    display: none !important;
+}
+
+.quiz-card .quiz-actions > form:not([hidden]) {
+    grid-column: 1 / -1;
+}
+
+.quiz-card .quiz-actions .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    min-height: 46px;
+    padding: 10px 12px;
+    border-radius: 12px;
+    font-size: 13px;
+    font-weight: 700;
+    white-space: nowrap;
+    transition: all .2s ease;
+}
+
+.quiz-card .quiz-actions .btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 18px rgba(0,0,0,.08);
+}
+
+.quiz-card .quiz-actions .btn-outline {
+    background: #eff8f2;
+    color: #086534;
+    border: 1px solid #b9dec7;
+}
+
+.quiz-card .quiz-actions .btn-outline:hover {
+    background: #dff3e7;
+}
+
+.quiz-card .quiz-actions .btn-danger-outline {
+    background: #fff2f0;
+    color: #bc3833;
+    border: 1px solid #f2c0ba;
+}
+
+.quiz-card .quiz-actions .btn-danger-outline:hover {
+    background: #ffe3df;
+}
+
+.quiz-card .quiz-actions > .btn-primary {
+    grid-column: 1 / -1;
+    background: linear-gradient(135deg,#0fa66a,#087043);
+    color: #fff;
+    border: 1px solid transparent;
+}
+
+.quiz-card .quiz-actions > .btn-primary:hover {
+    background: linear-gradient(135deg,#12b775,#075b39);
+}
+
+.quiz-card .quiz-actions .btn:focus-visible {
+    outline: 3px solid #71d7a0;
+    outline-offset: 2px;
+}
+
+@media(max-width:1180px) {
+    .quiz-card .quiz-header {
+        grid-template-columns: minmax(0,1fr);
+    }
+
+    .quiz-card .quiz-actions {
+        max-width: 420px;
+    }
+}
+
+@media(max-width:640px) {
+    .quiz-card .quiz-header {
+        padding: 16px;
+    }
+
+    .quiz-card .quiz-meta-group {
+        min-width: 0;
+    }
+
+    .quiz-card .quiz-actions {
+        max-width: none;
+    }
+
+    .quiz-card .quiz-actions .btn {
+        font-size: 12px;
+        padding: 8px;
+    }
+}
+</style>
 
     <div class="page-header">
         <h1>Manajemen Kuis & Ujian</h1>
@@ -379,6 +542,32 @@
             </svg>
             Buat Kuis Baru
         </button>
+    </div>
+
+    @if(session('success'))
+        <div class="quiz-notice" role="status">{{ session('success') }}</div>
+    @endif
+    <nav class="quiz-top-links" aria-label="Filter kuis">
+        <a href="{{ route('teacher.quizzes') }}" class="{{ empty($showArchive) ? 'selected' : '' }}">Kuis Aktif & Draft</a>
+        <a href="{{ route('teacher.quizzes', ['arsip' => 1]) }}" class="{{ !empty($showArchive) ? 'selected' : '' }}">Arsip Kuis</a>
+    </nav>
+
+    <!-- Modal konfirmasi hapus/arsip, memakai tampilan MathLeaf -->
+    <div id="modal-hapus-kuis" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="judul-modal-hapus" aria-hidden="true">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h3 id="judul-modal-hapus">Hapus Kuis</h3>
+                <button type="button" class="modal-close" onclick="tutupModalHapusKuis()" aria-label="Tutup">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="quiz-confirm-title" id="nama-kuis-hapus"></div>
+                <p class="quiz-archive-hint" id="pesan-kuis-hapus"></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline" onclick="tutupModalHapusKuis()">Batal</button>
+                <button type="button" class="btn btn-danger-outline" id="konfirmasi-hapus-kuis" onclick="konfirmasiHapusKuis()">Hapus</button>
+            </div>
+        </div>
     </div>
 
     <!-- Modal Info Awal Kuis -->
@@ -426,6 +615,14 @@
                         <input type="number" name="time_limit_minutes" class="form-control" placeholder="Contoh: 60"
                             required>
                     </div>
+                        <div class="form-group">
+                            <label>Waktu Mulai (WIB, Opsional)</label>
+                            <input type="datetime-local" name="starts_at" class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <label>Deadline Kuis (WIB, Opsional)</label>
+                            <input type="datetime-local" name="due_at" class="form-control">
+                        </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-outline" onclick="closeModal()">Batal</button>
@@ -470,14 +667,19 @@
                                 <span class="badge">{{ $quiz->questions_count }} soal</span>
                                 <span class="badge">KKM {{ $quiz->passing_score ?? 70 }}</span>
                                 <span class="badge">{{ $quiz->max_attempts }}x kesempatan</span>
-                                <span class="badge badge-status">{{ $quiz->is_published ? 'Aktif' : 'Draft' }}</span>
+                                <span class="badge badge-status">{{ $quiz->archived_at ? 'Diarsipkan' : ($quiz->is_published ? ($quiz->starts_at && $quiz->starts_at->isFuture() ? 'Terjadwal' : 'Aktif') : 'Draft') }}</span>
                             </div>
                             <h2 class="quiz-title">{{ $quiz->title }}</h2>
+                            <div class="ml6-status">
+                                @if($quiz->starts_at) Mulai: {{ $quiz->starts_at->timezone('Asia/Jakarta')->format('d/m/Y H:i') }} WIB @endif
+                                @if($quiz->due_at) · Deadline: {{ $quiz->due_at->timezone('Asia/Jakarta')->format('d/m/Y H:i') }} WIB @else · Tanpa deadline @endif
+                            </div>
                         </div>
                     </div>
 
                     <div class="quiz-actions">
-                        <!-- Tombol Edit mengarah ke halaman editor soal penuh (yang akan dibuat terpisah) -->
+                        @if(!$quiz->archived_at)
+                        <!-- Edit hanya tersedia bagi kuis yang belum diarsipkan. -->
                         <a href="{{ route('teacher.quizzes.edit', $quiz) }}" class="btn btn-outline"
                             title="Edit Soal & Jawaban">
                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -487,6 +689,23 @@
                             </svg>
                             Edit Kuis
                         </a>
+                        <form id="form-hapus-kuis-{{ $quiz->id }}" method="POST" action="{{ route('teacher.quizzes.destroy', $quiz) }}" hidden>
+                            @csrf
+                            @method('DELETE')
+                        </form>
+                        <button type="button" class="btn btn-danger-outline" onclick="bukaModalHapusKuis(this)"
+                            data-form-id="form-hapus-kuis-{{ $quiz->id }}"
+                            data-title="{{ $quiz->title }}"
+                            data-attempts="{{ $quiz->attempts_count }}">
+                            {{ $quiz->attempts_count > 0 ? 'Arsipkan' : 'Hapus Kuis' }}
+                        </button>
+                        @else
+                        <form method="POST" action="{{ route('teacher.quizzes.restore', $quiz) }}">
+                            @csrf
+                            @method('PATCH')
+                            <button type="submit" class="btn btn-outline">Pulihkan</button>
+                        </form>
+                        @endif
 
                         <!-- Tombol Lihat Detail (Slide down) -->
                         <button type="button" class="btn btn-primary" onclick="toggleQuiz({{ $quiz->id }})">
@@ -500,8 +719,24 @@
                     </div>
                 </div>
 
+                <details class="ml6-schedule">
+                    <summary>{{ $quiz->archived_at ? 'Jadwalkan Ulang & Buka Kuis' : 'Atur / Perpanjang Jadwal Kuis' }}</summary>
+                    <form method="POST" action="{{ route('teacher.quizzes.schedule', $quiz) }}">
+                        @csrf
+                        @method('PATCH')
+                        <div><label>Mulai (WIB, opsional)</label><input type="datetime-local" name="starts_at" value="{{ $quiz->starts_at?->timezone('Asia/Jakarta')->format('Y-m-d\TH:i') }}"></div>
+                        <div><label>Deadline Baru (WIB)</label><input type="datetime-local" name="due_at" required value="{{ $quiz->due_at && $quiz->due_at->isFuture() ? $quiz->due_at->timezone('Asia/Jakarta')->format('Y-m-d\TH:i') : '' }}"></div>
+                        <button type="submit">Simpan Jadwal</button>
+                    </form>
+                </details>
+
                 <!-- Detail Pengerjaan Siswa (Slide Down) -->
                 <div id="detail-{{ $quiz->id }}" class="quiz-detail">
+                    @if ($quiz->type === 'ujian')
+                        <a href="{{ route('teacher.quizzes.incidents', $quiz) }}" class="btn btn-outline" style="margin-bottom:14px;text-decoration:none;">
+                            📋 Catatan Pengawasan Ujian
+                        </a>
+                    @endif
                     <h4 style="margin: 0 0 1rem 0; color: #0f172a; font-size: 1.1rem;">Daftar Pengerjaan Siswa</h4>
 
                     @if (isset($quiz->attempts) && $quiz->attempts->count() > 0)
@@ -583,6 +818,36 @@
     </div>
 
     <script>
+        let formHapusKuisId = null;
+        const modalHapusKuis = document.getElementById('modal-hapus-kuis');
+        function bukaModalHapusKuis(button) {
+            formHapusKuisId = button.dataset.formId;
+            const adaJawaban = Number(button.dataset.attempts) > 0;
+            document.getElementById('judul-modal-hapus').textContent = adaJawaban ? 'Arsipkan Kuis?' : 'Hapus Kuis?';
+            document.getElementById('nama-kuis-hapus').textContent = button.dataset.title;
+            document.getElementById('pesan-kuis-hapus').textContent = adaJawaban
+                ? 'Kuis ini sudah memiliki pengerjaan siswa. Kuis akan diarsipkan dan tidak bisa dikerjakan lagi. Nilai serta lembar jawaban siswa tetap tersimpan.'
+                : 'Kuis ini belum dikerjakan siswa. Kuis dan soal-soalnya akan dihapus permanen. Tindakan ini tidak bisa dibatalkan.';
+            document.getElementById('konfirmasi-hapus-kuis').textContent = adaJawaban ? 'Arsipkan Kuis' : 'Hapus Permanen';
+            modalHapusKuis.classList.add('active');
+            modalHapusKuis.setAttribute('aria-hidden', 'false');
+        }
+        function tutupModalHapusKuis() {
+            formHapusKuisId = null;
+            modalHapusKuis.classList.remove('active');
+            modalHapusKuis.setAttribute('aria-hidden', 'true');
+        }
+        function konfirmasiHapusKuis() {
+            const form = formHapusKuisId && document.getElementById(formHapusKuisId);
+            if (form) form.requestSubmit();
+        }
+        modalHapusKuis.addEventListener('click', (e) => {
+            if (e.target === modalHapusKuis) tutupModalHapusKuis();
+        });
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') tutupModalHapusKuis();
+        });
+
         // Salin kode kelas dari kartu kuis.
         function copyCode(code, btn) {
             if (!code) return;

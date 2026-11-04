@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\{Auth, DB, Hash, Storage};
 use Illuminate\Validation\ValidationException;
 use App\Support\ForumAccess;
+use App\Support\QuizSchedule;
 
 class MathLeafController extends Controller
 {
@@ -22,28 +23,67 @@ class MathLeafController extends Controller
             $u=User::create(['name'=>$v['name'],'email'=>$v['email'],'password'=>$v['password'],'role'=>$v['role']]);
             return $u;
         });
-        Auth::login($user); $r->session()->regenerate();
-        return response()->json(['user'=>$user->only('id','name','email','role'),'redirect'=>$user->role==='guru'?'/guru':'/dashboard'],201);
+        // Siswa tidak langsung masuk setelah registrasi: kode kelas wajib diminta saat login pertama.
+        if ($user->role === 'siswa') {
+            return response()->json(['user' => $user->only('id', 'name', 'email', 'role'), 'redirect' => '/masuk?registered=1'], 201);
+        }
+        Auth::login($user);
+        $r->session()->regenerate();
+        return response()->json(['user' => $user->only('id', 'name', 'email', 'role'), 'redirect' => '/guru'], 201);
     }
     public function login(Request $r) {
-        $v=$r->validate([
-            'email'=>'required|email',
-            'password'=>'required|string',
-            'role'=>'required|in:siswa,guru',
-            'kode_kelas'=>'nullable|string|max:12',
+        // Kode guru dihasilkan 8 karakter, bukan enam kotak seperti versi UI lama.
+        $r->merge(['kode_kelas' => strtoupper(trim((string) $r->input('kode_kelas', '')))]);
+        $v = $r->validate([
+            'email' => 'required|email',
+            'password' => 'required|string',
+            'role' => 'required|in:siswa,guru',
+            'kode_kelas' => 'required_if:role,siswa|nullable|string|size:8|alpha_num',
+        ], [
+            'kode_kelas.required_if' => 'Kode kelas Matematika wajib diisi setiap siswa login.',
+            'kode_kelas.size' => 'Kode kelas harus tepat 8 karakter.',
         ]);
-        if(!Auth::attempt(['email'=>$v['email'],'password'=>$v['password'],'role'=>$v['role']])) throw ValidationException::withMessages(['email'=>'Email, kata sandi, atau peran salah.']);
-        if($r->user()->role==='siswa' && filled($v['kode_kelas']??null)) {
-            $class=SchoolClass::where('join_code',strtoupper(trim($v['kode_kelas'])))->first();
-            if(!$class) {
+        if (!Auth::attempt(['email' => $v['email'], 'password' => $v['password'], 'role' => $v['role']])) {
+            throw ValidationException::withMessages(['email' => 'Email, kata sandi, atau peran salah.']);
+        }
+        if ($r->user()->role === 'siswa') {
+            try {
+                $classId = DB::transaction(function () use ($r, $v) {
+                    // Kunci baris siswa dan kelas agar dua login serentak tak dapat menembus kuota.
+                    $student = User::query()->whereKey($r->user()->id)->lockForUpdate()->firstOrFail();
+                    $class = SchoolClass::query()->where('join_code', $v['kode_kelas'])->lockForUpdate()->first();
+                    if (!$class) {
+                        throw ValidationException::withMessages(['kode_kelas' => 'Kode kelas tidak ditemukan. Periksa kode dari guru.']);
+                    }
+                    $enrolledIds = $student->classes()->pluck('classes.id')->map(fn ($id) => (int) $id)->all();
+                    if (count($enrolledIds) > 1) {
+                        throw ValidationException::withMessages(['kode_kelas' => 'Akun sudah tercatat di beberapa kelas lama. Hubungi guru untuk menyesuaikan ke satu kelas Matematika.']);
+                    }
+                    if ($enrolledIds && $enrolledIds[0] !== (int) $class->id) {
+                        throw ValidationException::withMessages(['kode_kelas' => 'Kamu sudah terdaftar di satu kelas Matematika lain. Hubungi guru jika perlu pindah kelas.']);
+                    }
+                    if (DB::table('class_kicked_users')->where('class_id', $class->id)->where('user_id', $student->id)->exists()) {
+                        throw ValidationException::withMessages(['kode_kelas' => 'Kamu telah dikeluarkan dari kelas ini. Minta guru membuka izin bergabung kembali.']);
+                    }
+                    if (!$enrolledIds) {
+                        $count = $class->students()->count();
+                        if ($count >= (int) $class->max_students) {
+                            throw ValidationException::withMessages(['kode_kelas' => 'Kelas Matematika ini sudah penuh ('.$class->max_students.' siswa).']);
+                        }
+                        $class->students()->attach($student->id);
+                    }
+                    return (int) $class->id;
+                }, 3);
+                $r->session()->put('kelas_aktif_id', $classId);
+            } catch (\Throwable $e) {
+                // Jangan regenerasi CSRF di sini: form login AJAX harus bisa mencoba ulang.
                 Auth::logout();
-                throw ValidationException::withMessages(['kode_kelas'=>'Kode kelas tidak ditemukan. Periksa kembali kode dari gurumu.']);
+                throw $e;
             }
-            $class->students()->syncWithoutDetaching([$r->user()->id]);
         }
         $r->session()->regenerate();
-        $redirect=$r->user()->role==='guru'?'/guru':'/dashboard';
-        if($r->expectsJson()) return response()->json(['user'=>$r->user()->only('id','name','email','role'),'redirect'=>$redirect]);
+        $redirect = $r->user()->role === 'guru' ? '/guru' : '/dashboard';
+        if ($r->expectsJson()) return response()->json(['user' => $r->user()->only('id', 'name', 'email', 'role'), 'redirect' => $redirect]);
         return redirect()->to($redirect);
     }
     public function logout(Request $r) {
@@ -79,19 +119,34 @@ class MathLeafController extends Controller
         $this->belongsToClass($r,$v['class_id']??null);return response()->json(Activity::create($v),201);
     }
     public function assessments(Request $r) {
-        $q=Assessment::withCount('questions');if($r->user()->role==='siswa')$q->where('is_published',true)->where(function($query) use($r) { $query->whereNull('class_id')->orWhereIn('class_id',$this->classIds($r)); });
+        QuizSchedule::archiveExpired();
+        $q=Assessment::withCount('questions');if($r->user()->role==='siswa')$q->where('is_published',true)->whereNull('archived_at')->where(fn($query)=>$query->whereNull('starts_at')->orWhere('starts_at','<=',now()))->where(fn($query)=>$query->whereNull('due_at')->orWhere('due_at','>',now()))->where(function($query) use($r) { $query->whereNull('class_id')->orWhereIn('class_id',$this->classIds($r)); });
         return response()->json($q->get());
     }
     public function questions(Request $r,Assessment $assessment) {
-        abort_if($r->user()->role==='siswa' && (!$assessment->is_published || ($assessment->class_id && !in_array($assessment->class_id,$this->classIds($r)))),404);
+        if ($r->user()->role === 'siswa') {
+            QuizSchedule::archiveExpired();
+            $assessment->refresh();
+            // Hide unpublished, archived, and foreign-class quizzes before schedule checks.
+            abort_if(
+                !$assessment->is_published
+                || $assessment->archived_at !== null
+                || ($assessment->class_id && !in_array((int) $assessment->class_id, array_map('intval', $this->classIds($r)), true)),
+                404
+            );
+            QuizSchedule::assertOpen($assessment);
+        }
         $q=$assessment->questions()->get();
         if($r->user()->role==='siswa')$q->makeHidden(['correct_answer','explanation']);
         return response()->json(['assessment'=>$assessment->only('id','title','type','max_attempts','passing_score','time_limit_minutes'),'questions'=>$q]);
     }
     public function submitAssessment(Request $r,Assessment $assessment) {
+        QuizSchedule::archiveExpired();
+        $assessment->refresh();
         // Endpoint API mengikuti aturan yang sama dengan halaman kuis siswa.
         abort_unless($r->user()->role === 'siswa', 403);
-        abort_unless($assessment->is_published && $assessment->class_id, 403);
+        QuizSchedule::assertOpen($assessment);
+        abort_unless($assessment->class_id, 403);
         abort_unless(in_array((int) $assessment->class_id, array_map('intval', $this->classIds($r)), true), 403);
         $v = $r->validate([
             'answers' => 'required|array',
@@ -101,7 +156,7 @@ class MathLeafController extends Controller
 
         return DB::transaction(function () use ($r, $assessment, $v) {
             $assessment = Assessment::query()->lockForUpdate()->findOrFail($assessment->id);
-            abort_unless($assessment->is_published, 403);
+            QuizSchedule::assertOpen($assessment);
             $u = $r->user();
             $count = AssessmentAttempt::query()
                 ->where('assessment_id', $assessment->id)->where('user_id', $u->id)->count();

@@ -37,24 +37,23 @@
             text-shadow: 0 15px 35px rgba(255, 255, 255, 0.9);
         }
 
-        /* Input 6 Kotak (Kode Kelas) di Kiri */
-        .code-box {
+        /* Input kode kelas 8 karakter */
+        .class-code-input {
+            width: min(100%, 330px);
+            padding: .9rem 1rem;
+            border: 2px solid #86efac;
+            border-radius: 16px;
+            font: 800 1.35rem ui-monospace, SFMono-Regular, Consolas, monospace;
+            letter-spacing: .17em;
             text-align: center;
+            color: #064e3b;
             text-transform: uppercase;
-            font-size: 1.5rem;
-            font-weight: 900;
-            background: rgba(255, 255, 255, 0.6);
-            backdrop-filter: blur(10px);
-            border: 2px solid #bbf7d0;
-            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        .code-box:focus {
+            background: rgba(255,255,255,.85);
+            box-shadow: 0 8px 30px rgba(6,95,70,.08);
             outline: none;
-            border-color: #10b981;
-            box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.2);
-            transform: translateY(-2px);
         }
+        .class-code-input:focus { border-color: #059669; box-shadow: 0 0 0 4px #a7f3d055; }
+        .class-code-hint { font-size: .79rem; color: #047857; font-weight: 600; margin-top: .5rem; }
     </style>
 </head>
 
@@ -83,26 +82,14 @@
             <p class="text-lg text-emerald-800 font-medium max-w-md">Masuk untuk melanjutkan perjalanan belajarmu hari
                 ini.</p>
 
-            <!-- Kotak Kode Kelas (Pointer Events Auto agar bisa diklik) -->
+            <!-- Kode kelas wajib untuk semua login siswa; guru tidak membutuhkannya. -->
             <div id="left-kode-kelas-container" class="mt-10 pointer-events-auto transition-all duration-300">
-                <label class="block text-emerald-900 font-bold text-base mb-1">Punya Kode Kelas?</label>
-                <p class="text-xs text-emerald-700 font-medium mb-4">Khusus siswa: Masukkan 6 digit kode dari gurumu.
-                </p>
-
-                <div class="flex gap-2 sm:gap-3" id="otp-container">
-                    <input type="text"
-                        class="code-box w-12 h-14 sm:w-14 sm:h-16 rounded-xl text-emerald-900 shadow-sm" maxlength="1">
-                    <input type="text"
-                        class="code-box w-12 h-14 sm:w-14 sm:h-16 rounded-xl text-emerald-900 shadow-sm" maxlength="1">
-                    <input type="text"
-                        class="code-box w-12 h-14 sm:w-14 sm:h-16 rounded-xl text-emerald-900 shadow-sm" maxlength="1">
-                    <input type="text"
-                        class="code-box w-12 h-14 sm:w-14 sm:h-16 rounded-xl text-emerald-900 shadow-sm" maxlength="1">
-                    <input type="text"
-                        class="code-box w-12 h-14 sm:w-14 sm:h-16 rounded-xl text-emerald-900 shadow-sm" maxlength="1">
-                    <input type="text"
-                        class="code-box w-12 h-14 sm:w-14 sm:h-16 rounded-xl text-emerald-900 shadow-sm" maxlength="1">
-                </div>
+                <label for="class_code_visible" class="block text-emerald-900 font-bold text-base mb-2">Kode Kelas Matematika</label>
+                <p class="text-sm text-emerald-700 font-medium mb-3">Masukkan 8 karakter kode dari guru setiap kali login. Satu akun siswa hanya boleh mengikuti satu kelas.</p>
+                <input id="class_code_visible" type="text" class="class-code-input" maxlength="8"
+                    minlength="8" inputmode="text" pattern="[A-Za-z0-9]{8}"
+                    autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="CONTOH8" aria-describedby="class-code-hint" required>
+                <div id="class-code-hint" class="class-code-hint">Contoh: VII A Matematika — kode 8 huruf/angka</div>
             </div>
         </div>
     </div>
@@ -114,6 +101,11 @@
         <form action="/api/mathleaf/login" method="POST" class="flex flex-col gap-5">
             @csrf
 
+            @if (request()->query('registered') === '1')
+                <div class="bg-emerald-100 border border-emerald-300 text-emerald-900 text-sm font-semibold px-4 py-3 rounded-xl text-center">
+                    Pendaftaran siswa berhasil! Masukkan email, kata sandi, dan kode kelas untuk login.
+                </div>
+            @endif
             <!-- Notifikasi Sukses Daftar -->
             @if (session('success'))
                 <div
@@ -124,7 +116,7 @@
 
             <!-- Nilai default diambil dari old('role'), jika kosong default 'siswa' -->
             <input type="hidden" name="role" id="role-input" value="{{ old('role', 'siswa') }}">
-            <input type="hidden" name="kode_kelas" id="hidden_class_code">
+            <input type="hidden" name="kode_kelas" id="hidden_class_code" value="">
 
             <!-- Role Switcher -->
             <div class="flex p-1 bg-white/50 rounded-xl border border-emerald-100 mb-2">
@@ -176,7 +168,7 @@
             const roleInput = document.getElementById('role-input');
             const leftKodeKelasContainer = document.getElementById('left-kode-kelas-container');
             const hiddenInput = document.getElementById('hidden_class_code');
-            const inputs = document.querySelectorAll('.code-box');
+            const visibleCodeInput = document.getElementById('class_code_visible');
             const form = document.querySelector('form');
             let errorMessage;
 
@@ -185,6 +177,16 @@
 
                 const submitButton = form.querySelector('button[type="submit"]');
                 if (submitButton.disabled) return;
+                if (roleInput.value === 'siswa') {
+                    hiddenInput.value = visibleCodeInput.value.trim().toUpperCase();
+                    if (!/^[A-Z0-9]{8}$/.test(hiddenInput.value)) {
+                        visibleCodeInput.setCustomValidity('Masukkan kode kelas tepat 8 karakter.');
+                        visibleCodeInput.reportValidity();
+                        return;
+                    }
+                } else {
+                    hiddenInput.value = '';
+                }
 
                 if (!errorMessage) {
                     errorMessage = document.createElement('div');
@@ -254,69 +256,29 @@
                 }
             });
 
-            roleBtns.forEach(btn => {
-                btn.addEventListener('click', () => {
-                    roleBtns.forEach(b => {
-                        b.classList.remove('bg-emerald-500', 'text-white', 'shadow-md');
-                        b.classList.add('text-emerald-700');
-                    });
-
-                    btn.classList.remove('text-emerald-700');
-                    btn.classList.add('bg-emerald-500', 'text-white', 'shadow-md');
-
-                    const selectedRole = btn.dataset.role;
-                    roleInput.value = selectedRole;
-
-                    // Tampilkan/Sembunyikan kotak di sisi kiri berdasarkan role
-                    if (selectedRole === 'siswa') {
-                        leftKodeKelasContainer.style.opacity = '1';
-                        leftKodeKelasContainer.style.pointerEvents = 'auto';
-                    } else {
-                        leftKodeKelasContainer.style.opacity =
-                            '0.2'; // Dibuat buram agar tetap estetik
-                        leftKodeKelasContainer.style.pointerEvents = 'none';
-                        hiddenInput.value = '';
-                        inputs.forEach(input => input.value = '');
-                    }
+            const renderRole = (role) => {
+                roleInput.value = role;
+                roleBtns.forEach((btn) => {
+                    const active = btn.dataset.role === role;
+                    btn.classList.toggle('bg-emerald-500', active);
+                    btn.classList.toggle('text-white', active);
+                    btn.classList.toggle('shadow-md', active);
+                    btn.classList.toggle('text-emerald-700', !active);
+                    btn.setAttribute('aria-pressed', active ? 'true' : 'false');
                 });
+                const student = role === 'siswa';
+                leftKodeKelasContainer.hidden = !student;
+                leftKodeKelasContainer.style.display = student ? '' : 'none';
+                visibleCodeInput.required = student;
+                if (!student) { visibleCodeInput.value = ''; hiddenInput.value = ''; }
+            };
+            roleBtns.forEach((btn) => btn.addEventListener('click', () => renderRole(btn.dataset.role)));
+            visibleCodeInput.addEventListener('input', () => {
+                visibleCodeInput.value = visibleCodeInput.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 8);
+                visibleCodeInput.setCustomValidity('');
+                hiddenInput.value = visibleCodeInput.value;
             });
-
-            // 2. Logika 6 Kotak Input (Pindah otomatis)
-            inputs.forEach((input, index) => {
-                input.addEventListener('input', (e) => {
-                    updateHiddenCode();
-                    if (e.target.value.length === 1 && index < inputs.length - 1) {
-                        inputs[index + 1].focus();
-                    }
-                });
-
-                input.addEventListener('keydown', (e) => {
-                    if (e.key === 'Backspace' && e.target.value === '' && index > 0) {
-                        inputs[index - 1].focus();
-                    }
-                });
-
-                input.addEventListener('paste', (e) => {
-                    e.preventDefault();
-                    const pastedData = e.clipboardData.getData('text').replace(/[^a-zA-Z0-9]/g, '')
-                        .slice(0, 6).toUpperCase();
-                    for (let i = 0; i < pastedData.length; i++) {
-                        if (inputs[i]) inputs[i].value = pastedData[i];
-                    }
-                    if (pastedData.length > 0 && pastedData.length < 6) {
-                        inputs[pastedData.length].focus();
-                    } else if (pastedData.length === 6) {
-                        inputs[5].focus();
-                    }
-                    updateHiddenCode();
-                });
-            });
-
-            function updateHiddenCode() {
-                let code = '';
-                inputs.forEach(input => code += input.value);
-                hiddenInput.value = code;
-            }
+            renderRole(roleInput.value === 'guru' ? 'guru' : 'siswa');
         });
 
 

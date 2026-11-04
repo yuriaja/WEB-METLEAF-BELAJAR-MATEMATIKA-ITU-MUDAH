@@ -5,6 +5,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\{DB,Storage};
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
+use App\Support\QuizSchedule;
 class ClassroomController extends Controller {
  private function teacher():void {abort_unless(in_array(auth()->user()->role,['guru','admin'],true),403);}
  private function owned(int $id):SchoolClass { $this->teacher();return auth()->user()->teachingClasses()->findOrFail($id); }
@@ -14,12 +15,12 @@ class ClassroomController extends Controller {
   if(in_array($user->role,['guru','admin'],true)){
    $classes=$user->teachingClasses()->withCount('students')->latest()->get();
    $materials=Material::where('author_id',$user->id)->with('author')->latest()->get();
-   $assessments=Assessment::where('author_id',$user->id)->withCount('questions')->latest()->get();
+   $assessments=Assessment::where('author_id',$user->id)->whereNull('archived_at')->withCount('questions')->latest()->get();
   } else {
    $classes=$user->classes()->with('teacher')->get();
    $ids=$classes->pluck('id');
    $materials=Material::where('is_published',true)->whereIn('class_id',$ids)->latest()->get();
-   $assessments=Assessment::where('is_published',true)->whereIn('class_id',$ids)->withCount('questions')->latest()->get();
+   $assessments=Assessment::where('is_published',true)->whereNull('archived_at')->whereIn('class_id',$ids)->withCount('questions')->latest()->get();
   }
   return view('pages.guru.classroom',compact('classes','materials','assessments'));
  }
@@ -29,7 +30,7 @@ class ClassroomController extends Controller {
   $classes = $user->teachingClasses()->withCount('students')->latest()->get();
   $classIds = $classes->pluck('id')->all();
   $materials = Material::where('author_id', $user->id)->latest()->get();
-  $assessments = Assessment::where('author_id', $user->id)->withCount('questions')->latest()->get();
+  $assessments = Assessment::where('author_id', $user->id)->whereNull('archived_at')->withCount('questions')->latest()->get();
 
   $pendingTasks = \App\Models\Submission::query()
       ->whereNull('score')
@@ -81,7 +82,7 @@ class ClassroomController extends Controller {
   $publishedMaterialCount = Material::query()->whereIn('class_id', $classIds)
       ->where('is_published', true)->count();
   $publishedQuizCount = Assessment::query()->whereIn('class_id', $classIds)
-      ->where('is_published', true)->count();
+      ->where('is_published', true)->whereNull('archived_at')->count();
   $totalTasks = \App\Models\Activity::query()->where('mode', 'tugas')
       ->whereIn('class_id', $classIds)->count();
   $averageQuizScore = \App\Models\AssessmentAttempt::query()
@@ -196,16 +197,22 @@ class ClassroomController extends Controller {
  }
  public function teacherQuizzes(){
   $this->teacher();
+  QuizSchedule::archiveExpired();
   $user = auth()->user();
+  $showArchive = request()->boolean('arsip');
   $classes = $user->role === 'admin' ? SchoolClass::orderBy('name')->get() : $user->teachingClasses()->orderBy('name')->get();
   $assessments = Assessment::query()
    ->whereIn('class_id', $classes->pluck('id'))
    ->where('author_id', $user->id)
-   ->withCount('questions')->with(['attempts' => fn ($q) => $q->with('user:id,name')->orderByDesc('submitted_at')])
+   ->when($showArchive,
+       fn ($query) => $query->whereNotNull('archived_at'),
+       fn ($query) => $query->whereNull('archived_at'))
+   ->withCount(['questions', 'attempts'])->with(['attempts' => fn ($q) => $q->with('user:id,name')->orderByDesc('submitted_at')])
    ->latest()->get();
-  return view('pages.guru.classroom-quiz', compact('assessments', 'classes'));
+  return view('pages.guru.classroom-quiz', compact('assessments', 'classes', 'showArchive'));
  }
  public function studentQuizzes(){
+  QuizSchedule::archiveExpired();
   abort_unless(auth()->user()->role==='siswa',403);
   $classes=auth()->user()->classes()->orderBy('name')->get();
   $activeClassId=(int)session('kelas_aktif_id');
@@ -214,6 +221,7 @@ class ClassroomController extends Controller {
    :$classes->pluck('id')->all();
   $assessments=Assessment::query()
    ->where('is_published',true)
+   ->whereNull('archived_at')
    ->whereIn('class_id',$classIds)
    ->withCount('questions')
    ->with(['attempts'=>fn($query)=>$query
@@ -230,7 +238,10 @@ class ClassroomController extends Controller {
    'class_id'=>'required|integer',
    'type'=>'required|in:latihan,kuis,ujian',
    'time_limit_minutes'=>'required|integer|between:1,600',
+   'starts_at'=>'nullable|date_format:Y-m-d\\TH:i',
+   'due_at'=>'nullable|date_format:Y-m-d\\TH:i',
   ]);
+  $schedule=QuizSchedule::validateDates($v);
   $class=$this->owned((int)$v['class_id']);
   $assessment=Assessment::create([
    'author_id'=>$r->user()->id,
@@ -238,6 +249,8 @@ class ClassroomController extends Controller {
    'title'=>$v['title'],
    'type'=>$v['type'],
    'time_limit_minutes'=>$v['time_limit_minutes'],
+   'starts_at'=>$schedule['starts_at'],
+   'due_at'=>$schedule['due_at'],
    'is_published'=>false,
    'max_attempts'=>2,
    'passing_score'=>70,
@@ -246,6 +259,7 @@ class ClassroomController extends Controller {
  }
  public function editQuiz(Assessment $assessment){
   $this->teacher();
+  abort_if($assessment->archived_at !== null, 403, 'Pulihkan kuis dari Arsip sebelum diedit.');
   abort_unless($assessment->author_id===auth()->id() || auth()->user()->role==='admin',403);
   $user=auth()->user();
   $classes=$user->role==='admin'
@@ -262,6 +276,7 @@ class ClassroomController extends Controller {
  }
  public function saveQuiz(Request $r,Assessment $assessment){
   $this->teacher();
+  abort_if($assessment->archived_at !== null, 403, 'Pulihkan kuis dari Arsip sebelum diedit.');
   abort_unless($assessment->author_id===$r->user()->id || $r->user()->role==='admin',403);
   abort_if($assessment->attempts()->exists(),403,'Kuis yang sudah dikerjakan tidak dapat diubah.');
   $v=$r->validate([
@@ -269,6 +284,8 @@ class ClassroomController extends Controller {
    'class_id'=>'required|integer',
    'type'=>'required|in:latihan,kuis,ujian',
    'time_limit_minutes'=>'required|integer|between:1,600',
+   'starts_at'=>'nullable|date_format:Y-m-d\\TH:i',
+   'due_at'=>'nullable|date_format:Y-m-d\\TH:i',
    'passing_score'=>'required|integer|between:1,100',
    'max_attempts'=>'required|integer|between:1,5',
    'material_id'=>'nullable|integer',
@@ -281,6 +298,7 @@ class ClassroomController extends Controller {
    'questions.*.explanation'=>'nullable|string|max:3000',
    'questions.*.material_id'=>'nullable|integer',
   ]);
+  $schedule=QuizSchedule::validateDates($v);
   $class=$r->user()->role==='admin'
    ? SchoolClass::findOrFail($v['class_id'])
    : $this->owned((int)$v['class_id']);
@@ -295,7 +313,7 @@ class ClassroomController extends Controller {
     throw ValidationException::withMessages(['material_id' => 'Materi remedial wajib terbit dan berada dalam kelas kuis.']);
    }
   }
-  DB::transaction(function()use($assessment,$v,$class){
+  DB::transaction(function()use($assessment,$v,$class,$schedule){
    $assessment->update([
     'title'=>$v['title'],
     'class_id'=>$class->id,
@@ -303,6 +321,8 @@ class ClassroomController extends Controller {
     'time_limit_minutes'=>$v['time_limit_minutes'],
     'passing_score'=>$v['passing_score'],
     'max_attempts'=>$v['max_attempts'],
+    'starts_at'=>$schedule['starts_at'],
+    'due_at'=>$schedule['due_at'],
     'material_id'=>$v['material_id'] ?? null,
     'is_published'=>true,
    ]);
@@ -356,14 +376,101 @@ class ClassroomController extends Controller {
   }
   return back();
  }
- public function createClass(Request $r){$this->teacher();$v=$r->validate(['name'=>'required|string|max:100','school_year'=>'nullable|string|max:15']);
+ public function createClass(Request $r){
+  $this->teacher();
+  $v=$r->validate(['name'=>'required|string|max:100','school_year'=>'nullable|string|max:15','max_students'=>'nullable|integer|between:1,200']);
   do{$code=Str::upper(Str::random(8));}while(SchoolClass::where('join_code',$code)->exists());
-  auth()->user()->teachingClasses()->create($v+['join_code'=>$code]);return back()->with('success','Kelas berhasil dibuat. Bagikan kode kepada siswa.');
+  auth()->user()->teachingClasses()->create($v+['max_students'=>$v['max_students']??30,'join_code'=>$code]);
+  return back()->with('success','Kelas berhasil dibuat dengan batas '.($v['max_students']??30).' siswa.');
  }
- public function joinClass(Request $r){abort_unless($r->user()->role==='siswa',403);$v=$r->validate(['join_code'=>'required|string|max:12']);
-  $class=SchoolClass::where('join_code',strtoupper(trim($v['join_code'])))->first();
-  if(!$class)throw ValidationException::withMessages(['join_code'=>'Kode kelas tidak ditemukan.']);
-  $class->students()->syncWithoutDetaching([$r->user()->id]);return back()->with('success','Berhasil bergabung ke '.$class->name);
+
+ public function updateCapacity(Request $request, SchoolClass $schoolClass){
+  $this->teacher();
+  abort_unless((int)$schoolClass->teacher_id === (int)$request->user()->id, 403);
+  $v=$request->validate(['max_students'=>'required|integer|between:1,200']);
+  DB::transaction(function () use ($request, $schoolClass, $v) {
+   $class=SchoolClass::whereKey($schoolClass->id)->lockForUpdate()->firstOrFail();
+   abort_unless((int)$class->teacher_id === (int)$request->user()->id, 403);
+   $count=$class->students()->count();
+   if ($v['max_students'] < $count) {
+    throw ValidationException::withMessages(['max_students'=>'Kuota tidak boleh lebih kecil daripada jumlah siswa saat ini ('.$count.').']);
+   }
+   $class->update(['max_students'=>$v['max_students']]);
+  }, 3);
+  return back()->with('success','Kapasitas kelas diperbarui menjadi '.$v['max_students'].' siswa.');
+ }
+
+ public function allowStudent(Request $request, SchoolClass $schoolClass, \App\Models\User $student){
+  $this->teacher();
+  abort_unless((int)$schoolClass->teacher_id === (int)$request->user()->id, 403);
+  DB::table('class_kicked_users')->where('class_id',$schoolClass->id)->where('user_id',$student->id)->delete();
+  return back()->with('success','Izin bergabung '.$student->name.' sudah dibuka kembali.');
+ }
+ /** Hanya guru pemilik yang boleh mengeluarkan anggota; akun dan nilai siswa tetap tersimpan. */
+ public function removeStudent(Request $request, SchoolClass $schoolClass, \App\Models\User $student){
+  $this->teacher();
+  abort_unless((int)$schoolClass->teacher_id === (int)$request->user()->id, 403);
+  abort_unless($student->role === 'siswa', 404);
+  abort_unless($schoolClass->students()->whereKey($student->id)->exists(), 404);
+  DB::transaction(function () use ($schoolClass, $student) {
+   $schoolClass->students()->detach($student->id);
+   DB::table('class_kicked_users')->updateOrInsert(
+    ['class_id'=>$schoolClass->id,'user_id'=>$student->id],
+    ['created_at'=>now(),'updated_at'=>now()]
+   );
+  }, 3);
+  return redirect()->route('classroom.home')->with('success', $student->name.' dikeluarkan. Dia tidak bisa masuk lagi sampai guru membuka izin.');
+ }
+
+ /** Hapus permanen kelas dan seluruh data belajar milik kelas tersebut, dengan konfirmasi nama kelas. */
+ public function destroyClass(Request $request, SchoolClass $schoolClass){
+  $this->teacher();
+  abort_unless((int)$schoolClass->teacher_id === (int)$request->user()->id, 403);
+  $input=$request->validate(['confirmation'=>'required|string|max:100']);
+  if ($input['confirmation'] !== $schoolClass->name) {
+   throw ValidationException::withMessages(['confirmation'=>'Nama kelas tidak sesuai. Penghapusan dibatalkan.']);
+  }
+
+  $classId=(int)$schoolClass->id;
+  $className=$schoolClass->name;
+  $filePaths=[];
+  DB::transaction(function () use ($request, $classId, &$filePaths) {
+   $class=SchoolClass::query()->whereKey($classId)->lockForUpdate()->firstOrFail();
+   abort_unless((int)$class->teacher_id === (int)$request->user()->id, 403);
+
+   // Ambil berkas privat sebelum relasi dihapus. Hapus fisik setelah transaksi sukses.
+   $filePaths=array_merge(
+    DB::table('materials')->where('class_id',$classId)->whereNotNull('file_path')->pluck('file_path')->all(),
+    DB::table('submissions')->whereIn('activity_id',DB::table('activities')->select('id')->where('class_id',$classId))
+     ->whereNotNull('file_path')->pluck('file_path')->all()
+   );
+
+   // class_id pada materials dan assessments memakai nullOnDelete; hapus konten terkait
+   // secara eksplisit agar materi, nilai, dan progres tidak tertinggal sebagai data yatim.
+   // FK turunan (jawaban kuis, percobaan, komentar, pengumpulan) menghapus secara cascade.
+   DB::table('assessments')->where('class_id',$classId)->delete();
+   DB::table('forum_threads')->where('class_id',$classId)->delete();
+   DB::table('activities')->where('class_id',$classId)->delete();
+   DB::table('materials')->where('class_id',$classId)->delete();
+   DB::table('study_groups')->where('class_id',$classId)->delete();
+   $class->delete(); // class_user terhapus melalui FK cascade; akun user tetap ada.
+  }, 3);
+
+  $filePaths=array_values(array_unique(array_filter($filePaths,static fn($path)=>is_string($path) && $path!=='')));
+  if ($filePaths) {
+   try { Storage::disk('local')->delete($filePaths); }
+   catch (\Throwable $exception) { report($exception); }
+  }
+  if ((int)$request->session()->get('kelas_aktif_id') === $classId) {
+   $request->session()->forget('kelas_aktif_id');
+  }
+  return redirect()->route('classroom.home')->with('success','Kelas '.$className.' dan seluruh data pembelajarannya berhasil dihapus.');
+ }
+
+ // Alur satu kelas: bergabung hanya dilakukan saat login siswa dengan kode kelas.
+ public function joinClass(Request $r){
+  abort_unless($r->user()->role==='siswa',403);
+  throw ValidationException::withMessages(['join_code'=>'Untuk bergabung ke kelas Matematika, keluar lalu login kembali dengan kode kelas dari guru.']);
  }
  public function upload(Request $r){$this->teacher();$v=$r->validate(['class_id'=>'required|integer','title'=>'required|string|max:255','description'=>'nullable|string|max:3000','type'=>'required|in:modul,video,ppt,foto,link','resource_url'=>'nullable|url|max:2048','file'=>'nullable|file|mimes:pdf,ppt,pptx,jpg,jpeg,png,webp,mp4,webm|max:51200','is_published'=>'nullable|boolean']);
   $class=$this->owned((int)$v['class_id']);

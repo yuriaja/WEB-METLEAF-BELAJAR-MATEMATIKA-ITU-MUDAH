@@ -452,9 +452,16 @@
                                 value="{{ $assessment->time_limit_minutes ?? 60 }}" placeholder="Contoh: 60" required>
                         </div>
                         <div class="form-group">
-                            <label>Deadline Pengumpulan (Opsional)</label>
+                            <label>Waktu Mulai (WIB, Opsional)</label>
+                            <input type="datetime-local" name="starts_at" class="form-control"
+                                value="{{ old('starts_at', $assessment->starts_at?->timezone('Asia/Jakarta')->format('Y-m-d\TH:i')) }}">
+                            <small>Jika kosong, kuis tersedia setelah dipublikasikan.</small>
+                        </div>
+                        <div class="form-group">
+                            <label>Deadline Kuis (WIB, Opsional)</label>
                             <input type="datetime-local" name="due_at" class="form-control"
-                                value="{{ isset($assessment->due_at) ? \Carbon\Carbon::parse($assessment->due_at)->format('Y-m-d\TH:i') : '' }}">
+                                value="{{ old('due_at', $assessment->due_at?->timezone('Asia/Jakarta')->format('Y-m-d\TH:i')) }}">
+                            <small>Sesudah deadline, siswa tidak dapat mengirim jawaban dan kuis diarsipkan.</small>
                         </div>
                         <div class="form-group">
                             <label>Nilai Ketuntasan / KKM</label>

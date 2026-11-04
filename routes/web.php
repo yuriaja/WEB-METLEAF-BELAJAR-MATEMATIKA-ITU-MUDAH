@@ -7,6 +7,9 @@ use App\Http\Controllers\ClassTaskController;
 use App\Http\Controllers\TeacherGradesController;
 use App\Http\Controllers\ForumController;
 use App\Http\Controllers\StudentQuizController;
+use App\Http\Controllers\ExamMonitorController;
+use App\Http\Controllers\QuizManagementController;
+use App\Http\Controllers\QuizScheduleController;
 use App\Http\Controllers\StudentGradesController;
 use App\Http\Controllers\StudentDashboardController;
 use App\Http\Controllers\MaterialController;
@@ -29,7 +32,6 @@ Route::post('/logout', [ML::class, 'logout'])->name('logout');
 |--------------------------------------------------------------------------
 */
 Route::middleware('auth')->group(function () {
-    // Tampilan statis
     // Materi kelas: terhubung database, berkas privat, dan progres belajar.
     Route::get('/materi', [MaterialController::class, 'index'])->name('materi.index');
     Route::post('/materi', [MaterialController::class, 'store'])->name('materi.store');
@@ -55,7 +57,11 @@ Route::middleware('auth')->group(function () {
         Route::get('/', [ClassroomController::class, 'home'])->name('home');
         Route::post('/aktif', [ClassroomController::class, 'setActiveClass'])->name('active');
         Route::post('/buat', [ClassroomController::class, 'createClass'])->name('create');
+        Route::patch('/{schoolClass}/kapasitas', [ClassroomController::class, 'updateCapacity'])->name('capacity.update');
+        Route::patch('/{schoolClass}/siswa/{student}/izinkan', [ClassroomController::class, 'allowStudent'])->name('students.allow');
         Route::post('/gabung', [ClassroomController::class, 'joinClass'])->name('join');
+        Route::delete('/{schoolClass}/siswa/{student}', [ClassroomController::class, 'removeStudent'])->name('students.remove');
+        Route::delete('/{schoolClass}', [ClassroomController::class, 'destroyClass'])->name('destroy');
         
         // Materi di dalam kelas
         Route::post('/materi', [ClassroomController::class, 'upload'])->name('upload');
@@ -66,6 +72,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/kuis', [ClassroomController::class, 'createQuiz'])->name('quiz');
         Route::get('/kuis/{assessment}', [StudentQuizController::class, 'take'])->name('quiz.take');
         Route::post('/kuis/{assessment}/jawab', [StudentQuizController::class, 'submit'])->middleware('throttle:12,1')->name('quiz.submit');
+        Route::post('/kuis/{assessment}/insiden', [ExamMonitorController::class, 'record'])->middleware('throttle:45,1')->name('quiz.incident');
 
         // Tugas Kelas (Branch Hakim)
         Route::get('/tugas', [ClassTaskController::class, 'index'])->name('tasks.index');
@@ -113,7 +120,11 @@ Route::middleware('auth')->prefix('guru')->name('teacher.')->group(function () {
     Route::post('/kuis/buat', [ClassroomController::class, 'startQuiz'])->name('quizzes.create');
     Route::get('/kuis/{assessment}/edit', [ClassroomController::class, 'editQuiz'])->name('quizzes.edit');
     Route::get('/kuis/percobaan/{attempt}', [ClassroomController::class, 'quizAttempt'])->name('quizzes.attempt');
+    Route::get('/kuis/{assessment}/pengawasan', [ExamMonitorController::class, 'index'])->name('quizzes.incidents');
     Route::put('/kuis/{assessment}', [ClassroomController::class, 'saveQuiz'])->name('quizzes.update');
+    Route::patch('/kuis/{assessment}/jadwal', [QuizScheduleController::class, 'update'])->name('quizzes.schedule');
+    Route::delete('/kuis/{assessment}', [QuizManagementController::class, 'destroy'])->name('quizzes.destroy');
+    Route::patch('/kuis/{assessment}/pulihkan', [QuizManagementController::class, 'restore'])->name('quizzes.restore');
     
     // Manajemen Nilai Guru (Branch Hakim)
     Route::get('/rekap-nilai', [TeacherGradesController::class, 'index'])->name('grades');

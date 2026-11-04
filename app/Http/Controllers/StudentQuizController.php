@@ -8,6 +8,7 @@ use App\Models\Material;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
+use App\Support\QuizSchedule;
 
 class StudentQuizController extends Controller
 {
@@ -19,8 +20,12 @@ class StudentQuizController extends Controller
     private function availableAssessment(Request $request, Assessment $assessment): Assessment
     {
         $this->student($request);
+        QuizSchedule::archiveExpired();
+        $assessment->refresh();
+        QuizSchedule::assertOpen($assessment);
 
         $allowed = $assessment->is_published
+            && $assessment->archived_at === null
             && $assessment->class_id !== null
             && $request->user()->classes()->whereKey($assessment->class_id)->exists();
 
@@ -32,12 +37,16 @@ class StudentQuizController extends Controller
     public function index(Request $request)
     {
         $this->student($request);
+        QuizSchedule::archiveExpired();
         $user = $request->user();
         $classIds = $user->classes()->pluck('classes.id');
 
         $assessments = Assessment::query()
             ->whereIn('class_id', $classIds)
             ->where('is_published', true)
+            ->whereNull('archived_at')
+            ->where(fn ($q) => $q->whereNull('starts_at')->orWhere('starts_at', '<=', now()))
+            ->where(fn ($q) => $q->whereNull('due_at')->orWhere('due_at', '>', now()))
             ->whereHas('questions')
             ->withCount('questions')
             ->latest()
@@ -102,7 +111,7 @@ class StudentQuizController extends Controller
         // menghasilkan jumlah percobaan di atas batas yang ditentukan.
         $attempt = DB::transaction(function () use ($request, $assessment) {
             $assessment = Assessment::query()->lockForUpdate()->findOrFail($assessment->id);
-            abort_unless($assessment->is_published, 403);
+            QuizSchedule::assertOpen($assessment);
 
             $used = AssessmentAttempt::query()
                 ->where('assessment_id', $assessment->id)
@@ -187,7 +196,7 @@ class StudentQuizController extends Controller
         $everPassed = AssessmentAttempt::query()->where('assessment_id', $attempt->assessment_id)
             ->where('user_id', $request->user()->id)
             ->whereNotNull('score')->where('score', '>=', $passingScore)->exists();
-        $canRetry = !$everPassed && $remaining > 0 && (bool) $attempt->assessment->is_published;
+        $canRetry = !$everPassed && $remaining > 0 && QuizSchedule::canStart($attempt->assessment);
         return view('pages.siswa.quiz-result', compact(
             'attempt', 'remedialMaterials', 'passingScore', 'passed', 'remaining', 'canRetry'
         ));

@@ -396,6 +396,60 @@
             position: sticky;
             bottom: 0;
         }
+        /* Modal pratinjau lampiran siswa — mengikuti gaya hijau-putih MathLeaf */
+        .mlt-teacher-preview-btn { cursor:pointer; font:inherit; font-size:.9rem; }
+        .mlt-teacher-preview-btn:focus-visible { outline:3px solid #65bd91; outline-offset:3px; }
+        .mlt-preview-overlay[hidden] { display:none !important; }
+        .mlt-preview-overlay { position:fixed; inset:0; z-index:12000; background:rgba(15,36,26,.66);
+            display:flex; align-items:center; justify-content:center; padding:20px; }
+        .mlt-preview-dialog { width:min(940px,100%); max-height:92vh; display:flex; flex-direction:column;
+            background:#fff; border-radius:14px; box-shadow:0 20px 60px rgba(0,0,0,.22); overflow:hidden; }
+        .mlt-preview-head { padding:17px 21px; display:flex; align-items:flex-start;
+            justify-content:space-between; gap:12px; border-bottom:1px solid #dfeae2; }
+        .mlt-preview-head h3 { margin:0 0 5px; font-size:1.14rem; color:#123d27; }
+        .mlt-preview-subtitle { margin:0; color:#637368; font-size:.89rem; overflow-wrap:anywhere; }
+        .mlt-preview-x { border:1px solid #d5e6da; background:#fff; color:#315541; border-radius:9px;
+            cursor:pointer; font-size:1.4rem; width:37px; height:37px; flex-shrink:0; }
+        .mlt-preview-x:hover { background:#eef8f1; }
+        .mlt-preview-content { padding:16px 20px; overflow-y:auto; min-height:0; }
+        .mlt-preview-comment { margin-bottom:14px; padding:12px 14px; background:#f6faf7;
+            border:1px solid #e3eee6; border-radius:10px; }
+        .mlt-preview-label { font-size:.83rem; font-weight:700; color:#235239; margin-bottom:6px; }
+        .mlt-preview-answer { white-space:pre-wrap; overflow-wrap:anywhere; font-size:.9rem; color:#334155; line-height:1.6; }
+        .mlt-preview-file-name { font-size:.88rem; margin:0 0 10px; color:#345c46; font-weight:650; overflow-wrap:anywhere; }
+        .mlt-preview-media { display:flex; justify-content:center; align-items:center; background:#f1f5f2;
+            border:1px solid #dce6df; border-radius:10px; overflow:hidden; min-height:180px; }
+        .mlt-preview-media iframe { border:0; width:100%; height:min(62vh,660px); background:#fff; }
+        .mlt-preview-media img { display:block; max-width:100%; max-height:62vh; object-fit:contain; }
+        .mlt-preview-message { padding:26px 18px; color:#516657; font-size:.94rem; text-align:center; line-height:1.55; }
+        .mlt-preview-foot { display:flex; flex-wrap:wrap; gap:10px; align-items:center;
+            justify-content:flex-end; padding:13px 20px; border-top:1px solid #dfeae2; }
+        .mlt-preview-foot .btn { border-radius:9px; }
+        /* Kontrol zoom yang tetap berada di modal — tanpa download file. */
+        .mlt-preview-zoom-tools { display:flex; align-items:center; gap:9px; flex-wrap:wrap; margin:0 0 10px; }
+        .mlt-preview-zoom-tools[hidden], .mlt-preview-pdf-tip[hidden] { display:none !important; }
+        .mlt-zoom-btn { min-width:38px; min-height:36px; padding:6px 10px; cursor:pointer;
+            border:1px solid #cce2d2; background:#fff; color:#075b33; border-radius:8px;
+            font-size:1rem; font-weight:700; line-height:1.15; }
+        .mlt-zoom-btn:hover { background:#eef8f1; border-color:#9cccad; }
+        .mlt-zoom-btn:disabled { opacity:.45; cursor:not-allowed; }
+        .mlt-zoom-btn:focus-visible { outline:3px solid #73c997; outline-offset:2px; }
+        .mlt-zoom-level { font-variant-numeric:tabular-nums; color:#16402a; font-size:.89rem;
+            font-weight:700; text-align:center; min-width:53px; }
+        .mlt-zoom-hint { font-size:.78rem; color:#617469; }
+        .mlt-preview-pdf-tip { margin:0 0 10px; color:#4b6354; font-size:.85rem; line-height:1.5; }
+        .mlt-preview-pdf-tip a { color:#086534; font-weight:700; text-underline-offset:2px; }
+        .mlt-preview-media.mlt-zoomable { height:min(62vh,660px); min-height:260px;
+            position:relative; overflow:hidden; cursor:grab; touch-action:none; user-select:none; }
+        .mlt-preview-media.mlt-zoomable.mlt-dragging { cursor:grabbing; }
+        .mlt-preview-media.mlt-zoomable img { max-width:100%; max-height:100%; object-fit:contain;
+            transform-origin:center center; will-change:transform; pointer-events:none; user-select:none; }
+        @media(max-width:600px) {
+          .mlt-preview-overlay { padding:8px; }
+          .mlt-preview-dialog { max-height:96vh; }
+          .mlt-preview-head, .mlt-preview-content, .mlt-preview-foot { padding:12px; }
+          .mlt-preview-media iframe { height:54vh; }
+        }
     </style>
 
     <!-- Alert Messages -->
@@ -597,20 +651,36 @@
                                                     Tidak ada komentar dari siswa.</div>
                                             @endif
 
-                                            <!-- Lampiran File -->
-                                            @if ($submission->file_path)
-                                                <a href="{{ route('classroom.tasks.download', $submission) }}"
-                                                    class="attachment-link">
-                                                    <svg width="16" height="16" viewBox="0 0 24 24"
-                                                        fill="none" stroke="currentColor" stroke-width="2"
-                                                        stroke-linecap="round" stroke-linejoin="round">
-                                                        <path
-                                                            d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48">
-                                                        </path>
-                                                    </svg>
-                                                    Unduh Lampiran Siswa
-                                                </a>
-                                            @endif
+                                            <!-- Pratinjau jawaban siswa tanpa mengunduh otomatis -->
+                                            @php
+                                                $lampiranExt = $submission->file_path
+                                                    ? strtolower(pathinfo($submission->file_path, PATHINFO_EXTENSION))
+                                                    : '';
+                                                $lampiranJenis = match ($lampiranExt) {
+                                                    'pdf' => 'pdf',
+                                                    'jpg', 'jpeg', 'png' => 'image',
+                                                    default => 'other',
+                                                };
+                                                $lampiranNama = $submission->original_file_name
+                                                    ?: ('Lampiran tugas' . ($lampiranExt ? ' (' . strtoupper($lampiranExt) . ')' : ''));
+                                            @endphp
+                                            <button type="button" class="attachment-link mlt-teacher-preview-btn"
+                                                data-student="{{ $submission->user->name ?? 'Siswa' }}"
+                                                data-title="{{ $task->title }}"
+                                                data-file-name="{{ $submission->file_path ? $lampiranNama : '' }}"
+                                                data-file-kind="{{ $submission->file_path ? $lampiranJenis : 'none' }}"
+                                                data-preview-url="{{ $submission->file_path ? route('classroom.tasks.download', $submission) . '?preview=1' : '' }}"
+                                                data-download-url="{{ $submission->file_path ? route('classroom.tasks.download', $submission) : '' }}"
+                                                data-comment="{{ $submission->content ?? '' }}"
+                                                onclick="mltOpenTeacherPreview(this)">
+                                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+                                                    stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                                    stroke-linejoin="round" aria-hidden="true">
+                                                    <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"/>
+                                                    <circle cx="12" cy="12" r="3"/>
+                                                </svg>
+                                                Lihat Jawaban
+                                            </button>
                                         </td>
 
                                         <td>
@@ -682,7 +752,215 @@
         @endforelse
     </div>
 
+    <!-- Modal hanya meminta file saat guru mengklik Lihat Jawaban. File tetap privat. -->
+    <div id="mlt-teacher-preview" class="mlt-preview-overlay" hidden
+        role="dialog" aria-modal="true" aria-labelledby="mlt-preview-title" aria-describedby="mlt-preview-subtitle">
+        <div class="mlt-preview-dialog" role="document">
+            <div class="mlt-preview-head">
+                <div>
+                    <h3 id="mlt-preview-title">Lihat Jawaban Siswa</h3>
+                    <p class="mlt-preview-subtitle" id="mlt-preview-subtitle"></p>
+                </div>
+                <button type="button" class="mlt-preview-x" id="mlt-preview-close" aria-label="Tutup pratinjau">&times;</button>
+            </div>
+            <div class="mlt-preview-content">
+                <div class="mlt-preview-comment" id="mlt-preview-comment-wrap" hidden>
+                    <div class="mlt-preview-label">Jawaban / komentar siswa</div>
+                    <div class="mlt-preview-answer" id="mlt-preview-comment"></div>
+                </div>
+                <div class="mlt-preview-label">Lampiran tugas</div>
+                <p class="mlt-preview-file-name" id="mlt-preview-file-name"></p>
+                <div class="mlt-preview-zoom-tools" id="mlt-preview-zoom-tools" hidden aria-label="Perbesar dan perkecil gambar">
+                    <button type="button" class="mlt-zoom-btn" id="mlt-zoom-out" aria-label="Perkecil gambar" title="Perkecil">−</button>
+                    <output class="mlt-zoom-level" id="mlt-zoom-level" aria-live="polite">100%</output>
+                    <button type="button" class="mlt-zoom-btn" id="mlt-zoom-in" aria-label="Perbesar gambar" title="Perbesar">+</button>
+                    <button type="button" class="mlt-zoom-btn" id="mlt-zoom-reset" title="Kembali ke ukuran semula">Reset</button>
+                    <span class="mlt-zoom-hint">Geser gambar setelah diperbesar • scroll untuk zoom • cubit pada layar sentuh</span>
+                </div>
+                <p class="mlt-preview-pdf-tip" id="mlt-preview-pdf-tip" hidden>
+                    PDF dapat diperbesar memakai tombol zoom pada penampil PDF.
+                    <a href="#" id="mlt-preview-open-pdf" target="_blank" rel="noopener noreferrer">Buka PDF lebih lebar</a>
+                </p>
+                <div class="mlt-preview-media" id="mlt-preview-media"></div>
+            </div>
+            <div class="mlt-preview-foot">
+                <a id="mlt-preview-download" class="btn btn-outline" hidden>Unduh jika diperlukan</a>
+                <button type="button" class="btn btn-primary" id="mlt-preview-done">Tutup</button>
+            </div>
+        </div>
+    </div>
+
     <script>
+        // Pratinjau aman: hanya URL file milik MathLeaf, tanpa link publik.
+        const mltPreviewDialog = document.getElementById('mlt-teacher-preview');
+        const mltPreviewMedia = document.getElementById('mlt-preview-media');
+        const mltZoomTools = document.getElementById('mlt-preview-zoom-tools');
+        const mltPdfTip = document.getElementById('mlt-preview-pdf-tip');
+        const mltPdfOpen = document.getElementById('mlt-preview-open-pdf');
+        const mltZoomLevel = document.getElementById('mlt-zoom-level');
+        const mltZoomIn = document.getElementById('mlt-zoom-in');
+        const mltZoomOut = document.getElementById('mlt-zoom-out');
+        let mltPreviousFocus = null;
+        let mltZoom = 1, mltPanX = 0, mltPanY = 0;
+        const mltPointers = new Map();
+        let mltPinchDistance = 0, mltPinchZoom = 1, mltDragPoint = null;
+
+        function mltSetZoom(value) {
+            mltZoom = Math.max(.5, Math.min(5, Math.round(value * 100) / 100));
+            if (mltZoom <= 1) { mltPanX = 0; mltPanY = 0; }
+            const img = mltPreviewMedia.querySelector('img');
+            if (img) img.style.transform = `translate(${mltPanX}px, ${mltPanY}px) scale(${mltZoom})`;
+            mltZoomLevel.value = Math.round(mltZoom * 100) + '%';
+            mltZoomIn.disabled = mltZoom >= 5;
+            mltZoomOut.disabled = mltZoom <= .5;
+        }
+        function mltResetZoom() {
+            mltPanX = 0; mltPanY = 0; mltPointers.clear();
+            mltPinchDistance = 0; mltDragPoint = null;
+            mltPreviewMedia.classList.remove('mlt-dragging');
+            mltSetZoom(1);
+        }
+        document.getElementById('mlt-zoom-in').addEventListener('click', () => mltSetZoom(mltZoom + .25));
+        document.getElementById('mlt-zoom-out').addEventListener('click', () => mltSetZoom(mltZoom - .25));
+        document.getElementById('mlt-zoom-reset').addEventListener('click', mltResetZoom);
+        mltPreviewMedia.addEventListener('wheel', e => {
+            if (!mltPreviewMedia.classList.contains('mlt-zoomable')) return;
+            e.preventDefault();
+            mltSetZoom(mltZoom + (e.deltaY < 0 ? .2 : -.2));
+        }, { passive: false });
+        mltPreviewMedia.addEventListener('dblclick', e => {
+            if (mltPreviewMedia.classList.contains('mlt-zoomable')) mltSetZoom(mltZoom >= 2 ? 1 : 2);
+        });
+        const mltPointerDistance = () => {
+            const pts = Array.from(mltPointers.values());
+            return pts.length < 2 ? 0 : Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y);
+        };
+        mltPreviewMedia.addEventListener('pointerdown', e => {
+            if (!mltPreviewMedia.classList.contains('mlt-zoomable')) return;
+            if (e.pointerType === 'mouse' && e.button !== 0) return;
+            mltPreviewMedia.setPointerCapture(e.pointerId);
+            mltPointers.set(e.pointerId, {x:e.clientX, y:e.clientY});
+            if (mltPointers.size >= 2) {
+                mltPinchDistance = mltPointerDistance();
+                mltPinchZoom = mltZoom;
+                mltDragPoint = null;
+            } else if (mltZoom > 1) {
+                mltDragPoint = {x:e.clientX,y:e.clientY};
+                mltPreviewMedia.classList.add('mlt-dragging');
+            }
+        });
+        mltPreviewMedia.addEventListener('pointermove', e => {
+            if (!mltPointers.has(e.pointerId)) return;
+            mltPointers.set(e.pointerId, {x:e.clientX,y:e.clientY});
+            if (mltPointers.size >= 2 && mltPinchDistance > 0) {
+                mltSetZoom(mltPinchZoom * mltPointerDistance() / mltPinchDistance);
+                return;
+            }
+            if (mltDragPoint && mltZoom > 1) {
+                mltPanX += e.clientX - mltDragPoint.x;
+                mltPanY += e.clientY - mltDragPoint.y;
+                mltDragPoint = {x:e.clientX,y:e.clientY};
+                mltSetZoom(mltZoom);
+            }
+        });
+        function mltEndPointer(e) {
+            mltPointers.delete(e.pointerId);
+            mltDragPoint = null;
+            mltPinchDistance = 0;
+            mltPreviewMedia.classList.remove('mlt-dragging');
+            if (mltPointers.size === 1) {
+                const remaining = Array.from(mltPointers.values())[0];
+                mltDragPoint = mltZoom > 1 ? {x:remaining.x,y:remaining.y} : null;
+            }
+        }
+        ['pointerup','pointercancel','lostpointercapture'].forEach(name =>
+            mltPreviewMedia.addEventListener(name, mltEndPointer));
+
+        function mltCloseTeacherPreview() {
+            mltPreviewDialog.hidden = true;
+            mltResetZoom();
+            mltZoomTools.hidden = true;
+            mltPdfTip.hidden = true;
+            mltPreviewMedia.classList.remove('mlt-zoomable');
+            // Hapus iframe/img agar tidak terus memakai memori ketika modal ditutup.
+            mltPreviewMedia.replaceChildren();
+            document.body.style.overflow = mltPreviewDialog.dataset.oldOverflow || '';
+            if (mltPreviousFocus && mltPreviousFocus.isConnected) mltPreviousFocus.focus();
+            mltPreviousFocus = null;
+        }
+
+        function mltOpenTeacherPreview(button) {
+            mltPreviousFocus = button;
+            const data = button.dataset;
+            document.getElementById('mlt-preview-subtitle').textContent =
+                `${data.student || 'Siswa'} · ${data.title || 'Tugas Kelas'}`;
+            const commentWrap = document.getElementById('mlt-preview-comment-wrap');
+            commentWrap.hidden = !(data.comment || '').trim();
+            document.getElementById('mlt-preview-comment').textContent = data.comment || '';
+            document.getElementById('mlt-preview-file-name').textContent = data.fileName || 'Tidak ada lampiran';
+            const downloadLink = document.getElementById('mlt-preview-download');
+            downloadLink.hidden = !data.downloadUrl;
+            if (data.downloadUrl) downloadLink.href = data.downloadUrl;
+            else downloadLink.removeAttribute('href');
+            mltResetZoom();
+            mltZoomTools.hidden = true;
+            mltPdfTip.hidden = true;
+            mltPreviewMedia.classList.remove('mlt-zoomable');
+            mltPreviewMedia.replaceChildren();
+
+            const message = (text) => {
+                const el = document.createElement('p');
+                el.className = 'mlt-preview-message';
+                el.textContent = text;
+                mltPreviewMedia.appendChild(el);
+            };
+            if (data.fileKind === 'pdf' && data.previewUrl) {
+                mltPdfTip.hidden = false;
+                mltPdfOpen.href = data.previewUrl;
+                const frame = document.createElement('iframe');
+                frame.title = `Pratinjau PDF ${data.fileName || 'jawaban siswa'}`;
+                frame.setAttribute('loading', 'lazy');
+                frame.src = data.previewUrl;
+                mltPreviewMedia.appendChild(frame);
+            } else if (data.fileKind === 'image' && data.previewUrl) {
+                mltZoomTools.hidden = false;
+                mltPreviewMedia.classList.add('mlt-zoomable');
+                const img = document.createElement('img');
+                img.alt = `Lampiran ${data.fileName || 'jawaban siswa'}`;
+                img.src = data.previewUrl;
+                img.addEventListener('error', () => {
+                    mltPreviewMedia.replaceChildren();
+                    message('Gambar tidak dapat ditampilkan. Gunakan Unduh jika diperlukan.');
+                }, {once:true});
+                mltPreviewMedia.appendChild(img);
+            } else if (data.fileKind === 'none') {
+                message('Siswa ini tidak melampirkan file. Jawaban teksnya ditampilkan di atas.');
+            } else {
+                message('Pratinjau DOC, DOCX, dan ZIP belum didukung langsung oleh browser. File tetap dapat diunduh jika diperlukan.');
+            }
+            mltPreviewDialog.dataset.oldOverflow = document.body.style.overflow;
+            document.body.style.overflow = 'hidden';
+            mltPreviewDialog.hidden = false;
+            document.getElementById('mlt-preview-close').focus();
+        }
+
+        document.getElementById('mlt-preview-close').addEventListener('click', mltCloseTeacherPreview);
+        document.getElementById('mlt-preview-done').addEventListener('click', mltCloseTeacherPreview);
+        mltPreviewDialog.addEventListener('click', (e) => {
+            if (e.target === mltPreviewDialog) mltCloseTeacherPreview();
+        });
+        document.addEventListener('keydown', (e) => {
+            if (!mltPreviewDialog.hidden && e.key === 'Escape') mltCloseTeacherPreview();
+            if (!mltPreviewDialog.hidden && e.key === 'Tab') {
+                const els = Array.from(mltPreviewDialog.querySelectorAll('button:not([disabled]),a[href]'))
+                    .filter(el => !el.hidden);
+                if (!els.length) return;
+                const first = els[0], last = els[els.length - 1];
+                if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+                else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+            }
+        });
+
         // Logika Modal
         const modalTugas = document.getElementById('modal-tugas');
 

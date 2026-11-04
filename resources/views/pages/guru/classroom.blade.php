@@ -24,6 +24,7 @@
                 'classes.name',
                 'classes.school_year',
                 'classes.join_code',
+                'classes.max_students',
                 'users.name as teacher_name',
             )
             ->selectSub(
@@ -59,16 +60,23 @@
                     ->get()
                     ->groupBy('class_id')
                 : collect();
+        $blockedByClass = $isTeacher && $rows->isNotEmpty()
+            ? $DB::table('class_kicked_users')
+                ->join('users', 'class_kicked_users.user_id', '=', 'users.id')
+                ->whereIn('class_kicked_users.class_id', $rows->pluck('id'))
+                ->select('class_kicked_users.class_id', 'users.id', 'users.name')
+                ->orderBy('users.name')->get()->groupBy('class_id')
+            : collect();
 
         $symbols = ['−3 + 5', 'x²', '½', 'π'];
         $headline = $isTeacher ? 'Daftar Kelas yang Diajar' : 'Kelas yang Kamu Ikuti';
         $subline = $rows->isEmpty()
             ? ($isTeacher
                 ? 'Buat kelas pertamamu untuk mulai menambahkan siswa.'
-                : 'Masukkan kode dari gurumu untuk bergabung ke kelas pertamamu.')
+                : 'Masuk kembali dengan kode kelas Matematika dari gurumu.')
             : ($isTeacher
                 ? 'Kamu mengajar ' . $rows->count() . ' kelas. Bagikan kode kelas agar siswa bisa bergabung.'
-                : 'Kamu tergabung di ' . $rows->count() . ' kelas. Pilih satu kelas untuk melihat materinya.');
+                : 'Kamu mengikuti satu kelas Matematika. Gunakan kode yang sama setiap kali login.');
     @endphp
 
     <style>
@@ -539,6 +547,10 @@
             flex: 1 1 auto;
         }
 
+        .kl-actions .kl-delete-form {
+            flex: 0 0 auto;
+        }
+
         .kl-actions .kl-btn {
             flex: 1 1 auto;
         }
@@ -666,8 +678,9 @@
             font-size: .88rem;
         }
 
-        .kl-student .kl-btn {
+        .kl-student form {
             margin-left: auto;
+            flex: 0 0 auto;
         }
 
         .kl-empty-mini {
@@ -811,6 +824,16 @@
             border-radius: 0 0 18px 18px;
         }
 
+        .kl-capacity-form { display:flex; align-items:center; gap:.55rem; flex-wrap:wrap; padding:.75rem;
+            background:#f1faf3; border:1px solid #d6eadb; border-radius:12px; }
+        .kl-capacity-form label { font-weight:800; color:#14532d; font-size:.88rem; }
+        .kl-capacity-form input { width:65px; padding:.5rem .55rem; border-radius:9px; border:1px solid #a7d5b5;
+            font-size:1rem; font-weight:700; color:#14532d; background:white; }
+        .kl-capacity-form button { margin-left:auto; }
+        .kl-confirm-danger { background:#dc2626; color:white; border-color:#dc2626; }
+        .kl-confirm-danger:hover { background:#b91c1c; box-shadow:0 5px 16px #b91c1c33; }
+        .kl-field[hidden] { display:none !important; }
+
         @media (max-width: 480px) {
             .kl-grid {
                 grid-template-columns: minmax(0, 1fr);
@@ -863,34 +886,17 @@
     @if (session('error'))
         <div class="kl-alert bad">{{ session('error') }}</div>
     @endif
+    @error('confirmation')
+        <div class="kl-alert bad">{{ $message }}</div>
+    @enderror
 
-    {{-- ================= GABUNG KELAS (SISWA) ================= --}}
     @unless ($isTeacher)
-        <section class="kl-join">
-            <span class="ic">
-                <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                    stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path>
-                    <polyline points="10 17 15 12 10 7"></polyline>
-                    <line x1="15" y1="12" x2="3" y2="12"></line>
-                </svg>
-            </span>
+        <section class="kl-join" aria-label="Informasi kelas Matematika">
+            <span class="ic" aria-hidden="true">✦</span>
             <div class="txt">
-                <h2>Gabung ke kelas baru</h2>
-                <p>Minta kode kelas ke gurumu, lalu ketik di sini.</p>
+                <h2>Satu akun, satu kelas Matematika</h2>
+                <p>Kode kelas dimasukkan setiap kali login. Jika perlu pindah kelas, hubungi guru untuk dikeluarkan dari kelas sebelumnya.</p>
             </div>
-            <form action="{{ route('classroom.join') }}" method="POST" id="join-form" autocomplete="off">
-                @csrf
-                <input type="text" id="join_code" name="join_code" class="kl-code-input" maxlength="12"
-                    placeholder="Kode kelas" value="{{ old('join_code') }}" aria-label="Kode kelas" required>
-                <button type="submit" class="kl-btn" id="join-btn">
-                    <span class="kl-spin"></span>
-                    <span id="join-label">Gabung</span>
-                </button>
-            </form>
-            @if ($errors->any())
-                <p class="err">{{ $errors->first() }}</p>
-            @endif
         </section>
     @endunless
 
@@ -920,6 +926,12 @@
                             <label for="school_year">Tahun Ajaran</label>
                             <input type="text" id="school_year" name="school_year" class="kl-input"
                                 placeholder="Contoh: 2026/2027">
+                        </div>
+                        <div class="kl-field">
+                            <label for="max_students">Maksimal Siswa</label>
+                            <input type="number" id="max_students" name="max_students" class="kl-input"
+                                min="1" max="200" value="30" required>
+                            <small style="display:block;color:#64748b;margin-top:.4rem">Contoh: VII A Matematika maksimal 30 siswa.</small>
                         </div>
                     </div>
                     <div class="kl-modal-foot">
@@ -997,8 +1009,9 @@
                                 <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
                                 <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
                             </svg>
-                            {{ $class->students_count }} siswa
+                            {{ $class->students_count }}/{{ $class->max_students }} siswa
                         </span>
+                        <span class="kl-stat" aria-label="Sisa kuota siswa">{{ max(0, $class->max_students - $class->students_count) }} kursi tersisa</span>
                         <span class="kl-stat">
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                 stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -1010,6 +1023,18 @@
                             {{ $class->materials_count }} materi
                         </span>
                     </div>
+
+                    @if ($isTeacher)
+                        <form action="{{ route('classroom.capacity.update', $class->id) }}" method="POST"
+                            class="kl-capacity-form">
+                            @csrf @method('PATCH')
+                            <label for="capacity-{{ $class->id }}">Batas siswa</label>
+                            <input id="capacity-{{ $class->id }}" type="number" name="max_students"
+                                min="{{ max(1, $class->students_count) }}" max="200"
+                                value="{{ $class->max_students }}" required aria-label="Maksimal siswa kelas {{ $class->name }}">
+                            <button type="submit" class="kl-btn sm soft">Simpan Kuota</button>
+                        </form>
+                    @endif
 
                     <div class="kl-actions">
                         @if ($isActive)
@@ -1040,8 +1065,12 @@
                                     <polyline points="6 9 12 15 18 9"></polyline>
                                 </svg>
                             </button>
-                            <button type="button" class="kl-btn danger" title="Hapus kelas" aria-label="Hapus kelas"
-                                onclick="alert('Route Hapus Kelas belum dibuat!')">
+                            <form class="kl-delete-form" action="{{ route('classroom.destroy', $class->id) }}" method="POST"
+                                data-class-name="{{ $class->name }}">
+                                @csrf
+                                @method('DELETE')
+                                <input type="hidden" name="confirmation" value="">
+                                <button type="button" onclick="openClassDelete(this)" class="kl-btn danger" title="Hapus kelas permanen" aria-label="Hapus kelas permanen">
                                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
                                     stroke="currentColor" stroke-width="2" stroke-linecap="round"
                                     stroke-linejoin="round">
@@ -1050,7 +1079,8 @@
                                         d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2">
                                     </path>
                                 </svg>
-                            </button>
+                                </button>
+                            </form>
                         @endif
                     </div>
                 </div>
@@ -1069,9 +1099,12 @@
                                                 <b>{{ $student->name }}</b>
                                                 <small>{{ $student->email }}</small>
                                             </div>
-                                            <button type="button" class="kl-btn danger" title="Keluarkan siswa"
-                                                aria-label="Keluarkan siswa"
-                                                onclick="alert('Route Keluarkan Siswa belum dibuat!')">
+                                            <form action="{{ route('classroom.students.remove', [$class->id, $student->id]) }}"
+                                                method="POST" data-student-name="{{ $student->name }}">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="button" onclick="openKickDialog(this)" class="kl-btn danger" title="Keluarkan siswa"
+                                                    aria-label="Keluarkan siswa">
                                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
                                                     stroke="currentColor" stroke-width="2" stroke-linecap="round"
                                                     stroke-linejoin="round">
@@ -1081,12 +1114,28 @@
                                                     <line x1="9" y1="9" x2="15" y2="15">
                                                     </line>
                                                 </svg>
-                                            </button>
+                                                </button>
+                                            </form>
                                         </div>
                                     @empty
                                         <div class="kl-empty-mini">Belum ada siswa yang bergabung di kelas ini.</div>
                                     @endforelse
                                 </div>
+                                @if (($blockedByClass[$class->id] ?? collect())->isNotEmpty())
+                                    <h4 style="margin-top:1.3rem">Siswa yang pernah dikeluarkan</h4>
+                                    <div class="kl-students">
+                                        @foreach ($blockedByClass[$class->id] as $blocked)
+                                            <div class="kl-student">
+                                                <span class="kl-avatar">{{ strtoupper(mb_substr($blocked->name, 0, 1)) }}</span>
+                                                <div><b>{{ $blocked->name }}</b><small>Tidak bisa login ke kelas ini</small></div>
+                                                <form action="{{ route('classroom.students.allow', [$class->id, $blocked->id]) }}" method="POST">
+                                                    @csrf @method('PATCH')
+                                                    <button type="submit" class="kl-btn sm soft">Izinkan Lagi</button>
+                                                </form>
+                                            </div>
+                                        @endforeach
+                                    </div>
+                                @endif
                             </div>
                         </div>
                     </div>
@@ -1105,16 +1154,94 @@
                     <p>Buat kelas pertamamu untuk mulai menambahkan siswa.</p>
                     <button type="button" class="kl-btn" onclick="openModal()">Tambah Kelas Baru</button>
                 @else
-                    <h3>Kamu belum bergabung ke kelas manapun</h3>
-                    <p>Masukkan kode kelas dari gurumu di kolom di atas.</p>
-                    <button type="button" class="kl-btn soft" onclick="document.getElementById('join_code').focus()">Isi
-                        kode kelas</button>
+                    <h3>Belum terdaftar di kelas Matematika</h3>
+                    <p>Keluar dari akun, lalu login lagi dengan kode kelas 8 karakter dari guru.</p>
+                    <a href="{{ route('login') }}" class="kl-btn soft">Lihat halaman login</a>
                 @endif
             </div>
         @endforelse
     </div>
 
+    @if ($isTeacher)
+        <div id="action-dialog" class="kl-backdrop" aria-hidden="true" onclick="if(event.target===this)closeActionDialog()">
+            <div class="kl-modal" role="dialog" aria-modal="true" aria-labelledby="action-dialog-title" aria-describedby="action-dialog-description">
+                <div class="kl-modal-head">
+                    <h3 id="action-dialog-title">Konfirmasi Tindakan</h3>
+                    <button type="button" class="kl-x" onclick="closeActionDialog()" aria-label="Tutup dialog">✕</button>
+                </div>
+                <div class="kl-modal-body">
+                    <p id="action-dialog-description" style="color:#475569;line-height:1.65;margin:0"></p>
+                    <div id="action-confirmation-field" class="kl-field" hidden>
+                        <label id="action-class-name-label" for="action-class-name-input">Nama kelas</label>
+                        <input id="action-class-name-input" type="text" class="kl-input" autocomplete="off">
+                    </div>
+                    <p id="action-dialog-error" role="alert" style="color:#b91c1c;margin:0;font-weight:700"></p>
+                </div>
+                <div class="kl-modal-foot">
+                    <button type="button" id="action-cancel-button" class="kl-btn ghost" onclick="closeActionDialog()">Batal</button>
+                    <button type="button" id="action-confirm-button" class="kl-btn kl-confirm-danger" onclick="confirmClassAction()">Konfirmasi</button>
+                </div>
+            </div>
+        </div>
+    @endif
+
     <script>
+        // Modal konfirmasi menggunakan desain MathLeaf, bukan prompt/confirm browser.
+        let pendingClassForm = null;
+        let pendingMode = null;
+        function openKickDialog(button) {
+            pendingClassForm = button.closest('form'); pendingMode = 'kick';
+            document.getElementById('action-dialog-title').textContent = 'Keluarkan Siswa?';
+            document.getElementById('action-dialog-description').textContent =
+                'Siswa "' + pendingClassForm.dataset.studentName + '" akan dikeluarkan. Akun dan nilai tetap ada, tetapi dia tidak dapat masuk kembali sampai kamu mengizinkan.';
+            document.getElementById('action-confirmation-field').hidden = true;
+            document.getElementById('action-confirm-button').textContent = 'Ya, Keluarkan Siswa';
+            openActionDialog();
+        }
+        function openClassDelete(button) {
+            pendingClassForm = button.closest('form'); pendingMode = 'delete';
+            const name = pendingClassForm.dataset.className;
+            document.getElementById('action-dialog-title').textContent = 'Hapus Kelas Permanen?';
+            document.getElementById('action-dialog-description').textContent =
+                'Kelas "' + name + '" beserta materi, tugas, nilai, dan forum akan dihapus permanen. Akun siswa tidak terhapus.';
+            document.getElementById('action-class-name-label').textContent = 'Ketik persis: ' + name;
+            document.getElementById('action-class-name-input').value = '';
+            document.getElementById('action-confirmation-field').hidden = false;
+            document.getElementById('action-confirm-button').textContent = 'Hapus Kelas';
+            openActionDialog();
+        }
+        function openActionDialog() {
+            const modal = document.getElementById('action-dialog');
+            modal.classList.add('active'); modal.setAttribute('aria-hidden', 'false');
+            setTimeout(() => {
+                (pendingMode === 'delete' ? document.getElementById('action-class-name-input') : document.getElementById('action-cancel-button')).focus();
+            }, 70);
+        }
+        function closeActionDialog() {
+            const modal = document.getElementById('action-dialog');
+            if (!modal) return;
+            modal.classList.remove('active'); modal.setAttribute('aria-hidden', 'true');
+            pendingClassForm = null; pendingMode = null;
+            document.getElementById('action-dialog-error').textContent = '';
+        }
+        function confirmClassAction() {
+            if (!pendingClassForm) return;
+            if (pendingMode === 'delete') {
+                const name = pendingClassForm.dataset.className;
+                const typed = document.getElementById('action-class-name-input').value;
+                if (typed !== name) {
+                    document.getElementById('action-dialog-error').textContent = 'Nama kelas belum sama persis. Penghapusan dibatalkan.';
+                    return;
+                }
+                pendingClassForm.querySelector('input[name="confirmation"]').value = typed;
+            }
+            document.getElementById('action-confirm-button').disabled = true;
+            pendingClassForm.submit();
+        }
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape') closeActionDialog();
+        });
+
         /* Salin kode kelas (guru) */
         function copyCode(code, btn) {
             navigator.clipboard.writeText(code).then(function() {
@@ -1166,30 +1293,5 @@
             btn.setAttribute('aria-expanded', open ? 'true' : 'false');
         }
 
-        /* Form gabung kelas (siswa) */
-        (function() {
-            var form = document.getElementById('join-form');
-            if (!form) return;
-            var input = document.getElementById('join_code');
-            var btn = document.getElementById('join-btn');
-
-            input.addEventListener('input', function() {
-                input.value = input.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
-            });
-
-            form.addEventListener('submit', function(e) {
-                if (!input.value.trim()) {
-                    e.preventDefault();
-                    input.classList.remove('shake');
-                    void input.offsetWidth;
-                    input.classList.add('shake');
-                    input.focus();
-                    return;
-                }
-                btn.classList.add('loading');
-                btn.disabled = true;
-                document.getElementById('join-label').textContent = 'Memeriksa…';
-            });
-        })();
     </script>
 @endsection
