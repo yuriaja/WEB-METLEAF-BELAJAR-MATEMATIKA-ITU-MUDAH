@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-{{-- Letakkan di: resources/views/pages/guru/materi-form.blade.php (sesuaikan folder) --}}
+{{-- Form tambah dan edit materi guru. --}}
 
 @php
     abort_unless(Auth::check() && Auth::user()->role === 'guru', 403);
@@ -869,7 +869,7 @@
         }
     </style>
 
-    <a href="{{ route('materi.index') }}" class="mf-back">
+    <a href="{{ route('teacher.dashboard') }}" class="mf-back">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
             stroke-linecap="round" stroke-linejoin="round">
             <line x1="19" y1="12" x2="5" y2="12"></line>
@@ -1204,7 +1204,7 @@
                         <span class="mf-spin"></span>
                         <span id="save-label">{{ $isEdit ? 'Simpan Perubahan' : 'Simpan Materi' }}</span>
                     </button>
-                    <a href="{{ route('materi.index') }}" class="mf-btn ghost block">Batal</a>
+                    <a href="{{ route('teacher.dashboard') }}" class="mf-btn ghost block">Batal</a>
                 </div>
             </aside>
         </div>
@@ -1338,13 +1338,18 @@
                     exec('redo');
                 },
                 callout: function() {
+                    var sel = window.getSelection();
+                    var text = sel.toString().trim() || 'Tulis poin penting di sini.';
                     exec('insertHTML',
-                        '<div class="ml-callout"><b>Ingat!</b> Tulis poin penting di sini.</div><p><br></p>'
-                        );
+                        '<div class="ml-callout"><b>Ingat!</b> ' + text + '</div><p><br></p>'
+                    );
                 },
                 example: function() {
+                    var sel = window.getSelection();
+                    var text = sel.toString().trim() || 'Tulis contoh di sini';
                     exec('insertHTML',
-                    '<div class="ml-example"><span>Contoh</span>\u22123 + 5 = 2</div>&nbsp;');
+                        '<div class="ml-example"><span></span>' + text + '</div>&nbsp;'
+                    );
                 },
                 numline: function() {
                     saveRange();

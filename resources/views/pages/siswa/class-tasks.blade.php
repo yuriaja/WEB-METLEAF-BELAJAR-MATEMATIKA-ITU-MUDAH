@@ -3,144 +3,1089 @@
 @section('header_title', 'Tugas & Kelompok')
 
 @section('content')
-<style>
-.mlt-shell{max-width:1150px;margin:auto;color:#213047}.mlt-head h1{font-size:1.8rem;font-weight:800;color:#12442c;margin:0}.mlt-head p{color:#64748b;margin:.4rem 0 1.4rem}
-.mlt-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin-bottom:22px}.mlt-stat{padding:19px;border:1px solid #dbeae0;background:#fff;border-radius:14px}.mlt-stat strong{display:block;font-size:1.85rem;color:#116b3c}.mlt-stat span{color:#64748b;font-size:.9rem}
-.mlt-filter{background:#fff;border:1px solid #e2e8f0;padding:15px;border-radius:12px;display:flex;align-items:end;gap:14px;flex-wrap:wrap;margin-bottom:20px}.mlt-filter label{font-weight:700;font-size:.9rem;display:block;margin-bottom:5px}.mlt-filter select{min-width:170px;padding:10px;border:1px solid #cbd5e1;border-radius:8px;background:#fff}.mlt-filter button,.mlt-btn{display:inline-flex;justify-content:center;align-items:center;gap:8px;border:0;border-radius:9px;padding:11px 17px;background:#087541;color:white;font-weight:700;cursor:pointer;text-decoration:none}
-.mlt-list{display:grid;gap:18px}.mlt-task{border:1px solid #dbe7de;background:#fff;border-radius:15px;overflow:hidden;box-shadow:0 3px 12px rgba(25,60,33,.035)}.mlt-task-top{padding:20px 22px;border-bottom:1px solid #edf1ec}.mlt-task-top h2{font-weight:800;font-size:1.25rem;color:#173d28;margin:10px 0 8px}.mlt-meta{display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:.84rem;color:#526175}.mlt-pill{display:inline-block;padding:5px 11px;border-radius:99px;background:#e9f7ef;color:#11673d;font-weight:750}.mlt-pill.warn{background:#fff0dc;color:#9a530a}.mlt-pill.good{background:#dff8e8;color:#0e6841}.mlt-pill.late{background:#fce8e8;color:#a62a2a}
-.mlt-body{padding:20px 22px}.mlt-instructions{white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.7;margin:10px 0 16px;background:#f7faf7;padding:14px;border-radius:10px;border:1px solid #e7eee7}.mlt-fields{display:grid;gap:12px}.mlt-fields label{font-weight:700;display:block;margin-bottom:6px}.mlt-fields textarea,.mlt-fields input[type=file]{width:100%;border:1px solid #cbd5e1;border-radius:9px;padding:11px;background:#fff;color:#162f21}.mlt-note{font-size:.87rem;color:#64748b;margin:7px 0}.mlt-feedback{background:#eaf8f0;border:1px solid #ccecd9;border-radius:10px;padding:14px;margin-top:13px}.mlt-muted{color:#64748b}.mlt-empty{text-align:center;background:white;padding:42px 20px;border:1px dashed #a9c7b8;border-radius:12px}.mlt-alert{padding:14px;border-radius:10px;margin-bottom:18px;background:#ecfdf3;color:#146134;border:1px solid #b6e9c7}.mlt-alert.error{background:#fff1f1;color:#9d2828;border-color:#f5b5b5}.mlt-link{color:#087541;font-weight:700;text-decoration:underline}
-@media(max-width:640px){.mlt-stats{grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}.mlt-stat{padding:11px}.mlt-stat strong{font-size:1.3rem}.mlt-stat span{font-size:.73rem}.mlt-task-top,.mlt-body{padding:15px}.mlt-filter select{min-width:120px;width:100%}.mlt-filter>div{flex:1 1 130px}}
+    @php
+        // Ikon SVG yang dipakai di halaman ini (dipanggil lewat {!! $icon['nama'] !!})
+        $svg = fn(string $paths, string $class = 'ic') => '<svg class="' .
+            $class .
+            '" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+' .
+            $paths .
+            '</svg>';
 
-/* MATHLEAF TUGAS - LAMPIRAN RINGKAS V2 */
-.mlt-submission{margin:18px 0 12px}
-.mlt-submission-head{display:flex;align-items:baseline;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-bottom:10px}
-.mlt-submission-head strong{font-size:.92rem;font-weight:750;color:#244632}
-.mlt-submission-time{font-size:.83rem;color:#64748b}
-.mlt-attached-file{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:12px 14px;border:1px solid #dae7de;border-radius:10px;background:#fafcfb}
-.mlt-attached-icon{width:40px;height:43px;flex:0 0 40px;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:2px;background:#eaf5ee;border-radius:8px;color:#0d7545}
-.mlt-attached-icon span{font-size:.63rem;font-weight:800;letter-spacing:.025em;line-height:1}
-.mlt-attached-icon svg{width:19px;height:19px;display:block}
-.mlt-attached-info{flex:1;min-width:150px}
-.mlt-attached-name{font-size:.94rem;font-weight:750;color:#193e2b;overflow-wrap:anywhere;line-height:1.35}
-.mlt-attached-subtext{font-size:.8rem;color:#64748b;margin-top:4px}
-.mlt-attached-actions{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
-.mlt-attached-actions a{display:inline-flex;align-items:center;justify-content:center;gap:5px;padding:8px 11px;border-radius:8px;border:1px solid #cbded1;color:#0d7040;background:#fff;font-size:.82rem;font-weight:750;text-decoration:none;transition:background .15s ease}
-.mlt-attached-actions a:hover{background:#eaf6ed;border-color:#93c8a6}
-.mlt-attached-actions a:focus-visible,.mlt-edit-panel>summary:focus-visible{outline:2px solid #16824d;outline-offset:2px}
-.mlt-attached-actions a svg{width:15px;height:15px;flex-shrink:0}
-.mlt-submission-no-file{margin:0;padding:10px 12px;background:#f8faf8;border:1px solid #e2ebe4;border-radius:9px;font-size:.88rem;color:#526175}
-.mlt-submission-answer{margin-top:15px}
-.mlt-submission-answer strong{display:block;margin-bottom:7px;color:#244632;font-size:.9rem}
-.mlt-submission-answer .mlt-answer-content{font-size:.92rem;line-height:1.6;white-space:pre-wrap;overflow-wrap:anywhere;background:#f7faf7;border:1px solid #e7eee7;border-radius:9px;padding:12px 14px;color:#213047}
-.mlt-edit-panel{margin:14px 0 0;border:1px solid #dae7de;border-radius:10px;background:#fff;overflow:hidden}
-.mlt-edit-panel>summary{display:flex;align-items:center;gap:7px;cursor:pointer;list-style:none;color:#0b7541;font-weight:750;font-size:.9rem;padding:11px 13px}
-.mlt-edit-panel>summary::-webkit-details-marker{display:none}
-.mlt-edit-panel>summary:before{content:'✎';font-size:1rem;line-height:1}
-.mlt-edit-panel>summary:after{content:'⌄';margin-left:auto;font-size:1.2rem;line-height:.7;transition:transform .2s ease}
-.mlt-edit-panel[open]>summary:after{transform:rotate(180deg)}
-.mlt-edit-panel>summary:hover{background:#f5faf6}
-.mlt-edit-panel[open]>summary{border-bottom:1px solid #e4eee6}
-.mlt-edit-panel>.mlt-fields{padding:15px}
-@media(max-width:640px){.mlt-attached-file{align-items:flex-start}.mlt-attached-actions{width:100%;padding-left:52px}.mlt-attached-actions a{flex:1}.mlt-submission-head{align-items:flex-start}}
-</style>
-<div class="mlt-shell">
-    @if (session('success'))<div class="mlt-alert" role="status">{{ session('success') }}</div>@endif
-    @if ($errors->any())
-        <div class="mlt-alert error" role="alert"><strong>Periksa kembali:</strong><ul>@foreach($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul></div>
+        $icon = [
+            'leaf' => $svg(
+                '<path d="M11 20A7 7 0 0 1 4 13C4 5 14 3 21 3c0 7-2 17-10 17Z"></path><path d="M4 21c0-6 5-11 11-14"></path>',
+            ),
+            'file' => $svg(
+                '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><path d="M14 2v6h6"></path>',
+            ),
+            'eye' => $svg(
+                '<path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"></path><circle cx="12" cy="12" r="3"></circle>',
+            ),
+            'download' => $svg('<path d="M12 3v12m-4-4 4 4 4-4M4 17v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3"></path>'),
+            'pencil' => $svg(
+                '<path d="M12 20h9"></path><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>',
+            ),
+            'chevron' => $svg('<polyline points="6 9 12 15 18 9"></polyline>', 'ic chevron'),
+            'list' => $svg(
+                '<line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line>',
+            ),
+            'check_circle' => $svg(
+                '<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline>',
+            ),
+            'award' => $svg('<circle cx="12" cy="8" r="6"></circle><path d="m8 13-2 8 6-3 6 3-2-8"></path>'),
+            'clock' => $svg('<circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline>'),
+            'clipboard' => $svg(
+                '<path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect>',
+            ),
+        ];
+    @endphp
+
+    <style>
+        .app-content {
+            font-size: 11.2px;
+        }
+
+        :root {
+            --ml-green: #086534;
+            --ml-green-hover: #064d27;
+            --ml-green-light: #edf8f0;
+            --ml-green-soft: #dff3e5;
+        }
+
+        .ic {
+            width: 16px;
+            height: 16px;
+            flex-shrink: 0;
+        }
+
+        /* ---------- Header halaman ---------- */
+        .page-heading {
+            margin-bottom: 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+        }
+
+        .eyebrow {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            color: var(--ml-green);
+            font-size: 0.64rem;
+            font-weight: 700;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+        }
+
+        .eyebrow .ic {
+            width: 14px;
+            height: 14px;
+        }
+
+        .page-heading h1 {
+            font-size: 1.44rem;
+            color: #0f172a;
+            margin: 0.5rem 0;
+            font-weight: 800;
+        }
+
+        .page-heading p {
+            color: #64748b;
+            font-size: 0.8rem;
+            margin: 0;
+            line-height: 1.6;
+        }
+
+        /* ---------- Alert ---------- */
+        .alert {
+            padding: 0.9rem 1.1rem;
+            margin-bottom: 1.25rem;
+            background: var(--ml-green-light);
+            border: 1px solid #bbf7d0;
+            border-left: 4px solid var(--ml-green);
+            border-radius: 8px;
+            color: #14532d;
+            font-size: 0.76rem;
+            line-height: 1.6;
+        }
+
+        .alert.error {
+            background: #fef2f2;
+            border-color: #fecaca;
+            border-left-color: #dc2626;
+            color: #991b1b;
+        }
+
+        .alert ul {
+            margin: 0.4rem 0 0;
+            padding-left: 1.2rem;
+        }
+
+        .alert.no-margin {
+            margin: 1.5rem 0 0;
+        }
+
+        /* ---------- Statistik ringkas ---------- */
+
+
+
+
+        /* ---------- Ringkasan progres ---------- */
+        .summary-panel {
+            margin-bottom: 1.5rem;
+        }
+
+        .summary-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 0.6rem;
+            margin-bottom: 1rem;
+        }
+
+        .summary-head h2 {
+            margin: 0;
+        }
+
+        .progress-track {
+            position: relative;
+            height: 10px;
+            overflow: hidden;
+            background: #e2e8f0;
+            border-radius: 999px;
+        }
+
+        .progress-fill {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            border-radius: 999px;
+            transition: width 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+
+        .progress-fill.submitted {
+            background: #9fdcb8;
+        }
+
+        .progress-fill.graded {
+            background: var(--ml-green);
+        }
+
+        .summary-legend {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 1rem;
+            margin-top: 1.2rem;
+        }
+
+        .summary-item {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            padding: 0.9rem 1rem;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+        }
+
+        .summary-icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+        }
+
+        .summary-icon.total {
+            background: #e2e8f0;
+            color: #475569;
+        }
+
+        .summary-icon.submitted {
+            background: #cdeedb;
+            color: #166534;
+        }
+
+        .summary-icon.graded {
+            background: var(--ml-green);
+            color: #ffffff;
+        }
+
+        .summary-item strong {
+            display: block;
+            color: #0f172a;
+            font-size: 1.3rem;
+            font-weight: 800;
+            line-height: 1.1;
+        }
+
+        .summary-item span {
+            color: #64748b;
+            font-size: 0.72rem;
+            font-weight: 600;
+        }
+
+        /* ---------- Filter ---------- */
+        .filter-panel {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: flex-end;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            padding: 1.2rem 1.5rem;
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(15, 23, 42, 0.02);
+        }
+
+        .filter-panel label {
+            display: block;
+            margin-bottom: 0.4rem;
+            color: #0f172a;
+            font-size: 0.76rem;
+            font-weight: 700;
+        }
+
+        .filter-panel select {
+            min-width: 170px;
+            padding: 0.65rem 0.8rem;
+            background: #ffffff;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            color: #0f172a;
+            font-family: inherit;
+            font-size: 0.76rem;
+            outline: none;
+        }
+
+        .filter-panel select:focus,
+        .answer-input:focus,
+        .task-fields input[type=file]:focus {
+            border-color: var(--ml-green);
+        }
+
+        /* ---------- Tombol ---------- */
+        .btn-primary {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            background: var(--ml-green);
+            border: none;
+            border-radius: 8px;
+            color: #ffffff;
+            font-family: inherit;
+            font-size: 0.76rem;
+            font-weight: 600;
+            text-decoration: none;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .btn-primary:hover {
+            background: var(--ml-green-hover);
+            color: #ffffff;
+        }
+
+        .btn-primary.block {
+            width: 100%;
+            margin-top: 1rem;
+        }
+
+        /* ---------- Kerangka tugas (dua kolom seperti halaman Tugas) ---------- */
+        .task-list {
+            display: grid;
+            gap: 1.5rem;
+        }
+
+        .two-columns {
+            display: grid;
+            grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
+            gap: 1.5rem;
+            align-items: stretch;
+        }
+
+        aside {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        aside .panel {
+            display: flex;
+            flex-direction: column;
+        }
+
+        aside .panel:first-child {
+            flex: 1;
+        }
+
+        .two-columns>* {
+            min-width: 0;
+        }
+
+        @media (max-width: 900px) {
+            .two-columns {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }
+        }
+
+        .panel {
+            padding: 1.5rem;
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(15, 23, 42, 0.02);
+        }
+
+
+        .panel h2 {
+            margin: 0 0 1.2rem;
+            color: #0f172a;
+            font-size: 1rem;
+            overflow-wrap: anywhere;
+        }
+
+        .panel h3 {
+            margin: 1.5rem 0 0.8rem;
+            color: #0f172a;
+            font-size: 0.88rem;
+        }
+
+        /* ---------- Badge ---------- */
+        .badge-group {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 0.6rem;
+            margin-bottom: 1rem;
+        }
+
+        .badge-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            padding: 0.4rem 0.8rem;
+            background: var(--ml-green-light);
+            border-radius: 20px;
+            color: var(--ml-green);
+            font-size: 0.68rem;
+            font-weight: 700;
+        }
+
+        .badge.yellow {
+            background: #fef9c3;
+            color: #ca8a04;
+        }
+
+        .badge.red {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+
+        .badge.green {
+            background: #dcfce7;
+            color: #16a34a;
+        }
+
+        .badge.gray {
+            background: #f1f5f9;
+            color: #475569;
+        }
+
+        .badge .ic {
+            width: 12px;
+            height: 12px;
+        }
+
+        /* ---------- Isi tugas ---------- */
+        .task-instructions {
+            color: #334155;
+            font-size: 0.8rem;
+            line-height: 1.6;
+            white-space: pre-wrap;
+            overflow-wrap: anywhere;
+        }
+
+
+
+
+
+
+
+
+        /* ---------- Pengumpulan ---------- */
+        .submission-box {
+            margin-top: 1.5rem;
+            padding: 1.2rem;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+        }
+
+        .submission-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-bottom: 0.8rem;
+        }
+
+        .submission-head h3 {
+            margin: 0;
+        }
+
+        .submission-time {
+            color: #64748b;
+            font-size: 0.72rem;
+        }
+
+        .attached-file {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 0.9rem;
+            padding: 0.9rem 1rem;
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+        }
+
+        .attached-icon {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            flex: 0 0 42px;
+            gap: 2px;
+            width: 42px;
+            height: 46px;
+            background: var(--ml-green-light);
+            border-radius: 8px;
+            color: var(--ml-green);
+        }
+
+        .attached-icon .ic {
+            width: 18px;
+            height: 18px;
+        }
+
+        .attached-icon span {
+            font-size: 0.58rem;
+            font-weight: 800;
+            letter-spacing: 0.025em;
+            line-height: 1;
+        }
+
+        .attached-info {
+            flex: 1;
+            min-width: 150px;
+        }
+
+        .attached-name {
+            color: #0f172a;
+            font-size: 0.8rem;
+            font-weight: 700;
+            line-height: 1.35;
+            overflow-wrap: anywhere;
+        }
+
+        .attached-subtext {
+            margin-top: 0.25rem;
+            color: #64748b;
+            font-size: 0.7rem;
+        }
+
+        .attached-actions {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .attached-actions a {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.4rem;
+            padding: 0.55rem 0.9rem;
+            background: var(--ml-green-light);
+            border-radius: 8px;
+            color: var(--ml-green);
+            font-size: 0.72rem;
+            font-weight: 700;
+            text-decoration: none;
+            transition: background 0.2s;
+        }
+
+        .attached-actions a:hover {
+            background: var(--ml-green-soft);
+        }
+
+        .attached-actions a:focus-visible,
+        .edit-panel>summary:focus-visible {
+            outline: 2px solid var(--ml-green);
+            outline-offset: 2px;
+        }
+
+        .attached-actions .ic {
+            width: 14px;
+            height: 14px;
+        }
+
+        .no-file {
+            margin: 0;
+            padding: 0.8rem 1rem;
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            color: #475569;
+            font-size: 0.76rem;
+        }
+
+        .submission-answer {
+            margin-top: 1rem;
+        }
+
+        .submission-answer strong {
+            display: block;
+            margin-bottom: 0.4rem;
+            color: #0f172a;
+            font-size: 0.76rem;
+        }
+
+        .answer-content {
+            padding: 0.8rem 1rem;
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            color: #334155;
+            font-size: 0.78rem;
+            line-height: 1.6;
+            white-space: pre-wrap;
+            overflow-wrap: anywhere;
+        }
+
+        /* ---------- Form kumpul / ubah ---------- */
+        .edit-panel {
+            margin-top: 1.2rem;
+            overflow: hidden;
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+        }
+
+        .edit-panel>summary {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.8rem 1rem;
+            color: var(--ml-green);
+            font-size: 0.76rem;
+            font-weight: 700;
+            list-style: none;
+            cursor: pointer;
+        }
+
+        .edit-panel>summary::-webkit-details-marker {
+            display: none;
+        }
+
+        .edit-panel>summary:hover {
+            background: var(--ml-green-light);
+        }
+
+        .edit-panel>summary .chevron {
+            margin-left: auto;
+            transition: transform 0.2s ease;
+        }
+
+        .edit-panel[open]>summary {
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .edit-panel[open]>summary .chevron {
+            transform: rotate(180deg);
+        }
+
+        .edit-panel>.task-fields {
+            padding: 1.2rem;
+        }
+
+        .task-fields {
+            display: grid;
+            gap: 1rem;
+        }
+
+        .task-fields.standalone {
+            margin-top: 1.5rem;
+        }
+
+        .panel h3.first {
+            margin-top: 0;
+        }
+
+        .task-fields label {
+            display: block;
+            margin-bottom: 0.4rem;
+            color: #0f172a;
+            font-size: 0.76rem;
+            font-weight: 700;
+        }
+
+        .answer-input {
+            width: 100%;
+            min-height: 80px;
+            padding: 0.8rem;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            color: #0f172a;
+            font-family: inherit;
+            font-size: 0.76rem;
+            resize: vertical;
+            outline: none;
+        }
+
+        .task-fields input[type=file] {
+            width: 100%;
+            padding: 0.5rem;
+            background: #ffffff;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            color: #334155;
+            font-family: inherit;
+            font-size: 0.76rem;
+            outline: none;
+        }
+
+        .task-fields input[type=file]::file-selector-button {
+            margin-right: 0.8rem;
+            padding: 0.5rem 0.9rem;
+            background: var(--ml-green-light);
+            border: 0;
+            border-radius: 6px;
+            color: var(--ml-green);
+            font-family: inherit;
+            font-size: 0.72rem;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .task-fields input[type=file]::file-selector-button:hover {
+            background: var(--ml-green-soft);
+        }
+
+        .task-note {
+            margin: 0;
+            color: #64748b;
+            font-size: 0.7rem;
+            line-height: 1.5;
+        }
+
+        .task-fields .btn-primary {
+            width: 100%;
+        }
+
+        /* ---------- Panel kanan: status nilai & komentar ---------- */
+        .status-box {
+            display: flex;
+            flex: 1;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 1.5rem;
+            text-align: center;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+        }
+
+        .status-box .status-label {
+            color: #64748b;
+            font-size: 0.76rem;
+        }
+
+        .status-box .big-score {
+            margin: 1rem 0;
+            color: #cbd5e1;
+            font-size: 2.4rem;
+            font-weight: 800;
+            line-height: 1;
+        }
+
+        .status-box.graded .big-score {
+            color: var(--ml-green);
+        }
+
+        .reply {
+            padding: 1rem;
+            background: #ffffff;
+            border-left: 4px solid var(--ml-green);
+            border-radius: 0 8px 8px 0;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+
+        .reply b {
+            display: block;
+            margin-bottom: 0.3rem;
+            color: #0f172a;
+            font-size: 0.76rem;
+        }
+
+        .reply p {
+            margin: 0;
+            color: #475569;
+            font-size: 0.76rem;
+            line-height: 1.6;
+            white-space: pre-wrap;
+            overflow-wrap: anywhere;
+        }
+
+        /* ---------- Kosong ---------- */
+        .empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 2.5rem 1.5rem;
+            text-align: center;
+            background: var(--ml-green-light);
+            border: 1px solid #bbf7d0;
+            border-radius: 12px;
+        }
+
+        .empty-state-icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 52px;
+            height: 52px;
+            margin-bottom: 1rem;
+            background: var(--ml-green-soft);
+            border-radius: 50%;
+            color: var(--ml-green);
+        }
+
+        .empty-state-icon .ic {
+            width: 24px;
+            height: 24px;
+        }
+
+        .empty-state h2 {
+            margin: 0 0 0.5rem;
+            color: #0f172a;
+            font-size: 1rem;
+        }
+
+        .empty-state p {
+            max-width: 440px;
+            margin: 0 0 1.2rem;
+            color: #475569;
+            font-size: 0.8rem;
+            line-height: 1.6;
+        }
+
+        /* ---------- Responsif ---------- */
+        @media (max-width: 640px) {
+            .summary-legend {
+                gap: 0.5rem;
+            }
+
+            .summary-item {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0.5rem;
+                padding: 0.7rem;
+            }
+
+            .summary-icon {
+                width: 30px;
+                height: 30px;
+            }
+
+            .summary-item strong {
+                font-size: 1.15rem;
+            }
+
+            .summary-item span {
+                font-size: 0.66rem;
+            }
+
+
+
+
+
+            .panel {
+                padding: 1.1rem;
+            }
+
+            .filter-panel {
+                padding: 1rem;
+            }
+
+            .filter-panel>div {
+                flex: 1 1 130px;
+            }
+
+            .filter-panel select {
+                width: 100%;
+                min-width: 120px;
+            }
+
+            .attached-file {
+                align-items: flex-start;
+            }
+
+            .attached-actions {
+                width: 100%;
+            }
+
+            .attached-actions a {
+                flex: 1;
+            }
+        }
+    </style>
+
+    @if (session('success'))
+        <div class="alert" role="status">{{ session('success') }}</div>
     @endif
-    <header class="mlt-head"><h1>Tugas Kelas Saya</h1><p>Kerjakan tugas sesuai tahap FPBL. Pengumpulan dan nilai tersimpan otomatis.</p></header>
-    <div class="mlt-stats">
-        <div class="mlt-stat"><strong>{{ $allTasks->count() }}</strong><span>Total tugas</span></div>
-        <div class="mlt-stat"><strong>{{ $submittedCount }}</strong><span>Sudah dikumpulkan</span></div>
-        <div class="mlt-stat"><strong>{{ $gradedCount }}</strong><span>Sudah dinilai</span></div>
+    @if ($errors->any())
+        <div class="alert error" role="alert"><strong>Periksa kembali:</strong>
+            <ul>
+                @foreach ($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                @endforeach
+            </ul>
+        </div>
+    @endif
+
+    <div class="page-heading">
+        <div>
+            <span class="eyebrow">{!! $icon['leaf'] !!} RUANG BERTUMBUHMU</span>
+            <h1>Tugas Kelas Saya</h1>
+            <p>Kerjakan tugas sesuai tahap FPBL. Pengumpulan dan nilai tersimpan otomatis.</p>
+        </div>
     </div>
-    <form method="GET" action="{{ route('classroom.tasks.index') }}" class="mlt-filter">
-        <div><label for="mlt-class">Kelas</label><select id="mlt-class" name="class_id"><option value="">Semua kelas</option>@foreach($classes as $class)<option value="{{ $class->id }}" @selected($selectedClassId === (int) $class->id)>{{ $class->name }}</option>@endforeach</select></div>
-        <div><label for="mlt-status">Status</label><select id="mlt-status" name="status"><option value="semua" @selected($selectedStatus==='semua')>Semua tugas</option><option value="belum" @selected($selectedStatus==='belum')>Belum dikumpulkan</option><option value="dikumpulkan" @selected($selectedStatus==='dikumpulkan')>Sudah dikumpulkan</option><option value="dinilai" @selected($selectedStatus==='dinilai')>Sudah dinilai</option></select></div>
-        <button type="submit">Tampilkan</button>
-    </form>
-    <div class="mlt-list">
-        @forelse($tasks as $task)
-        @php
-            $submission = $task->submissions->first();
-            $closed = $task->due_at && now()->greaterThan($task->due_at);
-            $graded = $submission && $submission->score !== null;
-            $className = $classes->firstWhere('id', $task->class_id)?->name ?? 'Kelas';
-        @endphp
-        <section class="mlt-task">
-            <div class="mlt-task-top">
-                <div class="mlt-meta"><span class="mlt-pill">{{ $className }}</span><span class="mlt-pill">FPBL Tahap {{ $task->fpbl_stage }}</span>
-                @if($graded)<span class="mlt-pill good">Sudah dinilai</span>@elseif($submission)<span class="mlt-pill good">Sudah dikumpulkan</span>@elseif($closed)<span class="mlt-pill late">Deadline lewat</span>@else<span class="mlt-pill warn">Belum dikumpulkan</span>@endif</div>
-                <h2>{{ $task->title }}</h2>
-                <div class="mlt-meta"><span>Deadline: <strong>{{ $task->due_at?->format('d/m/Y H:i') ?? 'Tidak dibatasi' }}</strong></span><span>•</span><span>Tahap {{ $task->fpbl_stage }} dari 4</span></div>
+
+    @php
+        $totalTasks = $allTasks->count();
+        $submittedPct = $totalTasks ? min(100, (int) round(($submittedCount / $totalTasks) * 100)) : 0;
+        $gradedPct = $totalTasks ? min(100, (int) round(($gradedCount / $totalTasks) * 100)) : 0;
+    @endphp
+    <section class="panel summary-panel">
+        <div class="summary-head">
+            <h2>Progres Tugasmu</h2>
+            <span class="badge">{{ $submittedPct }}% terkumpul</span>
+        </div>
+        <div class="progress-track" role="progressbar" aria-label="Progres pengumpulan tugas" aria-valuemin="0"
+            aria-valuemax="100" aria-valuenow="{{ $submittedPct }}">
+            <div class="progress-fill submitted" style="width:{{ $submittedPct }}%"></div>
+            <div class="progress-fill graded" style="width:{{ $gradedPct }}%"></div>
+        </div>
+        <div class="summary-legend">
+            <div class="summary-item">
+                <span class="summary-icon total">{!! $icon['list'] !!}</span>
+                <div><strong>{{ $allTasks->count() }}</strong><span>Total tugas</span></div>
             </div>
-            <div class="mlt-body">
-                <strong>Instruksi guru</strong><div class="mlt-instructions">{{ $task->instructions }}</div>
-                @if($submission)
-                    <div class="mlt-submission">
-                        <div class="mlt-submission-head">
-                            <strong>Pengumpulanmu</strong>
-                            <span class="mlt-submission-time">Dikumpulkan {{ $submission->submitted_at?->format('d/m/Y H:i') ?? '-' }}</span>
+            <div class="summary-item">
+                <span class="summary-icon submitted">{!! $icon['check_circle'] !!}</span>
+                <div><strong>{{ $submittedCount }}</strong><span>Sudah dikumpulkan</span></div>
+            </div>
+            <div class="summary-item">
+                <span class="summary-icon graded">{!! $icon['award'] !!}</span>
+                <div><strong>{{ $gradedCount }}</strong><span>Sudah dinilai</span></div>
+            </div>
+        </div>
+    </section>
+
+    <form method="GET" action="{{ route('classroom.tasks.index') }}" class="filter-panel">
+        <div>
+            <label for="mlt-class">Kelas</label>
+            <select id="mlt-class" name="class_id">
+                <option value="">Semua kelas</option>
+                @foreach ($classes as $class)
+                    <option value="{{ $class->id }}" @selected($selectedClassId === (int) $class->id)>{{ $class->name }}</option>
+                @endforeach
+            </select>
+        </div>
+        <div>
+            <label for="mlt-status">Status</label>
+            <select id="mlt-status" name="status">
+                <option value="semua" @selected($selectedStatus === 'semua')>Semua tugas</option>
+                <option value="belum" @selected($selectedStatus === 'belum')>Belum dikumpulkan</option>
+                <option value="dikumpulkan" @selected($selectedStatus === 'dikumpulkan')>Sudah dikumpulkan</option>
+                <option value="dinilai" @selected($selectedStatus === 'dinilai')>Sudah dinilai</option>
+            </select>
+        </div>
+        <button type="submit" class="btn-primary">Tampilkan</button>
+    </form>
+
+    <div class="task-list">
+        @forelse($tasks as $task)
+            @php
+                $submission = $task->submissions->first();
+                $closed = $task->due_at && now()->greaterThan($task->due_at);
+                $graded = $submission && $submission->score !== null;
+                $className = $classes->firstWhere('id', $task->class_id)?->name ?? 'Kelas';
+
+                // Label status (urutan kondisi sama dengan sebelumnya)
+                if ($graded) {
+                    [$statusLabel, $statusClass] = ['Sudah dinilai', 'green'];
+                } elseif ($submission) {
+                    [$statusLabel, $statusClass] = ['Sudah dikumpulkan', 'green'];
+                } elseif ($closed) {
+                    [$statusLabel, $statusClass] = ['Deadline lewat', 'red'];
+                } else {
+                    [$statusLabel, $statusClass] = ['Belum dikumpulkan', 'yellow'];
+                }
+            @endphp
+            <article class="two-columns">
+                <!-- PANEL KIRI: DETAIL TUGAS & PENGUMPULAN -->
+                <section class="panel">
+                    <div class="badge-group">
+                        <div class="badge-row">
+                            <span class="badge">{{ $className }}</span>
+                            <span class="badge">FPBL Tahap {{ $task->fpbl_stage }} dari 4</span>
+                            <span class="badge gray">{!! $icon['clock'] !!}Deadline:
+                                {{ $task->due_at?->format('d/m/Y H:i') ?? 'Tidak dibatasi' }}</span>
                         </div>
-                        @if($submission->file_path)
-                            @php
-                                $fileExt = strtolower(pathinfo($submission->file_path, PATHINFO_EXTENSION));
-                                $fileLabel = $submission->original_file_name ?: ('Lampiran tersimpan' . ($fileExt ? ' (' . strtoupper($fileExt) . ')' : ''));
-                                $fileCanPreview = in_array($fileExt, ['pdf', 'jpg', 'jpeg', 'png'], true);
-                            @endphp
-                            <div class="mlt-attached-file">
-                                <div class="mlt-attached-icon" aria-hidden="true">
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>
-                                    <span>{{ $fileExt ? strtoupper($fileExt) : 'FILE' }}</span>
-                                </div>
-                                <div class="mlt-attached-info">
-                                    <div class="mlt-attached-name">{{ $fileLabel }}</div>
-                                    <div class="mlt-attached-subtext">File terlampir
-                                        @if($submission->file_size_bytes)
-                                            · {{ number_format($submission->file_size_bytes / 1024, 1, ',', '.') }} KB
+                        <span class="badge {{ $statusClass }}">{{ $statusLabel }}</span>
+                    </div>
+
+                    <h2>{{ $task->title }}</h2>
+
+                    <h3 class="first">Instruksi guru</h3>
+                    <div class="task-instructions">{{ $task->instructions }}</div>
+
+
+                    @if ($submission)
+                        <div class="submission-box">
+                            <div class="submission-head">
+                                <h3>Pengumpulanmu</h3>
+                                <span class="submission-time">Dikumpulkan
+                                    {{ $submission->submitted_at?->format('d/m/Y H:i') ?? '-' }}</span>
+                            </div>
+                            @if ($submission->file_path)
+                                @php
+                                    $fileExt = strtolower(pathinfo($submission->file_path, PATHINFO_EXTENSION));
+                                    $fileLabel =
+                                        $submission->original_file_name ?:
+                                        'Lampiran tersimpan' . ($fileExt ? ' (' . strtoupper($fileExt) . ')' : '');
+                                    $fileCanPreview = in_array($fileExt, ['pdf', 'jpg', 'jpeg', 'png'], true);
+                                @endphp
+                                <div class="attached-file">
+                                    <div class="attached-icon" aria-hidden="true">
+                                        {!! $icon['file'] !!}
+                                        <span>{{ $fileExt ? strtoupper($fileExt) : 'FILE' }}</span>
+                                    </div>
+                                    <div class="attached-info">
+                                        <div class="attached-name">{{ $fileLabel }}</div>
+                                        <div class="attached-subtext">File terlampir
+                                            @if ($submission->file_size_bytes)
+                                                · {{ number_format($submission->file_size_bytes / 1024, 1, ',', '.') }} KB
+                                            @endif
+                                        </div>
+                                    </div>
+                                    <div class="attached-actions">
+                                        @if ($fileCanPreview)
+                                            <a href="{{ route('classroom.tasks.download', $submission) }}?preview=1"
+                                                target="_blank" rel="noopener noreferrer"
+                                                aria-label="Lihat File {{ $fileLabel }}">{!! $icon['eye'] !!}Lihat
+                                                File</a>
                                         @endif
+                                        <a href="{{ route('classroom.tasks.download', $submission) }}"
+                                            aria-label="Unduh File {{ $fileLabel }}">{!! $icon['download'] !!}Unduh
+                                            File</a>
                                     </div>
                                 </div>
-                                <div class="mlt-attached-actions">
-                                    @if($fileCanPreview)
-                                        <a href="{{ route('classroom.tasks.download', $submission) }}?preview=1" target="_blank" rel="noopener noreferrer" aria-label="Lihat File {{ $fileLabel }}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg>Lihat File</a>
-                                    @endif
-                                    <a href="{{ route('classroom.tasks.download', $submission) }}" aria-label="Unduh File {{ $fileLabel }}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12m-4-4 4 4 4-4M4 17v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3"/></svg>Unduh File</a>
+                            @else
+                                <p class="no-file">Tidak ada file lampiran. Jawaban teks sudah tersimpan.</p>
+                            @endif
+                            @if (filled($submission->content))
+                                <div class="submission-answer"><strong>Jawaban yang dikumpulkan</strong>
+                                    <div class="answer-content">{{ $submission->content }}</div>
                                 </div>
+                            @endif
+                        </div>
+                    @endif
+
+                    @if ($graded)
+                        {{-- Nilai dan catatan guru tampil di panel Status Penilaian di kanan --}}
+                    @elseif($closed)
+                        <div class="alert error no-margin">Pengumpulan sudah ditutup.
+                            {{ $submission ? 'Jawaban terakhir tetap tersimpan.' : 'Belum ada pengumpulan dari akunmu.' }}
+                        </div>
+                    @else
+                        @if ($submission)
+                            <details class="edit-panel" @if ($errors->any()) open @endif>
+                                <summary>{!! $icon['pencil'] !!}Ubah jawaban / Ganti file{!! $icon['chevron'] !!}</summary>
+                        @endif
+                        <form action="{{ route('classroom.tasks.submit', $task) }}" method="POST"
+                            enctype="multipart/form-data" class="task-fields {{ $submission ? '' : 'standalone' }}">
+                            @csrf
+                            <div><label for="mlt-content-{{ $task->id }}">Jawaban atau komentar</label>
+                                <textarea id="mlt-content-{{ $task->id }}" name="content" rows="4" maxlength="5000" class="answer-input"
+                                    placeholder="Tuliskan jawaban atau penjelasan tugas di sini">{{ old('content', $submission?->content) }}</textarea>
                             </div>
-                        @else
-                            <p class="mlt-submission-no-file">Tidak ada file lampiran. Jawaban teks sudah tersimpan.</p>
+                            <div><label
+                                    for="mlt-file-{{ $task->id }}">{{ $submission?->file_path ? 'Ganti file (opsional)' : 'Lampiran (opsional)' }}</label><input
+                                    id="mlt-file-{{ $task->id }}" type="file" name="file"
+                                    accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.zip"></div>
+                            <p class="task-note">PDF, DOC, DOCX, JPG, PNG atau ZIP · Maksimal 10 MB.
+                                {{ $submission?->file_path ? 'File lama tetap tersimpan jika tidak memilih pengganti.' : 'Isi jawaban atau unggah file.' }}
+                            </p>
+                            <div><button type="submit"
+                                    class="btn-primary">{{ $submission ? 'Simpan perubahan' : 'Kumpulkan tugas' }}</button>
+                            </div>
+                        </form>
+                        @if ($submission)
+                            </details>
                         @endif
-                        @if(filled($submission->content))
-                            <div class="mlt-submission-answer"><strong>Jawaban yang dikumpulkan</strong><div class="mlt-answer-content">{{ $submission->content }}</div></div>
-                        @endif
-                    </div>
-                @endif
-                @if($graded)
-                    <div class="mlt-feedback"><strong>Nilai: {{ $submission->score }} / 100</strong><p style="white-space:pre-wrap;overflow-wrap:anywhere;margin:6px 0 0;">{{ $submission->teacher_feedback ?: 'Guru belum menambahkan catatan.' }}</p></div>
-                @elseif($closed)
-                    <div class="mlt-alert error" style="margin:0">Pengumpulan sudah ditutup. {{ $submission ? 'Jawaban terakhir tetap tersimpan.' : 'Belum ada pengumpulan dari akunmu.' }}</div>
-                @else
-                    @if($submission)
-                        <details class="mlt-edit-panel" @if($errors->any()) open @endif>
-                            <summary>Ubah jawaban / Ganti file</summary>
                     @endif
-                    <form action="{{ route('classroom.tasks.submit', $task) }}" method="POST" enctype="multipart/form-data" class="mlt-fields">
-                        @csrf
-                        <div><label for="mlt-content-{{ $task->id }}">Jawaban atau komentar</label><textarea id="mlt-content-{{ $task->id }}" name="content" rows="4" maxlength="5000" placeholder="Tuliskan jawaban atau penjelasan tugas di sini">{{ old('content', $submission?->content) }}</textarea></div>
-                        <div><label for="mlt-file-{{ $task->id }}">{{ $submission?->file_path ? 'Ganti file (opsional)' : 'Lampiran (opsional)' }}</label><input id="mlt-file-{{ $task->id }}" type="file" name="file" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.zip"></div>
-                        <p class="mlt-note">PDF, DOC, DOCX, JPG, PNG atau ZIP • Maksimal 10 MB. {{ $submission?->file_path ? 'File lama tetap tersimpan jika tidak memilih pengganti.' : 'Isi jawaban atau unggah file.' }}</p>
-                        <div><button type="submit" class="mlt-btn">{{ $submission ? 'Simpan perubahan' : 'Kumpulkan tugas' }}</button></div>
-                    </form>
-                    @if($submission)
-                        </details>
+                </section>
+
+                <!-- PANEL KANAN: STATUS NILAI & KOMENTAR GURU -->
+                <aside>
+                    <section class="panel">
+                        <h2>Status Penilaian</h2>
+                        <div class="status-box {{ $graded ? 'graded' : '' }}">
+                            <strong class="status-label">Nilai:</strong>
+                            <div class="big-score">{{ $graded ? $submission->score : '-' }} / 100</div>
+                            <span class="badge {{ $statusClass }}">{{ $statusLabel }}</span>
+                        </div>
+                    </section>
+                    @if ($graded)
+                        <section class="panel">
+                            <h2>Komentar Guru</h2>
+                            <div class="reply"><b>Catatan guru</b>
+                                <p>{{ $submission->teacher_feedback ?: 'Guru belum menambahkan catatan.' }}</p>
+                            </div>
+                        </section>
                     @endif
-                @endif
-            </div>
-        </section>
+                </aside>
+            </article>
         @empty
-            <div class="mlt-empty"><h2>Belum ada tugas yang cocok</h2><p class="mlt-muted">Coba ubah filter kelas atau status. Jika belum bergabung kelas, masuk lewat menu Kelas Saya.</p><a class="mlt-btn" href="{{ route('classroom.home') }}">Buka Kelas Saya</a></div>
+            <div class="empty-state">
+                <span class="empty-state-icon">{!! $icon['clipboard'] !!}</span>
+                <h2>Belum ada tugas yang cocok</h2>
+                <p>Coba ubah filter kelas atau status. Jika belum bergabung kelas, masuk lewat menu Kelas Saya.</p>
+                <a class="btn-primary" href="{{ route('classroom.home') }}">Buka Kelas Saya</a>
+            </div>
         @endforelse
     </div>
-</div>
 @endsection

@@ -202,17 +202,19 @@
                 }
             });
 
-            roleBtns.forEach(btn => {
-                btn.addEventListener('click', () => {
-                    roleBtns.forEach(b => {
-                        b.classList.remove('bg-emerald-500', 'text-white', 'shadow-md');
-                        b.classList.add('text-emerald-700');
-                    });
-                    btn.classList.remove('text-emerald-700');
-                    btn.classList.add('bg-emerald-500', 'text-white', 'shadow-md');
-                    roleInput.value = btn.dataset.role;
+            const renderRole = (role) => {
+                roleInput.value = role;
+                roleBtns.forEach(btn => {
+                    const active = btn.dataset.role === role;
+                    btn.classList.toggle('bg-emerald-500', active);
+                    btn.classList.toggle('text-white', active);
+                    btn.classList.toggle('shadow-md', active);
+                    btn.classList.toggle('text-emerald-700', !active);
+                    btn.setAttribute('aria-pressed', active ? 'true' : 'false');
                 });
-            });
+            };
+            roleBtns.forEach(btn => btn.addEventListener('click', () => renderRole(btn.dataset.role)));
+            renderRole(roleInput.value === 'guru' ? 'guru' : 'siswa');
         });
 
         // Script Canvas (Sama persis dengan file masuk)

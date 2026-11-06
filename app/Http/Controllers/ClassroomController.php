@@ -52,6 +52,12 @@ class ClassroomController extends Controller {
           'actor' => $item->user?->name ?? 'Siswa',
           'action' => 'mengumpulkan tugas',
           'target' => $item->activity?->title ?? 'Tugas',
+          'url' => $item->activity
+              ? route('classroom.tasks.index', [
+                  'class_id' => $item->activity->class_id,
+                  'submission' => $item->id,
+              ])
+              : route('classroom.tasks.index'),
       ]);
 
   $quizAttempts = \App\Models\AssessmentAttempt::query()
@@ -63,6 +69,9 @@ class ClassroomController extends Controller {
           'actor' => $item->user?->name ?? 'Siswa',
           'action' => 'menyelesaikan kuis',
           'target' => $item->assessment?->title ?? 'Kuis',
+          'url' => $item->assessment
+              ? route('teacher.quizzes.attempt', $item)
+              : route('teacher.quizzes'),
       ]);
 
   $threads = \App\Models\ForumThread::query()
@@ -74,6 +83,7 @@ class ClassroomController extends Controller {
           'actor' => $item->author?->name ?? 'Pengguna',
           'action' => 'membuka diskusi',
           'target' => $item->title,
+          'url' => route('forum.index', ['thread' => $item->id]),
       ]);
 
   $recentActivities = $submissions->concat($quizAttempts)->concat($threads)
@@ -93,6 +103,7 @@ class ClassroomController extends Controller {
       ->where('mode', 'tugas')->whereIn('class_id', $classIds)
       ->whereNotNull('due_at')->where('due_at', '>=', now())
       ->orderBy('due_at')->limit(4)->get(['id', 'title', 'due_at', 'class_id']);
+  $upcomingTaskDeadlines->each(fn ($task) => $task->url = route('classroom.tasks.edit', $task));
   $uniqueStudentCount = \Illuminate\Support\Facades\DB::table('class_user')
       ->whereIn('class_id', $classIds)->distinct()->count('user_id');
 
@@ -111,11 +122,11 @@ class ClassroomController extends Controller {
  }
  public function createMaterial(){
   $this->teacher();
-  return view('pages.guru.materi-form',['material'=>null]);
+  return view('pages.shared.materi-form',['material'=>null]);
  }
  public function editMaterial(Material $material){
   $this->authorizeMaterial($material);
-  return view('pages.guru.materi-form',compact('material'));
+  return view('pages.shared.materi-form',compact('material'));
  }
  public function storeMaterial(Request $r){
   $this->teacher();

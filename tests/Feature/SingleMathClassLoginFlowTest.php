@@ -56,7 +56,6 @@ class SingleMathClassLoginFlowTest extends TestCase
         $this->assertDatabaseHas('class_user', ['class_id' => $class->id, 'user_id' => $student->id]);
         $this->assertSame($class->id, session('kelas_aktif_id'));
         $this->postJson('/api/mathleaf/logout')->assertOk();
-
         $this->postJson('/api/mathleaf/login', $this->loginData($student))
             ->assertUnprocessable()->assertJsonValidationErrors('kode_kelas');
         $this->postJson('/api/mathleaf/login', $this->loginData($student, 'VIIA2026'))
@@ -79,15 +78,16 @@ class SingleMathClassLoginFlowTest extends TestCase
     public function test_student_can_only_belong_to_one_math_class(): void
     {
         $teacher = $this->person('guru', 'teacher3');
-        $student = $this->person('siswa', 'student3');
         $classOne = $this->mathClass($teacher, 'MATH2026');
         $classTwo = $this->mathClass($teacher, 'MATH2027');
+        $student = $this->person('siswa', 'student3');
         $this->postJson('/api/mathleaf/login', $this->loginData($student, 'MATH2026'))->assertOk();
         $this->postJson('/api/mathleaf/logout')->assertOk();
         $this->postJson('/api/mathleaf/login', $this->loginData($student, 'MATH2027'))
             ->assertUnprocessable()->assertJsonValidationErrors('kode_kelas');
         $this->assertDatabaseHas('class_user', ['class_id' => $classOne->id, 'user_id' => $student->id]);
         $this->assertDatabaseMissing('class_user', ['class_id' => $classTwo->id, 'user_id' => $student->id]);
+        $this->assertSame(1, DB::table('class_user')->where('user_id', $student->id)->count());
     }
 
     public function test_teacher_controls_capacity_and_full_class_rejects_new_members_only(): void
@@ -110,12 +110,13 @@ class SingleMathClassLoginFlowTest extends TestCase
             ->assertSessionHasErrors('max_students');
         $this->patch(route('classroom.capacity.update', $class), ['max_students' => 1])
             ->assertRedirect();
-        $this->actingAs($newcomer)->patch(route('classroom.capacity.update', $class), ['max_students' => 200])
+        $otherStudent = $this->person('siswa', 'newcomer');
+        $this->actingAs($otherStudent)->patch(route('classroom.capacity.update', $class), ['max_students' => 200])
             ->assertForbidden();
         $this->assertDatabaseHas('classes', ['id' => $class->id, 'max_students' => 1]);
     }
 
-    public function test_kicked_student_cannot_return_without_teacher_permission(): void
+    public function test_teacher_permission_allows_kicked_student_to_rejoin_on_login(): void
     {
         $teacher = $this->person('guru', 'teacher5');
         $student = $this->person('siswa', 'student6');
@@ -125,25 +126,32 @@ class SingleMathClassLoginFlowTest extends TestCase
         $this->actingAs($teacher)->delete(route('classroom.students.remove', [$class, $student]))
             ->assertRedirect();
         $this->assertDatabaseHas('class_kicked_users', ['class_id' => $class->id, 'user_id' => $student->id]);
-        $this->postJson('/api/mathleaf/logout')->assertOk();
         $this->postJson('/api/mathleaf/login', $this->loginData($student, 'KICK2026'))
             ->assertUnprocessable()->assertJsonValidationErrors('kode_kelas');
-        $this->actingAs($teacher)->patch(route('classroom.students.allow', [$class, $student]))
-            ->assertRedirect();
+        $this->actingAs($teacher)->patch(route('classroom.students.allow', [$class, $student]))->assertRedirect();
         $this->assertDatabaseMissing('class_kicked_users', ['class_id' => $class->id, 'user_id' => $student->id]);
-        $this->postJson('/api/mathleaf/logout')->assertOk();
         $this->postJson('/api/mathleaf/login', $this->loginData($student, 'KICK2026'))->assertOk();
     }
 
-    public function test_registration_does_not_bypass_student_code_and_teacher_login_needs_no_code(): void
+    public function test_student_registration_redirects_to_login_and_teacher_needs_no_code(): void
     {
         $response = $this->postJson('/api/mathleaf/register', [
-            'name' => 'Siswa Baru', 'email' => 'new.student@example.test',
-            'password' => 'password123', 'role' => 'siswa',
+            'name' => 'Siswa Baru',
+            'email' => 'new.student@example.test',
+            'password' => 'password123',
+            'role' => 'siswa',
         ]);
         $response->assertCreated()->assertJsonPath('redirect', '/masuk?registered=1');
         $this->assertGuest();
-        $teacher = $this->person('guru', 'teacher6');
+
+        $this->postJson('/api/mathleaf/register', [
+            'name' => 'Guru Baru',
+            'email' => 'new.teacher@example.test',
+            'password' => 'password123',
+            'role' => 'guru',
+        ])->assertCreated()->assertJsonPath('redirect', '/guru');
+        $this->postJson('/api/mathleaf/logout')->assertOk();
+        $teacher = User::where('email', 'new.teacher@example.test')->firstOrFail();
         $this->postJson('/api/mathleaf/login', [
             'email' => $teacher->email, 'password' => 'password123', 'role' => 'guru',
         ])->assertOk()->assertJsonPath('redirect', '/guru');
@@ -161,6 +169,7 @@ class SingleMathClassLoginFlowTest extends TestCase
             ->assertSee('Batas siswa')
             ->assertSee('30')
             ->assertSee('Keluarkan Siswa?');
-        $this->get(route('login'))->assertOk()->assertSee('class_code_visible')->assertSee('maxlength="8"', false);
+        $this->get(route('login'))->assertOk()->assertSee('class_code_visible');
+        $this->get(route('register'))->assertOk()->assertDontSee('name="kode_kelas"', false);
     }
 }

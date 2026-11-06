@@ -22,8 +22,8 @@ class MathLeafController extends Controller
         $user=DB::transaction(function() use ($v) {
             $u=User::create(['name'=>$v['name'],'email'=>$v['email'],'password'=>$v['password'],'role'=>$v['role']]);
             return $u;
-        });
-        // Siswa tidak langsung masuk setelah registrasi: kode kelas wajib diminta saat login pertama.
+        }, 3);
+        // Siswa tidak langsung masuk setelah registrasi; kode kelas diminta setiap login.
         if ($user->role === 'siswa') {
             return response()->json(['user' => $user->only('id', 'name', 'email', 'role'), 'redirect' => '/masuk?registered=1'], 201);
         }
@@ -32,7 +32,7 @@ class MathLeafController extends Controller
         return response()->json(['user' => $user->only('id', 'name', 'email', 'role'), 'redirect' => '/guru'], 201);
     }
     public function login(Request $r) {
-        // Kode guru dihasilkan 8 karakter, bukan enam kotak seperti versi UI lama.
+        // Kode kelas guru dibuat 8 karakter; siswa memasukkannya setiap kali login.
         $r->merge(['kode_kelas' => strtoupper(trim((string) $r->input('kode_kelas', '')))]);
         $v = $r->validate([
             'email' => 'required|email',
@@ -49,7 +49,6 @@ class MathLeafController extends Controller
         if ($r->user()->role === 'siswa') {
             try {
                 $classId = DB::transaction(function () use ($r, $v) {
-                    // Kunci baris siswa dan kelas agar dua login serentak tak dapat menembus kuota.
                     $student = User::query()->whereKey($r->user()->id)->lockForUpdate()->firstOrFail();
                     $class = SchoolClass::query()->where('join_code', $v['kode_kelas'])->lockForUpdate()->first();
                     if (!$class) {
@@ -76,7 +75,7 @@ class MathLeafController extends Controller
                 }, 3);
                 $r->session()->put('kelas_aktif_id', $classId);
             } catch (\Throwable $e) {
-                // Jangan regenerasi CSRF di sini: form login AJAX harus bisa mencoba ulang.
+                // Biarkan form AJAX mencoba lagi setelah siswa memasukkan kode yang benar.
                 Auth::logout();
                 throw $e;
             }

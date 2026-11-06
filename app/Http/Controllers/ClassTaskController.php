@@ -46,6 +46,7 @@ class ClassTaskController extends Controller
         $data = $request->validate([
             'class_id' => ['nullable', 'integer'],
             'status' => ['nullable', 'in:semua,belum,dikumpulkan,dinilai'],
+            'submission' => ['nullable', 'integer'],
         ]);
         $selectedClassId = isset($data['class_id']) ? (int) $data['class_id'] : null;
         if ($selectedClassId !== null) {
@@ -53,6 +54,18 @@ class ClassTaskController extends Controller
         }
         $selectedStatus = $data['status'] ?? 'semua';
         $classIds = $selectedClassId !== null ? [$selectedClassId] : $classes->pluck('id')->all();
+        $selectedTaskId = null;
+        $selectedSubmissionId = null;
+        if ($teacher && isset($data['submission'])) {
+            $submission = Submission::query()
+                ->whereKey((int) $data['submission'])
+                ->whereHas('activity', fn ($query) => $query
+                    ->where('mode', 'tugas')
+                    ->whereIn('class_id', $classIds))
+                ->firstOrFail();
+            $selectedTaskId = (int) $submission->activity_id;
+            $selectedSubmissionId = (int) $submission->id;
+        }
 
         $tasks = Activity::query()
             ->where('mode', 'tugas')
@@ -64,7 +77,10 @@ class ClassTaskController extends Controller
             ->get();
 
         if ($teacher) {
-            return view('pages.guru.class-tasks', compact('teacher', 'classes', 'tasks', 'selectedClassId'));
+            return view('pages.guru.class-tasks', compact(
+                'teacher', 'classes', 'tasks', 'selectedClassId',
+                'selectedTaskId', 'selectedSubmissionId'
+            ));
         }
 
         $allTasks = $tasks;

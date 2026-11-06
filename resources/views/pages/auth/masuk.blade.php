@@ -37,7 +37,6 @@
             text-shadow: 0 15px 35px rgba(255, 255, 255, 0.9);
         }
 
-        /* Input kode kelas 8 karakter */
         .class-code-input {
             width: min(100%, 330px);
             padding: .9rem 1rem;
@@ -82,7 +81,6 @@
             <p class="text-lg text-emerald-800 font-medium max-w-md">Masuk untuk melanjutkan perjalanan belajarmu hari
                 ini.</p>
 
-            <!-- Kode kelas wajib untuk semua login siswa; guru tidak membutuhkannya. -->
             <div id="left-kode-kelas-container" class="mt-10 pointer-events-auto transition-all duration-300">
                 <label for="class_code_visible" class="block text-emerald-900 font-bold text-base mb-2">Kode Kelas Matematika</label>
                 <p class="text-sm text-emerald-700 font-medium mb-3">Masukkan 8 karakter kode dari guru setiap kali login. Satu akun siswa hanya boleh mengikuti satu kelas.</p>
@@ -117,7 +115,6 @@
             <!-- Nilai default diambil dari old('role'), jika kosong default 'siswa' -->
             <input type="hidden" name="role" id="role-input" value="{{ old('role', 'siswa') }}">
             <input type="hidden" name="kode_kelas" id="hidden_class_code" value="">
-
             <!-- Role Switcher -->
             <div class="flex p-1 bg-white/50 rounded-xl border border-emerald-100 mb-2">
                 <button type="button"
@@ -187,7 +184,6 @@
                 } else {
                     hiddenInput.value = '';
                 }
-
                 if (!errorMessage) {
                     errorMessage = document.createElement('div');
                     errorMessage.setAttribute('role', 'alert');
