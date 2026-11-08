@@ -69,7 +69,7 @@ class MaterialController extends Controller
             abort_unless(ctype_digit((string) $selectedClassId) && in_array((int) $selectedClassId, $classIds, true), 403);
         }
 
-        $query = Material::query()->with(['author:id,name', 'progress' => function ($q) use ($request) {
+        $query = Material::query()->with(['author:id,name', 'schoolClass:id,name', 'progress' => function ($q) use ($request) {
             $q->where('user_id', $request->user()->id);
         }]);
 
@@ -203,10 +203,21 @@ class MaterialController extends Controller
         abort_unless($request->user()->role === 'siswa' && $this->canRead($request, $material), 403);
         $values = $request->validate(['progress_percent' => ['required', 'integer', 'between:0,100']]);
         $percent = (int) $values['progress_percent'];
-        MaterialProgress::updateOrCreate(
-            ['material_id' => $material->id, 'user_id' => $request->user()->id],
-            ['progress_percent' => $percent, 'completed_at' => $percent === 100 ? now() : null]
-        );
+        $progress = MaterialProgress::firstOrNew([
+            'material_id' => $material->id,
+            'user_id' => $request->user()->id,
+        ]);
+        $percent = max($percent, (int) $progress->progress_percent);
+        $progress->progress_percent = $percent;
+        if ($percent === 100) {
+            $progress->completed_at ??= now();
+        }
+        $progress->save();
+
+        if ($request->expectsJson()) {
+            return response()->json(['progress_percent' => $percent]);
+        }
+
         return back()->with('success', $percent === 100 ? 'Materi sudah ditandai selesai.' : 'Progres belajar disimpan.');
     }
 }

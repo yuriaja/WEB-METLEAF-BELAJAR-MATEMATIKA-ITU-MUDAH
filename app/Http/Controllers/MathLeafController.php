@@ -23,7 +23,7 @@ class MathLeafController extends Controller
             $u=User::create(['name'=>$v['name'],'email'=>$v['email'],'password'=>$v['password'],'role'=>$v['role']]);
             return $u;
         }, 3);
-        // Siswa tidak langsung masuk setelah registrasi; kode kelas diminta setiap login.
+        // Siswa tidak langsung masuk setelah registrasi; kelas dipilih saat pertama kali login.
         if ($user->role === 'siswa') {
             return response()->json(['user' => $user->only('id', 'name', 'email', 'role'), 'redirect' => '/masuk?registered=1'], 201);
         }
@@ -32,15 +32,14 @@ class MathLeafController extends Controller
         return response()->json(['user' => $user->only('id', 'name', 'email', 'role'), 'redirect' => '/guru'], 201);
     }
     public function login(Request $r) {
-        // Kode kelas guru dibuat 8 karakter; siswa memasukkannya setiap kali login.
+        // Siswa hanya perlu memasukkan kode kelas saat pertama kali bergabung.
         $r->merge(['kode_kelas' => strtoupper(trim((string) $r->input('kode_kelas', '')))]);
         $v = $r->validate([
             'email' => 'required|email',
             'password' => 'required|string',
             'role' => 'required|in:siswa,guru',
-            'kode_kelas' => 'required_if:role,siswa|nullable|string|size:8|alpha_num',
+            'kode_kelas' => 'nullable|string|size:8|alpha_num',
         ], [
-            'kode_kelas.required_if' => 'Kode kelas Matematika wajib diisi setiap siswa login.',
             'kode_kelas.size' => 'Kode kelas harus tepat 8 karakter.',
         ]);
         if (!Auth::attempt(['email' => $v['email'], 'password' => $v['password'], 'role' => $v['role']])) {
@@ -50,16 +49,24 @@ class MathLeafController extends Controller
             try {
                 $classId = DB::transaction(function () use ($r, $v) {
                     $student = User::query()->whereKey($r->user()->id)->lockForUpdate()->firstOrFail();
-                    $class = SchoolClass::query()->where('join_code', $v['kode_kelas'])->lockForUpdate()->first();
-                    if (!$class) {
-                        throw ValidationException::withMessages(['kode_kelas' => 'Kode kelas tidak ditemukan. Periksa kode dari guru.']);
-                    }
                     $enrolledIds = $student->classes()->pluck('classes.id')->map(fn ($id) => (int) $id)->all();
                     if (count($enrolledIds) > 1) {
                         throw ValidationException::withMessages(['kode_kelas' => 'Akun sudah tercatat di beberapa kelas lama. Hubungi guru untuk menyesuaikan ke satu kelas Matematika.']);
                     }
-                    if ($enrolledIds && $enrolledIds[0] !== (int) $class->id) {
-                        throw ValidationException::withMessages(['kode_kelas' => 'Kamu sudah terdaftar di satu kelas Matematika lain. Hubungi guru jika perlu pindah kelas.']);
+
+                    if ($enrolledIds) {
+                        $class = SchoolClass::query()->whereKey($enrolledIds[0])->lockForUpdate()->firstOrFail();
+                        if ($v['kode_kelas'] !== '' && $v['kode_kelas'] !== $class->join_code) {
+                            throw ValidationException::withMessages(['kode_kelas' => 'Kamu sudah terdaftar di satu kelas Matematika lain. Hubungi guru jika perlu pindah kelas.']);
+                        }
+                    } else {
+                        if ($v['kode_kelas'] === '') {
+                            throw ValidationException::withMessages(['kode_kelas' => 'Masukkan kode kelas dari guru untuk bergabung pertama kali.']);
+                        }
+                        $class = SchoolClass::query()->where('join_code', $v['kode_kelas'])->lockForUpdate()->first();
+                        if (!$class) {
+                            throw ValidationException::withMessages(['kode_kelas' => 'Kode kelas tidak ditemukan. Periksa kode dari guru.']);
+                        }
                     }
                     if (DB::table('class_kicked_users')->where('class_id', $class->id)->where('user_id', $student->id)->exists()) {
                         throw ValidationException::withMessages(['kode_kelas' => 'Kamu telah dikeluarkan dari kelas ini. Minta guru membuka izin bergabung kembali.']);

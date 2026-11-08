@@ -425,6 +425,9 @@
             <article class="mi-card">
                 <div class="mi-meta">
                     <span class="mi-tag">{{ $material->type }}</span>
+                    @if ($material->schoolClass)
+                        <span class="mi-tag">{{ $material->schoolClass->name }}</span>
+                    @endif
                     @if ($isTeacher)
                         <span class="mi-tag {{ $material->is_published ? '' : 'draft' }}">
                             {{ $material->is_published ? 'Terbit' : 'Draf' }}

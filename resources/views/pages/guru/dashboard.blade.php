@@ -593,7 +593,7 @@
                     <div class="activity-row">
                         <div class="activity-text" style="color:#64748b">
                             Belum ada aktivitas siswa di kelasmu. Aktivitas akan muncul setelah siswa mengumpulkan tugas,
-                            menyelesaikan kuis, atau membuat diskusi.
+                            menyelesaikan kuis, atau membuat dan membalas diskusi.
                         </div>
                     </div>
                 @endforelse

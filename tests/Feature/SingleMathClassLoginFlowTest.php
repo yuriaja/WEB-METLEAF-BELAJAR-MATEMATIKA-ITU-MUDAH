@@ -39,7 +39,7 @@ class SingleMathClassLoginFlowTest extends TestCase
         return $data;
     }
 
-    public function test_students_must_enter_eight_character_class_code_every_login(): void
+    public function test_students_only_need_class_code_when_first_joining_a_class(): void
     {
         $teacher = $this->person('guru', 'teacher1');
         $student = $this->person('siswa', 'student1');
@@ -57,9 +57,7 @@ class SingleMathClassLoginFlowTest extends TestCase
         $this->assertSame($class->id, session('kelas_aktif_id'));
         $this->postJson('/api/mathleaf/logout')->assertOk();
         $this->postJson('/api/mathleaf/login', $this->loginData($student))
-            ->assertUnprocessable()->assertJsonValidationErrors('kode_kelas');
-        $this->postJson('/api/mathleaf/login', $this->loginData($student, 'VIIA2026'))
-            ->assertOk();
+            ->assertOk()->assertJsonPath('redirect', '/dashboard');
         $this->assertSame(1, DB::table('class_user')->where('user_id', $student->id)->count());
     }
 

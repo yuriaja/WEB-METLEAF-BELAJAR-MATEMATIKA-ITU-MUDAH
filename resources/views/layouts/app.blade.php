@@ -273,7 +273,7 @@
             border-bottom: 1px solid #e2e8f0;
         }
 
-        .app-header > div:first-child > strong {
+        .app-header>div:first-child>strong {
             font-size: 0.8rem;
         }
 
@@ -302,45 +302,6 @@
         .app-content .page-heading .class-info {
             font-size: 0.88rem !important;
         }
-        /* MATHLEAF_SIDEBAR_SPACING_FIX_V1
-           Samakan posisi konten dengan lebar sidebar yang tampil. */
-        @media (min-width: 1101px) {
-            .app-layout .app-main { margin-left: 280px; }
-            .app-layout .app-content { padding: 32px; }
-            .app-layout.sidebar-collapsed .app-sidebar { width: 76px !important; }
-            .app-layout.sidebar-collapsed .app-main { margin-left: 76px; }
-            .app-layout.sidebar-collapsed .app-sidebar nav a { padding: 12px !important; justify-content: center; }
-        }
-
-        @media (min-width: 801px) and (max-width: 1100px) {
-            .app-layout .app-sidebar { width: 215px !important; }
-            .app-layout .app-main { margin-left: 215px; }
-            .app-layout .app-content { padding: 28px; }
-            .app-layout.sidebar-collapsed .app-sidebar { width: 76px !important; }
-            .app-layout.sidebar-collapsed .app-main { margin-left: 76px; }
-            .app-layout.sidebar-collapsed .app-sidebar nav a { padding: 12px !important; justify-content: center; }
-        }
-
-        @media (min-width: 561px) and (max-width: 800px) {
-            .app-layout .app-sidebar { width: 76px !important; }
-            .app-layout .app-main { margin-left: 76px; }
-            .app-layout .app-content { padding: 24px 20px; }
-            .app-layout .app-sidebar nav a { padding: 12px !important; justify-content: center; }
-            .app-layout.sidebar-collapsed .app-sidebar { width: 215px !important; }
-            .app-layout.sidebar-collapsed .app-main { margin-left: 76px; }
-            .app-layout.sidebar-collapsed .app-sidebar nav a { padding: 12px 14px !important; justify-content: flex-start; }
-        }
-
-        @media (max-width: 560px) {
-            .app-layout .app-sidebar { width: 62px !important; }
-            .app-layout .app-main,
-            .app-layout.sidebar-collapsed .app-main { margin-left: 62px; }
-            .app-layout .app-content { padding: 20px 16px; }
-            .app-layout .app-sidebar nav a { padding: 12px !important; justify-content: center; }
-            .app-layout.sidebar-collapsed .app-sidebar { width: 215px !important; }
-            .app-layout.sidebar-collapsed .app-sidebar nav a { padding: 12px 14px !important; justify-content: flex-start; }
-        }
-
     </style>
 </head>
 
@@ -553,7 +514,10 @@
                         </svg>
                         <span>Dashboard</span>
                     </a>
-                    <a href="{{ route('classroom.home') }}" class="{{ request()->is('kelas*') ? 'selected' : '' }}">
+
+                    <!-- Perbaikan di bagian ini: Ditambah && !request()->is('kelas/tugas*') -->
+                    <a href="{{ route('classroom.home') }}"
+                        class="{{ request()->is('kelas*') && !request()->is('kelas/tugas*') ? 'selected' : '' }}">
                         <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none"
                             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
                             style="flex-shrink: 0">
@@ -564,6 +528,7 @@
                         </svg>
                         <span>Kelas Saya</span>
                     </a>
+
                     <a href="{{ url('/materi') }}"
                         class="{{ request()->is('materi*') || request()->is('video*') || request()->is('latihan*') || request()->is('siswa/video*') || request()->is('siswa/latihan*') ? 'selected' : '' }}">
                         <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none"
@@ -575,6 +540,7 @@
                         </svg>
                         <span>Materi Pembelajaran</span>
                     </a>
+
                     <a href="{{ url('/kuis') }}" class="{{ request()->is('kuis*') ? 'selected' : '' }}">
                         <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none"
                             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
@@ -584,6 +550,7 @@
                         </svg>
                         <span>Kuis & Evaluasi</span>
                     </a>
+
                     <a href="{{ url('/forum') }}" class="{{ request()->is('forum*') ? 'selected' : '' }}">
                         <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none"
                             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
@@ -593,7 +560,9 @@
                         </svg>
                         <span>Forum Diskusi</span>
                     </a>
-                    <a href="{{ route('classroom.tasks.index') }}" class="{{ request()->is('kelas/tugas*') || request()->is('tugas*') ? 'selected' : '' }}">
+
+                    <a href="{{ route('classroom.tasks.index') }}"
+                        class="{{ request()->is('kelas/tugas*') || request()->is('tugas*') ? 'selected' : '' }}">
                         <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none"
                             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
                             style="flex-shrink: 0">
@@ -601,6 +570,7 @@
                         </svg>
                         <span>Tugas & Kelompok</span>
                     </a>
+
                     <a href="{{ url('/nilai') }}" class="{{ request()->is('nilai*') ? 'selected' : '' }}">
                         <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none"
                             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
@@ -651,14 +621,32 @@
                 </div>
 
                 <div style="display: flex; gap: 16px; align-items: center; margin-left: auto;">
-                    <button type="button" class="btn btn-ghost" id="notification-button" aria-label="Notifikasi">
-                        <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none"
-                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                            style="flex-shrink: 0">
-                            <path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9" />
-                            <path d="M10 21h4" />
-                        </svg>
-                    </button>
+                    <div class="notification-anchor">
+                        <button type="button" class="btn btn-ghost" id="notification-button"
+                            aria-label="Notifikasi" aria-controls="notification-panel" aria-expanded="false"
+                            data-notifications-url="{{ route('notifications.index') }}"
+                            data-user-id="{{ Auth::id() }}">
+                            <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none"
+                                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                                style="flex-shrink: 0">
+                                <path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9" />
+                                <path d="M10 21h4" />
+                            </svg>
+                            <span id="notification-count" class="notification-count" aria-hidden="true" hidden></span>
+                        </button>
+
+                        <div class="notification-panel" id="notification-panel" hidden>
+                            <div class="notification-header">
+                                <strong>Notifikasi MathLeaf</strong>
+                                <button type="button" id="notification-clear" class="notification-clear" hidden>
+                                    Bersihkan
+                                </button>
+                            </div>
+                            <div id="notification-list" aria-live="polite">
+                                <p>Buka untuk melihat aktivitas terbaru di kelasmu.</p>
+                            </div>
+                        </div>
+                    </div>
 
                     <span class="header-profile">
                         <span class="avatar" id="avatar-letter">
@@ -666,11 +654,6 @@
                         </span>
                         <span>{{ Auth::check() ? Auth::user()->name : 'User' }}</span>
                     </span>
-                </div>
-
-                <div class="notification-panel" id="notification-panel" hidden>
-                    <strong>Notifikasi MathLeaf</strong>
-                    <p>Terus belajar, satu langkah kecil setiap hari 🌱</p>
                 </div>
             </header>
 

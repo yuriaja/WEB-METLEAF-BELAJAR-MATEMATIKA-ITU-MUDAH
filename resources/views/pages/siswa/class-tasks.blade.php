@@ -312,18 +312,18 @@
             align-items: stretch;
         }
 
-        aside {
+        .two-columns > aside {
             display: flex;
             flex-direction: column;
             gap: 1.5rem;
         }
 
-        aside .panel {
+        .two-columns > aside .panel {
             display: flex;
             flex-direction: column;
         }
 
-        aside .panel:first-child {
+        .two-columns > aside .panel:first-child {
             flex: 1;
         }
 

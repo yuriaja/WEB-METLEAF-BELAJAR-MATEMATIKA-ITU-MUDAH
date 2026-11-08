@@ -13,6 +13,7 @@ use App\Http\Controllers\QuizScheduleController;
 use App\Http\Controllers\StudentGradesController;
 use App\Http\Controllers\StudentDashboardController;
 use App\Http\Controllers\MaterialController;
+use App\Http\Controllers\NotificationController;
 
 /*
 |--------------------------------------------------------------------------
@@ -32,6 +33,7 @@ Route::post('/logout', [ML::class, 'logout'])->name('logout');
 |--------------------------------------------------------------------------
 */
 Route::middleware('auth')->group(function () {
+    Route::get('/notifikasi', [NotificationController::class, 'index'])->name('notifications.index');
     // Materi kelas: terhubung database, berkas privat, dan progres belajar.
     Route::get('/materi', [MaterialController::class, 'index'])->name('materi.index');
     Route::post('/materi', [MaterialController::class, 'store'])->name('materi.store');

@@ -603,7 +603,10 @@
     </div>
 
     <div class="lm-layout">
-        <div class="lm-main">
+        <div class="lm-main" @unless ($isOwner)
+            data-progress-url="{{ route('materi.complete', $material) }}"
+            data-progress-current="{{ $progressPercent }}"
+        @endunless>
 
             {{-- 1. ISI MATERI (Tampil dengan visual HTML lengkap dari form) --}}
             @if ($hasContent)
@@ -729,9 +732,10 @@
                         <span id="lm-percent">0%</span>
                     </div>
                     <div class="lm-track" role="progressbar" aria-label="Progres belajar" aria-valuemin="0"
-                        aria-valuemax="100" aria-valuenow="{{ $progressPercent }}">
+                        aria-valuemax="100" aria-valuenow="{{ $progressPercent }}" id="lm-progress-track">
                         <div id="lm-bar" data-target="{{ $progressPercent }}"></div>
                     </div>
+                    <small id="lm-progress-status" aria-live="polite"></small>
                 @endunless
 
                 @php $tocNo = 0; @endphp
@@ -753,7 +757,7 @@
 
             @unless ($isOwner)
                 @if ($progressPercent < 100)
-                    <form method="POST" action="{{ route('materi.complete', $material) }}" style="margin-top:1.2rem">
+                    <form id="lm-complete-form" method="POST" action="{{ route('materi.complete', $material) }}" style="margin-top:1.2rem">
                         @csrf
                         <input type="hidden" name="progress_percent" value="100">
                         <button class="lm-btn block" type="submit">
@@ -796,8 +800,10 @@
             /* ----- Progres Animasi ----- */
             var bar = document.getElementById('lm-bar');
             var pct = document.getElementById('lm-percent');
+            var readingContent = document.querySelector('[data-progress-url]');
+            var progressTrack = document.getElementById('lm-progress-track');
             if (bar && pct) {
-                var current = 0;
+                var current = parseInt(bar.getAttribute('data-target'), 10) || 0;
 
                 function setProgress(to) {
                     var from = current;
@@ -816,6 +822,96 @@
                 setTimeout(function() {
                     setProgress(parseInt(bar.getAttribute('data-target'), 10) || 0);
                 }, 300);
+            }
+
+            /* ----- Simpan progres berdasarkan bagian materi yang sudah dibaca ----- */
+            if (readingContent && bar && pct && progressTrack) {
+                var progressStatus = document.getElementById('lm-progress-status');
+                var lastSaved = parseInt(readingContent.getAttribute('data-progress-current'), 10) || 0;
+                var highestReached = lastSaved;
+                var saveTimer = null;
+                var saveInFlight = false;
+                var pendingProgress = null;
+
+                function updateProgressDisplay(value) {
+                    bar.style.width = value + '%';
+                    bar.setAttribute('data-target', String(value));
+                    pct.textContent = value + '%';
+                    progressTrack.setAttribute('aria-valuenow', String(value));
+                    if (value === 100) {
+                        var completeForm = document.getElementById('lm-complete-form');
+                        if (completeForm) completeForm.hidden = true;
+                    }
+                }
+
+                function saveProgress(value, keepalive) {
+                    if (value <= lastSaved) return;
+                    if (saveInFlight) {
+                        pendingProgress = Math.max(pendingProgress || 0, value);
+                        return;
+                    }
+
+                    saveInFlight = true;
+                    fetch(readingContent.getAttribute('data-progress-url'), {
+                        method: 'POST',
+                        credentials: 'same-origin',
+                        keepalive: Boolean(keepalive),
+                        headers: {
+                            'Accept': 'application/json',
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                            'X-Requested-With': 'XMLHttpRequest'
+                        },
+                        body: JSON.stringify({ progress_percent: value })
+                    }).then(function(response) {
+                        if (!response.ok) throw new Error('HTTP ' + response.status);
+                        return response.json();
+                    }).then(function(result) {
+                        lastSaved = Math.max(lastSaved, Number(result.progress_percent) || value);
+                        if (progressStatus) progressStatus.textContent = 'Progres tersimpan otomatis.';
+                    }).catch(function(error) {
+                        console.error('Gagal menyimpan progres materi:', error);
+                        if (progressStatus) progressStatus.textContent = 'Progres belum tersimpan. Periksa koneksi lalu lanjutkan membaca.';
+                    }).finally(function() {
+                        saveInFlight = false;
+                        if (pendingProgress !== null) {
+                            var nextProgress = pendingProgress;
+                            pendingProgress = null;
+                            saveProgress(nextProgress, keepalive);
+                        }
+                    });
+                }
+
+                function measureReadingProgress() {
+                    var bounds = readingContent.getBoundingClientRect();
+                    var percent = Math.floor(Math.max(0, Math.min(1,
+                        (window.innerHeight - bounds.top) / Math.max(bounds.height, 1)
+                    )) * 100);
+                    highestReached = Math.max(highestReached, percent);
+                    updateProgressDisplay(highestReached);
+
+                    if (highestReached > lastSaved) {
+                        window.clearTimeout(saveTimer);
+                        saveTimer = window.setTimeout(function() {
+                            saveProgress(highestReached, false);
+                        }, 900);
+                    }
+                }
+
+                var measureFrame = null;
+                window.addEventListener('scroll', function() {
+                    if (measureFrame !== null) return;
+                    measureFrame = window.requestAnimationFrame(function() {
+                        measureFrame = null;
+                        measureReadingProgress();
+                    });
+                }, { passive: true });
+                window.addEventListener('resize', measureReadingProgress);
+                window.addEventListener('pagehide', function() {
+                    window.clearTimeout(saveTimer);
+                    if (highestReached > lastSaved) saveProgress(highestReached, true);
+                });
+                measureReadingProgress();
             }
 
             /* ----- Render Grafis Garis Bilangan dari Editor ----- */
