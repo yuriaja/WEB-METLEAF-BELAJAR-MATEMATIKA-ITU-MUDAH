@@ -31,14 +31,14 @@ class StudentLoginJoinFlowTest extends TestCase
         ]);
     }
 
-    public function test_login_page_explains_class_code_is_only_needed_when_first_joining(): void
+    public function test_login_page_requires_eight_character_class_code_each_time(): void
     {
         $this->get('/masuk')->assertOk()
             ->assertSee('Masuk Sekarang')
             ->assertSee('Kode Kelas Matematika')
             ->assertSee('class_code_visible')
             ->assertSee('maxlength="8"', false)
-            ->assertSee('hanya diperlukan saat pertama kali bergabung');
+            ->assertSee('Wajib diisi setiap login siswa.');
     }
 
     public function test_student_must_enter_class_code_during_login_and_is_enrolled(): void
