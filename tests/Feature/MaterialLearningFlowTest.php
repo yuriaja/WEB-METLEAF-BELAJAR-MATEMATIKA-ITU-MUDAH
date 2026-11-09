@@ -90,6 +90,39 @@ class MaterialLearningFlowTest extends TestCase
         $this->actingAs($student)->get('/materi?class_id=' . $other->id)->assertForbidden();
     }
 
+    public function test_class_filter_limits_teacher_materials_to_selected_class_and_displays_class_badges(): void
+    {
+        $teacher = $this->account('guru', 'class-filter');
+        $firstClass = $this->studyClass($teacher, 'FILTER1');
+        $secondClass = $this->studyClass($teacher, 'FILTER2');
+        $firstMaterial = $this->material($firstClass, $teacher, 'Materi kelas pertama');
+        $secondMaterial = $this->material($secondClass, $teacher, 'Materi kelas kedua');
+
+        $this->actingAs($teacher)->get('/materi?class_id=' . $firstClass->id)
+            ->assertOk()
+            ->assertSee($firstMaterial->title)
+            ->assertSee($firstClass->name)
+            ->assertDontSee($secondMaterial->title);
+    }
+
+    public function test_class_filter_limits_student_materials_to_selected_class(): void
+    {
+        $teacher = $this->account('guru', 'student-class-filter');
+        $student = $this->account('siswa', 'student-class-filter');
+        $firstClass = $this->studyClass($teacher, 'STUFILT1');
+        $secondClass = $this->studyClass($teacher, 'STUFILT2');
+        $firstClass->students()->attach($student->id);
+        $secondClass->students()->attach($student->id);
+        $firstMaterial = $this->material($firstClass, $teacher, 'Materi siswa kelas pertama');
+        $secondMaterial = $this->material($secondClass, $teacher, 'Materi siswa kelas kedua');
+
+        $this->actingAs($student)->get('/materi?class_id=' . $secondClass->id)
+            ->assertOk()
+            ->assertSee($secondMaterial->title)
+            ->assertSee($secondClass->name)
+            ->assertDontSee($firstMaterial->title);
+    }
+
     public function test_student_progress_is_saved_and_can_be_resumed(): void
     {
         $teacher = $this->account('guru', 'progress');
@@ -104,6 +137,27 @@ class MaterialLearningFlowTest extends TestCase
         $this->assertDatabaseHas('material_progress', ['user_id' => $student->id, 'material_id' => $material->id, 'progress_percent' => 100]);
         $this->actingAs($student)->get('/materi?status=done')->assertOk()->assertSee('Latihan Pecahan');
         $this->actingAs($student)->get('/materi?status=undone')->assertOk()->assertDontSee('Latihan Pecahan');
+    }
+
+    public function test_progress_endpoint_returns_json_for_automatic_scroll_updates_and_never_decreases_progress(): void
+    {
+        $teacher = $this->account('guru', 'auto-progress');
+        $student = $this->account('siswa', 'auto-progress');
+        $class = $this->studyClass($teacher, 'AUTO1234');
+        $class->students()->attach($student->id);
+        $material = $this->material($class, $teacher, 'Materi progres otomatis');
+
+        $this->actingAs($student)->postJson('/materi/' . $material->id . '/progres', ['progress_percent' => 42])
+            ->assertOk()
+            ->assertJsonPath('progress_percent', 42);
+        $this->postJson('/materi/' . $material->id . '/progres', ['progress_percent' => 18])
+            ->assertOk()
+            ->assertJsonPath('progress_percent', 42);
+        $this->assertDatabaseHas('material_progress', [
+            'user_id' => $student->id,
+            'material_id' => $material->id,
+            'progress_percent' => 42,
+        ]);
     }
 
     public function test_other_teacher_cannot_edit_publish_or_delete_material(): void

@@ -1,6 +1,6 @@
 <?php
 namespace App\Http\Controllers;
-use App\Models\{SchoolClass,Material,Assessment,Question,AssessmentAttempt};
+use App\Models\{SchoolClass,Material,Assessment,Question,AssessmentAttempt,ForumComment,ForumThread};
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\{DB,Storage};
 use Illuminate\Support\Str;
@@ -52,6 +52,12 @@ class ClassroomController extends Controller {
           'actor' => $item->user?->name ?? 'Siswa',
           'action' => 'mengumpulkan tugas',
           'target' => $item->activity?->title ?? 'Tugas',
+          'url' => $item->activity
+              ? route('classroom.tasks.index', [
+                  'class_id' => $item->activity->class_id,
+                  'submission' => $item->id,
+              ])
+              : route('classroom.tasks.index'),
       ]);
 
   $quizAttempts = \App\Models\AssessmentAttempt::query()
@@ -63,20 +69,43 @@ class ClassroomController extends Controller {
           'actor' => $item->user?->name ?? 'Siswa',
           'action' => 'menyelesaikan kuis',
           'target' => $item->assessment?->title ?? 'Kuis',
+          'url' => $item->assessment
+              ? route('teacher.quizzes.attempt', $item)
+              : route('teacher.quizzes'),
       ]);
 
-  $threads = \App\Models\ForumThread::query()
+  $threads = ForumThread::query()
       ->with('author:id,name')
       ->whereIn('class_id', $classIds)
+      ->whereHas('author', fn ($query) => $query->where('role', 'siswa'))
       ->latest()->limit(6)->get()
       ->map(fn ($item) => (object) [
           'date' => $item->created_at,
           'actor' => $item->author?->name ?? 'Pengguna',
-          'action' => 'membuka diskusi',
+          'action' => 'membuat topik diskusi',
           'target' => $item->title,
+          'url' => route('forum.index', ['class_id' => $item->class_id, 'thread' => $item->id]),
       ]);
 
-  $recentActivities = $submissions->concat($quizAttempts)->concat($threads)
+  $forumReplies = ForumComment::query()
+      ->with(['author:id,name', 'forumThread:id,title,class_id'])
+      ->whereHas('author', fn ($query) => $query->where('role', 'siswa'))
+      ->whereHas('forumThread', fn ($query) => $query->whereIn('class_id', $classIds))
+      ->latest('created_at')->limit(6)->get()
+      ->map(fn ($item) => (object) [
+          'date' => $item->created_at,
+          'actor' => $item->author?->name ?? 'Siswa',
+          'action' => 'membalas diskusi',
+          'target' => $item->forumThread?->title ?? 'Diskusi',
+          'url' => $item->forumThread
+              ? route('forum.index', [
+                  'class_id' => $item->forumThread->class_id,
+                  'thread' => $item->forum_thread_id,
+              ])
+              : route('forum.index'),
+      ]);
+
+  $recentActivities = $submissions->concat($quizAttempts)->concat($threads)->concat($forumReplies)
       ->sortByDesc('date')->take(6)->values();
 
   $publishedMaterialCount = Material::query()->whereIn('class_id', $classIds)
@@ -93,6 +122,7 @@ class ClassroomController extends Controller {
       ->where('mode', 'tugas')->whereIn('class_id', $classIds)
       ->whereNotNull('due_at')->where('due_at', '>=', now())
       ->orderBy('due_at')->limit(4)->get(['id', 'title', 'due_at', 'class_id']);
+  $upcomingTaskDeadlines->each(fn ($task) => $task->url = route('classroom.tasks.edit', $task));
   $uniqueStudentCount = \Illuminate\Support\Facades\DB::table('class_user')
       ->whereIn('class_id', $classIds)->distinct()->count('user_id');
 
@@ -111,11 +141,11 @@ class ClassroomController extends Controller {
  }
  public function createMaterial(){
   $this->teacher();
-  return view('pages.guru.materi-form',['material'=>null]);
+  return view('pages.shared.materi-form',['material'=>null]);
  }
  public function editMaterial(Material $material){
   $this->authorizeMaterial($material);
-  return view('pages.guru.materi-form',compact('material'));
+  return view('pages.shared.materi-form',compact('material'));
  }
  public function storeMaterial(Request $r){
   $this->teacher();

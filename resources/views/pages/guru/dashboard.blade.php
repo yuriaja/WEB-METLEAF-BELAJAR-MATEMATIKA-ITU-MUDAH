@@ -232,6 +232,30 @@
             display: flex;
             flex-direction: column;
             gap: 0.75rem;
+
+            /* Kunci tinggi maksimal persis seukuran 4 tombol Aksi Cepat */
+            max-height: 230px;
+            overflow-y: auto;
+            padding-right: 0.5rem;
+        }
+
+        /* Desain scrollbar tipis agar rapi */
+        .activity-feed::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .activity-feed::-webkit-scrollbar-track {
+            background: #f8fafc;
+            border-radius: 8px;
+        }
+
+        .activity-feed::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 8px;
+        }
+
+        .activity-feed::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
         }
 
         .activity-row {
@@ -241,6 +265,20 @@
             border-bottom: 1px dashed #e2e8f0;
             font-size: 0.85rem;
             align-items: flex-start;
+        }
+
+        a.activity-row {
+            color: inherit;
+            text-decoration: none;
+            border-radius: 6px;
+            transition: background-color .15s, transform .15s;
+        }
+
+        a.activity-row:hover,
+        a.activity-row:focus-visible {
+            background: var(--ml-green-light);
+            transform: translateX(3px);
+            outline: none;
         }
 
         .activity-row:last-child {
@@ -269,18 +307,102 @@
         }
 
         /* Upgrade 4: ringkasan berbasis database, mengikuti tema hijau MathLeaf */
-        .ml4-teacher-insights { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:1rem; margin:0 0 1rem; }
-        .ml4-teacher-insight { display:flex; flex-direction:column; gap:.25rem; background:#fff; border:1px solid #bbf7d0; border-radius:10px; padding:1rem; min-width:0; }
-        .ml4-teacher-insight span { font-size:.77rem; color:#475569; font-weight:600; }
-        .ml4-teacher-insight strong { font-size:1.55rem; color:#064d27; }
-        .ml4-teacher-insight a,.ml4-teacher-deadlines a { color:#086534; text-decoration:none; font-size:.75rem; font-weight:700; }
-        .ml4-teacher-deadlines { background:white; border:1px solid #bbf7d0; border-radius:10px; padding:1rem 1.25rem; margin-bottom:1rem; }
-        .ml4-teacher-deadline-row { display:flex; justify-content:space-between; gap:1rem; padding:.7rem 0; border-bottom:1px solid #e2e8f0; font-size:.82rem; }
-        .ml4-teacher-deadline-row:last-child { border-bottom:0; }
-        .ml4-teacher-deadline-row span { color:#475569; flex-shrink:0; }
-        .ml4-empty { color:#64748b; font-size:.82rem; margin:0; }
-        @media(max-width:900px) { .ml4-teacher-insights { grid-template-columns:repeat(2,minmax(0,1fr)); }}
-        @media(max-width:500px) { .ml4-teacher-insights { grid-template-columns:1fr; } .ml4-teacher-deadline-row { flex-direction:column; gap:.2rem; }}
+        .ml4-teacher-insights {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 1rem;
+            margin: 0 0 1rem;
+        }
+
+        .ml4-teacher-insight {
+            display: flex;
+            flex-direction: column;
+            gap: .25rem;
+            background: #fff;
+            border: 1px solid #bbf7d0;
+            border-radius: 10px;
+            padding: 1rem;
+            min-width: 0;
+        }
+
+        .ml4-teacher-insight span {
+            font-size: .77rem;
+            color: #475569;
+            font-weight: 600;
+        }
+
+        .ml4-teacher-insight strong {
+            font-size: 1.55rem;
+            color: #064d27;
+        }
+
+        .ml4-teacher-insight a,
+        .ml4-teacher-deadlines a {
+            color: #086534;
+            text-decoration: none;
+            font-size: .75rem;
+            font-weight: 700;
+        }
+
+        .ml4-teacher-deadlines {
+            background: white;
+            border: 1px solid #bbf7d0;
+            border-radius: 10px;
+            padding: 1rem 1.25rem;
+            margin-bottom: 1rem;
+        }
+
+        .ml4-teacher-deadline-row {
+            display: flex;
+            justify-content: space-between;
+            gap: 1rem;
+            padding: .7rem 0;
+            border-bottom: 1px solid #e2e8f0;
+            font-size: .82rem;
+        }
+
+        a.ml4-teacher-deadline-row {
+            color: inherit;
+            text-decoration: none;
+        }
+
+        a.ml4-teacher-deadline-row:hover,
+        a.ml4-teacher-deadline-row:focus-visible {
+            color: #086534;
+            background: #edf8f0;
+        }
+
+        .ml4-teacher-deadline-row:last-child {
+            border-bottom: 0;
+        }
+
+        .ml4-teacher-deadline-row span {
+            color: #475569;
+            flex-shrink: 0;
+        }
+
+        .ml4-empty {
+            color: #64748b;
+            font-size: .82rem;
+            margin: 0;
+        }
+
+        @media(max-width:900px) {
+            .ml4-teacher-insights {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+        }
+
+        @media(max-width:500px) {
+            .ml4-teacher-insights {
+                grid-template-columns: 1fr;
+            }
+
+            .ml4-teacher-deadline-row {
+                flex-direction: column;
+                gap: .2rem;
+            }
+        }
     </style>
 
     <!-- HEADER -->
@@ -359,35 +481,16 @@
         </div>
     </div>
 
-    <div class="ml4-teacher-insights" aria-label="Ringkasan pembelajaran">
-        <div class="ml4-teacher-insight">
-            <span>Materi terbit</span><strong>{{ $publishedMaterialCount }}</strong>
-            <a href="{{ route('materi.index') }}">Kelola materi →</a>
-        </div>
-        <div class="ml4-teacher-insight">
-            <span>Kuis terbit</span><strong>{{ $publishedQuizCount }}</strong>
-            <a href="{{ route('teacher.quizzes') }}">Kelola kuis →</a>
-        </div>
-        <div class="ml4-teacher-insight">
-            <span>Total tugas</span><strong>{{ $totalTasks }}</strong>
-            <a href="{{ route('classroom.tasks.index') }}">Lihat tugas →</a>
-        </div>
-        <div class="ml4-teacher-insight">
-            <span>Rata-rata nilai kuis</span>
-            <strong>{{ $averageQuizScore === null ? '—' : number_format((float) $averageQuizScore, 1, ',', '.') }}</strong>
-            <a href="{{ route('teacher.grades') }}">Rekap nilai →</a>
-        </div>
-    </div>
     <div class="ml4-teacher-deadlines">
         <div class="panel-header">
             <h2 class="panel-title">Batas Waktu Tugas Terdekat</h2>
             <a href="{{ route('classroom.tasks.index') }}">Lihat semua tugas →</a>
         </div>
         @forelse ($upcomingTaskDeadlines as $task)
-            <div class="ml4-teacher-deadline-row">
+            <a class="ml4-teacher-deadline-row" href="{{ $task->url }}">
                 <strong>{{ $task->title }}</strong>
                 <span>{{ $task->due_at->translatedFormat('d M Y, H:i') }}</span>
-            </div>
+            </a>
         @empty
             <p class="ml4-empty">Belum ada tugas dengan deadline mendatang di kelasmu.</p>
         @endforelse
@@ -423,7 +526,7 @@
                     <span class="action-arrow">→</span>
                 </a>
 
-                <a href="{{ route('materi.index') }}" class="action-item">
+                <a href="{{ route('teacher.materials.create') }}" class="action-item">
                     <div class="action-left">
                         <span class="action-icon">
                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -479,17 +582,18 @@
             </div>
             <div class="activity-feed">
                 @forelse ($recentActivities as $activity)
-                    <div class="activity-row">
+                    <a class="activity-row" href="{{ $activity->url }}">
                         <div class="activity-time">{{ $activity->date?->diffForHumans() ?? '-' }}</div>
                         <div class="activity-text">
                             <strong>{{ $activity->actor }}</strong>
                             {{ $activity->action }} <em>{{ $activity->target }}</em>.
                         </div>
-                    </div>
+                    </a>
                 @empty
                     <div class="activity-row">
                         <div class="activity-text" style="color:#64748b">
-                            Belum ada aktivitas siswa di kelasmu. Aktivitas akan muncul setelah siswa mengumpulkan tugas, menyelesaikan kuis, atau membuat diskusi.
+                            Belum ada aktivitas siswa di kelasmu. Aktivitas akan muncul setelah siswa mengumpulkan tugas,
+                            menyelesaikan kuis, atau membuat dan membalas diskusi.
                         </div>
                     </div>
                 @endforelse

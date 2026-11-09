@@ -37,7 +37,6 @@
             text-shadow: 0 15px 35px rgba(255, 255, 255, 0.9);
         }
 
-        /* Input kode kelas 8 karakter */
         .class-code-input {
             width: min(100%, 330px);
             padding: .9rem 1rem;
@@ -48,12 +47,22 @@
             text-align: center;
             color: #064e3b;
             text-transform: uppercase;
-            background: rgba(255,255,255,.85);
-            box-shadow: 0 8px 30px rgba(6,95,70,.08);
+            background: rgba(255, 255, 255, .85);
+            box-shadow: 0 8px 30px rgba(6, 95, 70, .08);
             outline: none;
         }
-        .class-code-input:focus { border-color: #059669; box-shadow: 0 0 0 4px #a7f3d055; }
-        .class-code-hint { font-size: .79rem; color: #047857; font-weight: 600; margin-top: .5rem; }
+
+        .class-code-input:focus {
+            border-color: #059669;
+            box-shadow: 0 0 0 4px #a7f3d055;
+        }
+
+        .class-code-hint {
+            font-size: .79rem;
+            color: #047857;
+            font-weight: 600;
+            margin-top: .5rem;
+        }
     </style>
 </head>
 
@@ -82,14 +91,16 @@
             <p class="text-lg text-emerald-800 font-medium max-w-md">Masuk untuk melanjutkan perjalanan belajarmu hari
                 ini.</p>
 
-            <!-- Kode kelas wajib untuk semua login siswa; guru tidak membutuhkannya. -->
             <div id="left-kode-kelas-container" class="mt-10 pointer-events-auto transition-all duration-300">
-                <label for="class_code_visible" class="block text-emerald-900 font-bold text-base mb-2">Kode Kelas Matematika</label>
-                <p class="text-sm text-emerald-700 font-medium mb-3">Masukkan 8 karakter kode dari guru setiap kali login. Satu akun siswa hanya boleh mengikuti satu kelas.</p>
-                <input id="class_code_visible" type="text" class="class-code-input" maxlength="8"
-                    minlength="8" inputmode="text" pattern="[A-Za-z0-9]{8}"
-                    autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="CONTOH8" aria-describedby="class-code-hint" required>
-                <div id="class-code-hint" class="class-code-hint">Contoh: VII A Matematika — kode 8 huruf/angka</div>
+                <label for="class_code_visible" class="block text-emerald-900 font-bold text-base mb-2">Kode Kelas
+                    Matematika</label>
+                <p class="text-sm text-emerald-700 font-medium mb-3">Kode kelas dari guru hanya diperlukan saat pertama
+                    kali bergabung.<br>Masukkan 8 kode kelas dari guru.</p>
+                <input id="class_code_visible" type="text" class="class-code-input" maxlength="8" minlength="8"
+                    inputmode="text" pattern="[A-Za-z0-9]{8}" autocomplete="off" autocapitalize="characters"
+                    spellcheck="false" placeholder="CONTOH8" aria-describedby="class-code-hint">
+                <div id="class-code-hint" class="class-code-hint">Opsional untuk siswa yang sudah bergabung di kelas.
+                </div>
             </div>
         </div>
     </div>
@@ -102,8 +113,10 @@
             @csrf
 
             @if (request()->query('registered') === '1')
-                <div class="bg-emerald-100 border border-emerald-300 text-emerald-900 text-sm font-semibold px-4 py-3 rounded-xl text-center">
-                    Pendaftaran siswa berhasil! Masukkan email, kata sandi, dan kode kelas untuk login.
+                <div
+                    class="bg-emerald-100 border border-emerald-300 text-emerald-900 text-sm font-semibold px-4 py-3 rounded-xl text-center">
+                    Pendaftaran siswa berhasil! Masukkan email, kata sandi, dan kode kelas untuk bergabung ke kelas
+                    pertama kali.
                 </div>
             @endif
             <!-- Notifikasi Sukses Daftar -->
@@ -117,7 +130,6 @@
             <!-- Nilai default diambil dari old('role'), jika kosong default 'siswa' -->
             <input type="hidden" name="role" id="role-input" value="{{ old('role', 'siswa') }}">
             <input type="hidden" name="kode_kelas" id="hidden_class_code" value="">
-
             <!-- Role Switcher -->
             <div class="flex p-1 bg-white/50 rounded-xl border border-emerald-100 mb-2">
                 <button type="button"
@@ -152,8 +164,7 @@
             </button>
 
             <p class="text-center text-sm text-emerald-800 mt-4 font-medium">
-                Belum punya akun? <a href="/daftar"
-                    class="text-emerald-600 font-bold hover:underline">Daftar Gratis</a>
+                Belum punya akun? <a href="/daftar" class="text-emerald-600 font-bold hover:underline">Daftar Gratis</a>
             </p>
             <div class="text-center mt-6 text-xs text-emerald-700 opacity-60">
                 <a href="/" class="hover:underline">← Kembali ke Beranda</a>
@@ -179,7 +190,7 @@
                 if (submitButton.disabled) return;
                 if (roleInput.value === 'siswa') {
                     hiddenInput.value = visibleCodeInput.value.trim().toUpperCase();
-                    if (!/^[A-Z0-9]{8}$/.test(hiddenInput.value)) {
+                    if (hiddenInput.value && !/^[A-Z0-9]{8}$/.test(hiddenInput.value)) {
                         visibleCodeInput.setCustomValidity('Masukkan kode kelas tepat 8 karakter.');
                         visibleCodeInput.reportValidity();
                         return;
@@ -187,7 +198,6 @@
                 } else {
                     hiddenInput.value = '';
                 }
-
                 if (!errorMessage) {
                     errorMessage = document.createElement('div');
                     errorMessage.setAttribute('role', 'alert');
@@ -220,12 +230,15 @@
                     });
 
                     if (response.status === 419) {
-                        throw new Error('Sesi halaman sudah kedaluwarsa. Muat ulang halaman, lalu coba lagi.');
+                        throw new Error(
+                            'Sesi halaman sudah kedaluwarsa. Muat ulang halaman, lalu coba lagi.');
                     }
 
                     const contentType = response.headers.get('content-type') || '';
                     if (!contentType.includes('application/json')) {
-                        throw new Error(`Server tidak mengirim respons JSON (HTTP ${response.status}). Periksa route dan server Laravel.`);
+                        throw new Error(
+                            `Server tidak mengirim respons JSON (HTTP ${response.status}). Periksa route dan server Laravel.`
+                        );
                     }
 
                     const result = await response.json();
@@ -247,9 +260,9 @@
                     window.location.assign(target.pathname + target.search + target.hash);
                 } catch (error) {
                     errorMessage.hidden = false;
-                    errorMessage.textContent = error instanceof TypeError
-                        ? 'Gagal menghubungi server. Periksa koneksi ngrok, pastikan Laravel masih berjalan, lalu coba lagi.'
-                        : (error.message || 'Terjadi kesalahan. Coba lagi.');
+                    errorMessage.textContent = error instanceof TypeError ?
+                        'Gagal menghubungi server. Periksa koneksi ngrok, pastikan Laravel masih berjalan, lalu coba lagi.' :
+                        (error.message || 'Terjadi kesalahan. Coba lagi.');
                 } finally {
                     submitButton.disabled = false;
                     submitButton.textContent = buttonLabel;
@@ -269,12 +282,16 @@
                 const student = role === 'siswa';
                 leftKodeKelasContainer.hidden = !student;
                 leftKodeKelasContainer.style.display = student ? '' : 'none';
-                visibleCodeInput.required = student;
-                if (!student) { visibleCodeInput.value = ''; hiddenInput.value = ''; }
+                visibleCodeInput.required = false;
+                if (!student) {
+                    visibleCodeInput.value = '';
+                    hiddenInput.value = '';
+                }
             };
             roleBtns.forEach((btn) => btn.addEventListener('click', () => renderRole(btn.dataset.role)));
             visibleCodeInput.addEventListener('input', () => {
-                visibleCodeInput.value = visibleCodeInput.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 8);
+                visibleCodeInput.value = visibleCodeInput.value.toUpperCase().replace(/[^A-Z0-9]/g, '')
+                    .slice(0, 8);
                 visibleCodeInput.setCustomValidity('');
                 hiddenInput.value = visibleCodeInput.value;
             });

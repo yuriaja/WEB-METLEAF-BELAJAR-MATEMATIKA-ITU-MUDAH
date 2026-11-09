@@ -1647,6 +1647,67 @@ td {
     font-size: 11px;
     margin-top: 12px;
 }
+.notification-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+.notification-clear {
+    border: 0;
+    padding: 4px 0;
+    background: transparent;
+    color: var(--secondary);
+    cursor: pointer;
+    font: inherit;
+    font-size: 11px;
+}
+.notification-item {
+    padding: 12px 0;
+    font-size: 11px;
+}
+.notification-item + .notification-item {
+    border-top: 1px solid var(--border);
+}
+.notification-item a {
+    color: var(--foreground);
+    font-weight: 600;
+    text-decoration: none;
+}
+.notification-item a:hover,
+.notification-clear:hover {
+    text-decoration: underline;
+}
+.notification-item div {
+    margin-top: 5px;
+    color: var(--muted-foreground);
+}
+.notification-anchor {
+    position: relative;
+}
+.notification-anchor #notification-button {
+    position: relative;
+}
+.notification-count {
+    position: absolute;
+    top: -4px;
+    right: -4px;
+    min-width: 17px;
+    height: 17px;
+    padding: 0 4px;
+    border: 2px solid var(--card);
+    border-radius: 999px;
+    background: #ef4444;
+    color: #fff;
+    font-size: 9px;
+    font-weight: 700;
+    line-height: 13px;
+    text-align: center;
+}
+.notification-anchor .notification-panel {
+    top: calc(100% + 10px);
+    right: 0;
+}
 .modal-backdrop {
     position: fixed;
     inset: 0;

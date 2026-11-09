@@ -5,6 +5,8 @@ namespace Tests\Feature;
 use App\Models\Activity;
 use App\Models\Assessment;
 use App\Models\AssessmentAttempt;
+use App\Models\ForumComment;
+use App\Models\ForumThread;
 use App\Models\Material;
 use App\Models\MaterialProgress;
 use App\Models\SchoolClass;
@@ -183,5 +185,61 @@ class DashboardInsightsFlowTest extends TestCase
             ->assertViewHas('totalTasks', 1)
             ->assertViewHas('uniqueStudentCount', 1)
             ->assertViewHas('pendingTasks', 1);
+    }
+
+    public function test_teacher_dashboard_shows_student_forum_topics_and_replies_from_owned_classes(): void
+    {
+        $teacher = $this->account('guru', 'forum-activity');
+        $student = $this->account('siswa', 'forum-activity');
+        $otherTeacher = $this->account('guru', 'other-forum-activity');
+        $class = $this->classroom($teacher, 'FORUM');
+        $otherClass = $this->classroom($otherTeacher, 'OTHERFORUM');
+        $class->students()->attach($student->id);
+
+        $studentTopic = ForumThread::create([
+            'class_id' => $class->id,
+            'user_id' => $student->id,
+            'title' => 'Pertanyaan siswa terbaru',
+            'body' => 'Bagaimana menyelesaikan soal ini?',
+        ]);
+        $teacherTopic = ForumThread::create([
+            'class_id' => $class->id,
+            'user_id' => $teacher->id,
+            'title' => 'Topik guru',
+            'body' => 'Bahan diskusi.',
+        ]);
+        $studentReply = ForumComment::create([
+            'forum_thread_id' => $teacherTopic->id,
+            'user_id' => $student->id,
+            'body' => 'Ini balasan siswa.',
+        ]);
+        $otherClassTopic = ForumThread::create([
+            'class_id' => $otherClass->id,
+            'user_id' => $student->id,
+            'title' => 'Diskusi kelas lain',
+            'body' => 'Tidak boleh muncul.',
+        ]);
+        ForumComment::create([
+            'forum_thread_id' => $otherClassTopic->id,
+            'user_id' => $student->id,
+            'body' => 'Balasan di kelas lain.',
+        ]);
+
+        $this->actingAs($teacher)->get('/guru')
+            ->assertOk()
+            ->assertSee('membuat topik diskusi')
+            ->assertSee('Pertanyaan siswa terbaru')
+            ->assertSee('membalas diskusi')
+            ->assertSee($student->name)
+            ->assertDontSee('Diskusi kelas lain');
+
+        $this->assertStringContainsString(
+            'class_id='.$class->id.'&amp;thread='.$studentTopic->id,
+            $this->get(route('teacher.dashboard'))->getContent()
+        );
+        $this->assertStringContainsString(
+            'class_id='.$class->id.'&amp;thread='.$studentReply->forum_thread_id,
+            $this->get(route('teacher.dashboard'))->getContent()
+        );
     }
 }

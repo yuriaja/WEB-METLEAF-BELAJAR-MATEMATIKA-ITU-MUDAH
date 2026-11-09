@@ -8,7 +8,119 @@ const escape=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&g
 const page=document.body.dataset.page;
 const menu=$('#menu-toggle'); if(menu)menu.addEventListener('click',()=>{const nav=$('#public-navigation');const open=nav.classList.toggle('open');menu.setAttribute('aria-expanded',String(open))});
 const sidebar=$('#collapse-sidebar');if(sidebar)sidebar.addEventListener('click',()=>$('#app-layout').classList.toggle('sidebar-collapsed'));
-const bell=$('#notification-button');if(bell)bell.addEventListener('click',()=>{$('#notification-panel').hidden=!$('#notification-panel').hidden});
+const bell=$('#notification-button');
+if(bell){
+    const panel=$('#notification-panel'),list=$('#notification-list'),clearButton=$('#notification-clear'),badge=$('#notification-count');
+    const storageKey=`notifications_read_${bell.dataset.userId}`;
+    const emptyMessage='Belum ada aktivitas baru di kelasmu.';
+    const readIds=()=>{
+        const saved=get(storageKey,{});
+        if(!saved||typeof saved!=='object'||Array.isArray(saved))return {};
+        const cutoff=Date.now()-8*24*60*60*1000;
+        const current=Object.fromEntries(Object.entries(saved).filter(([,timestamp])=>Number(timestamp)>=cutoff));
+        if(Object.keys(current).length!==Object.keys(saved).length)set(storageKey,current);
+        return current;
+    };
+    const markAsRead=id=>{
+        const read=readIds();
+        read[id]=Date.now();
+        set(storageKey,read);
+    };
+    const unreadItems=items=>{
+        const read=readIds();
+        return items.filter(item=>item&&typeof item.id==='string'&&!read[item.id]&&typeof item.url==='string');
+    };
+    const updateBadge=count=>{
+        badge.hidden=count===0;
+        badge.textContent=count>99?'99+':String(count);
+        bell.setAttribute('aria-label',count?`Notifikasi, ${count} belum dibaca`:'Notifikasi');
+    };
+    const requestNotifications=async()=>{
+        const response=await fetch(bell.dataset.notificationsUrl,{credentials:'same-origin',headers:{Accept:'application/json'}});
+        if(!response.ok)throw new Error('HTTP '+response.status);
+        const items=await response.json();
+        if(!Array.isArray(items))throw new Error('Format respons notifikasi tidak valid');
+        return items;
+    };
+    const showEmpty=message=>{
+        list.replaceChildren();
+        const empty=document.createElement('p');
+        empty.textContent=message;
+        list.append(empty);
+        clearButton.hidden=true;
+    };
+    const renderNotifications=items=>{
+        const unread=unreadItems(items);
+        list.replaceChildren();
+        clearButton.hidden=unread.length===0;
+        updateBadge(unread.length);
+        if(!unread.length){
+            const message=items.length?emptyMessage:'Belum ada aktivitas baru di kelasmu.';
+            const empty=document.createElement('p');
+            empty.textContent=message;
+            list.append(empty);
+            return;
+        }
+        unread.forEach(item=>{
+            const row=document.createElement('div'),link=document.createElement('a'),detail=document.createElement('div');
+            row.className='notification-item';
+            link.href=item.url;
+            link.dataset.notificationId=item.id;
+            link.textContent=item.title;
+            detail.textContent=[item.description,item.time_ago].filter(Boolean).join(' · ');
+            link.addEventListener('click',()=>{
+                markAsRead(item.id);
+                row.remove();
+                updateBadge(list.querySelectorAll('.notification-item').length);
+                if(!list.querySelector('.notification-item'))showEmpty(emptyMessage);
+            });
+            row.append(link,detail);
+            list.append(row);
+        });
+    };
+    const loadNotifications=async()=>{
+        list.replaceChildren();
+        clearButton.hidden=true;
+        const loading=document.createElement('p');
+        loading.textContent='Memuat aktivitas terbaru...';
+        list.append(loading);
+        try{
+            const items=await requestNotifications();
+            renderNotifications(items);
+        }catch(error){
+            console.error('Gagal memuat notifikasi:',error);
+            showEmpty('Notifikasi gagal dimuat. Klik ikon untuk mencoba lagi.');
+        }
+    };
+    requestNotifications()
+        .then(items=>updateBadge(unreadItems(items).length))
+        .catch(error=>console.error('Gagal menghitung notifikasi:',error));
+    bell.addEventListener('click',()=>{
+        panel.hidden=!panel.hidden;
+        bell.setAttribute('aria-expanded',String(!panel.hidden));
+        if(!panel.hidden)loadNotifications();
+    });
+    clearButton.addEventListener('click',()=>{
+        list.querySelectorAll('.notification-item').forEach(row=>{
+            const link=row.querySelector('a');
+            if(link)markAsRead(link.dataset.notificationId);
+        });
+        showEmpty(emptyMessage);
+    });
+    document.addEventListener('click',event=>{
+        if(!panel.hidden&&!panel.contains(event.target)&&!bell.contains(event.target)){
+            panel.hidden=true;
+            bell.setAttribute('aria-expanded','false');
+        }
+    });
+    document.addEventListener('keydown',event=>{
+        if(event.key==='Escape'&&!panel.hidden){
+            panel.hidden=true;
+            bell.setAttribute('aria-expanded','false');
+            bell.focus();
+        }
+    });
+}
 const name=get('name','Aurora');$$('[data-student-name]').forEach(el=>text(el,name));text($('#avatar-letter'),String(name).charAt(0).toUpperCase());
 $$('[data-stat-score]').forEach(el=>text(el,get('quizScore',85)));
 $$('[data-stat-progress]').forEach(el=>text(el,get('completed',false)?'72%':'65%'));

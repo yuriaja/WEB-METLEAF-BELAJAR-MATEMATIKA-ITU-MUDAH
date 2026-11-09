@@ -18,10 +18,18 @@ class ForumController extends Controller
             'q' => ['nullable', 'string', 'max:100'],
             'mode' => ['nullable', Rule::in(['all', 'mine', 'unanswered'])],
             'page' => ['nullable', 'integer', 'min:1'],
+            'thread' => ['nullable', 'integer'],
         ]);
 
         $user = $request->user();
         $classIds = ForumAccess::classIds($user);
+        $openThreadId = isset($filters['thread']) ? (int) $filters['thread'] : session('forum_open_thread');
+        if ($openThreadId !== null) {
+            abort_unless(
+                ForumThread::query()->whereIn('class_id', $classIds)->whereKey($openThreadId)->exists(),
+                404
+            );
+        }
         $classes = SchoolClass::query()->whereIn('id', $classIds)
             ->orderBy('name')->get(['id', 'name']);
 
@@ -36,6 +44,7 @@ class ForumController extends Controller
 
         $threads = ForumThread::query()
             ->whereIn('class_id', $classIds)
+            ->when(isset($filters['thread']), fn ($builder) => $builder->whereKey((int) $filters['thread']))
             ->when($selectedClassId !== null, fn ($builder) => $builder->where('class_id', $selectedClassId))
             ->when($query !== '', fn ($builder) => $builder->where(function ($search) use ($query) {
                 $search->where('title', 'like', '%'.$query.'%')
@@ -80,8 +89,6 @@ class ForumController extends Controller
                 ])->all(),
             ]];
         })->all();
-
-        $openThreadId = session('forum_open_thread');
 
         return view('pages.shared.forum', compact(
             'classes', 'selectedClassId', 'threads', 'teacherThreads', 'myThreads',
