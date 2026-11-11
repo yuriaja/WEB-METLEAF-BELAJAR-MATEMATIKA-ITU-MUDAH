@@ -32,15 +32,14 @@ class MathLeafController extends Controller
         return response()->json(['user' => $user->only('id', 'name', 'email', 'role'), 'redirect' => '/guru'], 201);
     }
     public function login(Request $r) {
-        // Siswa wajib memasukkan kode kelas 8 karakter setiap login.
+        // Siswa hanya perlu memasukkan kode kelas saat pertama kali bergabung.
         $r->merge(['kode_kelas' => strtoupper(trim((string) $r->input('kode_kelas', '')))]);
         $v = $r->validate([
             'email' => 'required|email',
             'password' => 'required|string',
             'role' => 'required|in:siswa,guru',
-            'kode_kelas' => 'required_if:role,siswa|nullable|string|size:8|alpha_num',
+            'kode_kelas' => 'nullable|string|size:8|alpha_num',
         ], [
-            'kode_kelas.required_if' => 'Kode kelas Matematika wajib diisi setiap siswa login.',
             'kode_kelas.size' => 'Kode kelas harus tepat 8 karakter.',
         ]);
         if (!Auth::attempt(['email' => $v['email'], 'password' => $v['password'], 'role' => $v['role']])) {
@@ -57,7 +56,7 @@ class MathLeafController extends Controller
 
                     if ($enrolledIds) {
                         $class = SchoolClass::query()->whereKey($enrolledIds[0])->lockForUpdate()->firstOrFail();
-                        if ($v['kode_kelas'] !== $class->join_code) {
+                        if ($v['kode_kelas'] !== '' && $v['kode_kelas'] !== $class->join_code) {
                             throw ValidationException::withMessages(['kode_kelas' => 'Kamu sudah terdaftar di satu kelas Matematika lain. Hubungi guru jika perlu pindah kelas.']);
                         }
                     } else {
