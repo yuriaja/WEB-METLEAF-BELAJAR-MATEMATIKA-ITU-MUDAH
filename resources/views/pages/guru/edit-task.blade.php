@@ -9,11 +9,18 @@
     <h1>Edit Tugas FPBL</h1><p>Ubah instruksi, tahap, kelas atau deadline tugas. Pengumpulan dan nilai siswa tidak akan terhapus.</p>
     @if($activity->submissions()->exists())<p><strong>Catatan:</strong> Sudah ada pengumpulan siswa. Kelas tugas tidak bisa diganti.</p>@endif
     @if($errors->any())<div class="mle-error" role="alert"><ul>@foreach($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul></div>@endif
-    <form method="POST" action="{{ route('classroom.tasks.update', $activity) }}">
+    <form method="POST" action="{{ route('classroom.tasks.update', $activity) }}" enctype="multipart/form-data">
         @csrf @method('PUT')
         <div class="mle-field"><label for="mle-class">Kelas</label><select id="mle-class" name="class_id" required>@foreach($classes as $class)<option value="{{ $class->id }}" @selected((int) old('class_id', $activity->class_id) === (int) $class->id)>{{ $class->name }}</option>@endforeach</select></div>
         <div class="mle-field"><label for="mle-title">Judul tugas</label><input id="mle-title" name="title" type="text" maxlength="255" required value="{{ old('title', $activity->title) }}"></div>
         <div class="mle-field"><label for="mle-instructions">Instruksi</label><textarea id="mle-instructions" name="instructions" rows="8" maxlength="10000" required>{{ old('instructions', $activity->instructions) }}</textarea></div>
+        <div class="mle-field"><label for="mle-attachment">Lampiran Guru (Opsional, maksimal 20 MB)</label><input id="mle-attachment" type="file" name="attachment" accept="image/jpeg,image/png,image/webp,.pdf,.doc,.docx,.ppt,.pptx,.mp4,.webm">
+            @if ($activity->attachment_path)
+                <p><a href="{{ route('classroom.tasks.attachment', $activity) }}" target="_blank" rel="noopener">📎 {{ $activity->attachment_name ?? 'Lampiran tugas' }}</a></p>
+                <label><input style="width:auto" type="checkbox" name="remove_attachment" value="1"> Hapus lampiran lama</label>
+            @endif
+        </div>
+        <div class="mle-field"><label for="mle-resource-url">Link YouTube / Referensi (Opsional)</label><input id="mle-resource-url" name="resource_url" type="url" value="{{ old('resource_url', $activity->resource_url) }}" placeholder="https://youtu.be/..."></div>
         <div class="mle-field"><label for="mle-stage">Tahap FPBL</label><select id="mle-stage" name="fpbl_stage" required>@foreach([1=>'Mengamati',2=>'Eksplorasi',3=>'Investigasi',4=>'Presentasi'] as $stage=>$label)<option value="{{ $stage }}" @selected((int) old('fpbl_stage', $activity->fpbl_stage) === $stage)>{{ $stage }} — {{ $label }}</option>@endforeach</select></div>
         <div class="mle-field"><label for="mle-due">Deadline (boleh kosong)</label><input id="mle-due" name="due_at" type="datetime-local" value="{{ old('due_at', $activity->due_at?->format('Y-m-d\\TH:i')) }}"></div>
         <div class="mle-actions"><button type="submit" class="mle-btn">Simpan perubahan</button><a class="mle-btn alt" href="{{ route('classroom.tasks.index') }}">Kembali</a></div>

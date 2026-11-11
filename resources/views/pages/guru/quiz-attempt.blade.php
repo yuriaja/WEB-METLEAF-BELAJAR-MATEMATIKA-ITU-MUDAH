@@ -62,13 +62,16 @@
         @foreach ($attempt->answers as $i => $answer)
             @php
                 $options = $answer->question?->options ?? [];
+                $isShort = $answer->question?->type === 'short_answer';
                 $answerIndex = (int) $answer->answer_text;
                 $correctIndex = (int) ($answer->question?->correct_answer ?? -1);
+                $displayAnswer = $isShort ? $answer->answer_text : (is_array($options) ? ($options[$answerIndex] ?? '-') : '-');
+                $displayCorrect = $isShort ? $answer->question?->correct_answer : (is_array($options) ? ($options[$correctIndex] ?? '-') : '-');
             @endphp
             <div class="ml-review-box">
                 <h2>{{ $i + 1 }}. {{ $answer->question?->question_text ?? 'Soal sudah tidak tersedia' }}</h2>
-                <p>Jawaban siswa: {{ is_array($options) ? $options[$answerIndex] ?? '-' : '-' }}</p>
-                <p>Jawaban benar: {{ is_array($options) ? $options[$correctIndex] ?? '-' : '-' }}</p>
+                <p>Jawaban siswa: {{ $displayAnswer }}</p>
+                <p>Jawaban benar: {{ $displayCorrect }}</p>
                 <p style="font-weight:750;color:{{ $answer->is_correct ? '#166534' : '#be123c' }}">
                     {{ $answer->is_correct ? 'Benar' : 'Salah' }} · {{ $answer->points_awarded ?? 0 }} poin</p>
                 @if ($answer->feedback)

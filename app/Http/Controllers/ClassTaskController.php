@@ -112,17 +112,30 @@ class ClassTaskController extends Controller
             'instructions' => ['required', 'string', 'max:10000'],
             'fpbl_stage' => ['required', 'integer', 'between:1,4'],
             'due_at' => ['nullable', 'date', 'after:now'],
+            'resource_url' => ['nullable', 'url:http,https', 'max:2048'],
+            'attachment' => ['nullable', 'file', 'mimes:jpg,jpeg,png,webp,pdf,doc,docx,ppt,pptx,mp4,webm', 'max:20480'],
+            'remove_attachment' => ['nullable', 'boolean'],
         ]);
         $class = $this->ownedClass($request, (int) $data['class_id']);
-        Activity::create([
-            'class_id' => $class->id,
-            'title' => $data['title'],
-            'instructions' => $data['instructions'],
-            'fpbl_stage' => $data['fpbl_stage'],
-            'mode' => 'tugas',
-            'starts_at' => now(),
-            'due_at' => $data['due_at'] ?? null,
-        ]);
+        $file = $request->file('attachment');
+        $path = $file?->store('mathleaf/task-attachments', 'local');
+        try {
+            Activity::create([
+                'class_id' => $class->id,
+                'title' => $data['title'],
+                'instructions' => $data['instructions'],
+                'fpbl_stage' => $data['fpbl_stage'],
+                'mode' => 'tugas',
+                'starts_at' => now(),
+                'due_at' => $data['due_at'] ?? null,
+                'resource_url' => $data['resource_url'] ?? null,
+                'attachment_path' => $path,
+                'attachment_name' => $file ? \Illuminate\Support\Str::limit($file->getClientOriginalName(), 240, '') : null,
+            ]);
+        } catch (\Throwable $e) {
+            if ($path) Storage::disk('local')->delete($path);
+            throw $e;
+        }
         return redirect()->route('classroom.tasks.index')->with('success', 'Tugas berhasil diterbitkan.');
     }
 
@@ -142,6 +155,9 @@ class ClassTaskController extends Controller
             'instructions' => ['required', 'string', 'max:10000'],
             'fpbl_stage' => ['required', 'integer', 'between:1,4'],
             'due_at' => ['nullable', 'date'],
+            'resource_url' => ['nullable', 'url:http,https', 'max:2048'],
+            'attachment' => ['nullable', 'file', 'mimes:jpg,jpeg,png,webp,pdf,doc,docx,ppt,pptx,mp4,webm', 'max:20480'],
+            'remove_attachment' => ['nullable', 'boolean'],
         ]);
         $this->ownedClass($request, (int) $data['class_id']);
         if ((int) $data['class_id'] !== (int) $activity->class_id && $activity->submissions()->exists()) {
@@ -149,13 +165,29 @@ class ClassTaskController extends Controller
                 'class_id' => 'Kelas tidak dapat diganti karena sudah ada siswa yang mengumpulkan tugas.',
             ]);
         }
-        $activity->update([
-            'class_id' => (int) $data['class_id'],
-            'title' => $data['title'],
-            'instructions' => $data['instructions'],
-            'fpbl_stage' => (int) $data['fpbl_stage'],
-            'due_at' => $data['due_at'] ?? null,
-        ]);
+        $oldPath = $activity->attachment_path;
+        $newFile = $request->file('attachment');
+        $newPath = $newFile?->store('mathleaf/task-attachments', 'local');
+        try {
+            $activity->update([
+                'class_id' => (int) $data['class_id'],
+                'title' => $data['title'],
+                'instructions' => $data['instructions'],
+                'fpbl_stage' => (int) $data['fpbl_stage'],
+                'due_at' => $data['due_at'] ?? null,
+                'resource_url' => $data['resource_url'] ?? null,
+                'attachment_path' => $newPath ?? ($request->boolean('remove_attachment') ? null : $oldPath),
+                'attachment_name' => $newFile
+                    ? \Illuminate\Support\Str::limit($newFile->getClientOriginalName(), 240, '')
+                    : ($request->boolean('remove_attachment') ? null : $activity->attachment_name),
+            ]);
+        } catch (\Throwable $e) {
+            if ($newPath) Storage::disk('local')->delete($newPath);
+            throw $e;
+        }
+        if ($oldPath && ($newPath || $request->boolean('remove_attachment'))) {
+            Storage::disk('local')->delete($oldPath);
+        }
         return redirect()->route('classroom.tasks.index')->with('success', 'Tugas berhasil diperbarui.');
     }
 
@@ -165,7 +197,9 @@ class ClassTaskController extends Controller
         if ($activity->submissions()->exists()) {
             return back()->withErrors(['tugas' => 'Tugas tidak bisa dihapus karena sudah ada pengumpulan siswa.']);
         }
+        $path = $activity->attachment_path;
         $activity->delete();
+        if ($path) Storage::disk('local')->delete($path);
         return redirect()->route('classroom.tasks.index')->with('success', 'Tugas yang belum memiliki pengumpulan berhasil dihapus.');
     }
 

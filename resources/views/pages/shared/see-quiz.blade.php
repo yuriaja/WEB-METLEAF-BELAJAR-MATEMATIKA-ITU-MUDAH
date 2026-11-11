@@ -409,7 +409,7 @@
         @if ($errors->any())
           <p style="background:#ffebeb;border:1px solid #efb8b8;border-radius:10px;padding:16px;margin:0 0 18px;color:#9f2424">{{ $errors->first() }}</p>
         @endif
-        <form id="quiz-form" method="POST"
+        <form id="quiz-form" enctype="multipart/form-data" method="POST"
             action="{{ route('teacher.quizzes.update', $assessment) }}">
             @csrf
             @method('PUT')
@@ -539,9 +539,17 @@
                         <div class="card-body">
                             <div class="form-group">
                                 <label>Teks Pertanyaan</label>
+                                <input type="hidden" name="questions[{{ $index }}][id]" value="{{ $q->id }}">
                                 <textarea name="questions[{{ $index }}][text]" class="form-control" style="min-height: 80px;" required>{{ $q->question_text }}</textarea>
                             </div>
                             <div class="form-group">
+                                <label>Jenis Soal</label>
+                                <select class="form-control quiz-question-type" name="questions[{{ $index }}][question_type]" onchange="syncQuestionType(this.closest('.question-card'))">
+                                    <option value="multiple_choice" @selected($q->type !== 'short_answer')>Pilihan Ganda</option>
+                                    <option value="short_answer" @selected($q->type === 'short_answer')>Isian Singkat</option>
+                                </select>
+                            </div>
+                            <div class="form-group" data-quiz-mc>
                                 <label>Pilihan Jawaban</label>
                                 <div class="options-grid">
                                     @foreach (['A', 'B', 'C', 'D'] as $optIdx => $letter)
@@ -555,7 +563,7 @@
                                 </div>
                             </div>
                             <div class="settings-row">
-                                <div class="form-group">
+                                <div class="form-group" data-quiz-mc>
                                     <label>Kunci Jawaban Benar</label>
                                     <select name="questions[{{ $index }}][correct_answer]" class="form-control"
                                         required>
@@ -566,11 +574,30 @@
                                         @endforeach
                                     </select>
                                 </div>
+                                <div class="form-group" data-quiz-short>
+                                    <label>Kunci Jawaban Isian Singkat</label>
+                                    <input type="text" name="questions[{{ $index }}][short_answer]" class="form-control"
+                                        maxlength="1000" value="{{ $q->type === 'short_answer' ? $q->correct_answer : '' }}">
+                                </div>
                                 <div class="form-group">
                                     <label>Poin Soal</label>
                                     <input type="number" name="questions[{{ $index }}][points]"
                                         class="form-control" value="{{ $q->points ?? 10 }}" min="1" required>
                                 </div>
+                            </div>
+                            <div class="form-group">
+                                <label>Gambar / Dokumen / Video Soal (Opsional, maksimal 20 MB)</label>
+                                <input class="form-control" type="file" name="questions[{{ $index }}][file]"
+                                    accept="image/jpeg,image/png,image/webp,.pdf,.doc,.docx,.ppt,.pptx,.mp4,.webm">
+                                @if ($q->attachment_path)
+                                    <small>File saat ini: <a href="{{ route('classroom.quiz.attachment', $q) }}" target="_blank" rel="noopener">{{ $q->attachment_name ?? 'Lampiran soal' }}</a></small>
+                                    <label><input type="checkbox" name="questions[{{ $index }}][remove_file]" value="1"> Hapus lampiran saat menyimpan</label>
+                                @endif
+                            </div>
+                            <div class="form-group">
+                                <label>Link YouTube / Referensi Soal (Opsional)</label>
+                                <input class="form-control" type="url" name="questions[{{ $index }}][resource_url]"
+                                    value="{{ $q->resource_url }}" placeholder="https://youtu.be/...">
                             </div>
                             <div class="form-group" style="margin-top:12px">
                               <label>Materi Remedial Khusus Soal Ini (Opsional)</label>
@@ -589,42 +616,25 @@
                         </div>
                     </div>
                 @empty
-                    <!-- Fallback Soal Pertama -->
                     <div class="question-card" data-index="0">
-                        <div class="card-header">
-                            <div class="section-title">Soal #<span class="q-num-text">1</span></div>
-                        </div>
+                        <div class="card-header"><div class="section-title">Soal #<span class="q-num-text">1</span></div></div>
                         <div class="card-body">
-                            <div class="form-group"><label>Teks Pertanyaan</label>
-                                <textarea name="questions[0][text]" class="form-control" style="min-height: 80px;" required></textarea>
-                            </div>
-                            <div class="options-grid">
-                                <div class="option-item"><span class="option-letter">A</span><input type="text"
-                                        name="questions[0][options][0]" class="option-input" required></div>
-                                <div class="option-item"><span class="option-letter">B</span><input type="text"
-                                        name="questions[0][options][1]" class="option-input" required></div>
-                                <div class="option-item"><span class="option-letter">C</span><input type="text"
-                                        name="questions[0][options][2]" class="option-input" required></div>
-                                <div class="option-item"><span class="option-letter">D</span><input type="text"
-                                        name="questions[0][options][3]" class="option-input" required></div>
-                            </div>
+                            <div class="form-group"><label>Teks Pertanyaan</label><textarea name="questions[0][text]" class="form-control" style="min-height:80px" required></textarea></div>
+                            <div class="form-group"><label>Jenis Soal</label><select name="questions[0][question_type]" class="form-control quiz-question-type" onchange="syncQuestionType(this.closest('.question-card'))"><option value="multiple_choice">Pilihan Ganda</option><option value="short_answer">Isian Singkat</option></select></div>
+                            <div class="form-group" data-quiz-mc><label>Pilihan Jawaban</label><div class="options-grid">
+                                @foreach (['A','B','C','D'] as $j=>$letter)
+                                <div class="option-item"><span class="option-letter">{{ $letter }}</span><input type="text" name="questions[0][options][{{ $j }}]" class="option-input" required></div>
+                                @endforeach
+                            </div></div>
                             <div class="settings-row">
-                                <div class="form-group"><label>Kunci Jawaban Benar</label><select
-                                        name="questions[0][correct_answer]" class="form-control">
-                                        <option value="0">Opsi A</option>
-                                        <option value="1">Opsi B</option>
-                                        <option value="2">Opsi C</option>
-                                        <option value="3">Opsi D</option>
-                                    </select></div>
-                                <div class="form-group"><label>Poin Soal</label><input type="number"
-                                        name="questions[0][points]" class="form-control" value="10"></div>
+                                <div class="form-group" data-quiz-mc><label>Kunci Jawaban Benar</label><select name="questions[0][correct_answer]" class="form-control" required><option value="0">Opsi A</option><option value="1">Opsi B</option><option value="2">Opsi C</option><option value="3">Opsi D</option></select></div>
+                                <div class="form-group" data-quiz-short><label>Kunci Jawaban Isian Singkat</label><input type="text" name="questions[0][short_answer]" class="form-control" maxlength="1000"></div>
+                                <div class="form-group"><label>Poin Soal</label><input type="number" name="questions[0][points]" class="form-control" value="10" min="1" required></div>
                             </div>
-                            <div class="form-group" style="margin-top:12px"><label>Materi Remedial Khusus Soal Ini</label>
-                              <select class="form-control material-choice" name="questions[0][material_id]"><option value="">-- Ikuti materi dasar kuis --</option></select>
-                            </div>
-                            <div class="form-group" style="margin-top:12px"><label>Pembahasan Jawaban</label>
-                              <textarea class="form-control" name="questions[0][explanation]" maxlength="3000" rows="2"></textarea>
-                            </div>
+                            <div class="form-group"><label>Gambar / Dokumen / Video Soal (Opsional, maksimal 20 MB)</label><input type="file" name="questions[0][file]" class="form-control" accept="image/jpeg,image/png,image/webp,.pdf,.doc,.docx,.ppt,.pptx,.mp4,.webm"></div>
+                            <div class="form-group"><label>Link YouTube / Referensi Soal (Opsional)</label><input type="url" name="questions[0][resource_url]" class="form-control" placeholder="https://youtu.be/..."></div>
+                            <div class="form-group"><label>Materi Remedial Khusus Soal Ini (Opsional)</label><select name="questions[0][material_id]" class="form-control material-choice"><option value="">-- Ikuti materi dasar kuis --</option></select></div>
+                            <div class="form-group"><label>Pembahasan Jawaban (Opsional)</label><textarea name="questions[0][explanation]" class="form-control" rows="2" maxlength="3000"></textarea></div>
                         </div>
                     </div>
                 @endforelse
@@ -661,34 +671,56 @@
             document.querySelector('#quiz-form select[name="class_id"]')?.addEventListener('change', refreshMaterialSelects);
             refreshMaterialSelects();
 
-            let qIndex = {{ isset($assessment->questions) ? $assessment->questions->count() : 1 }};
+            let qIndex = Math.max(1, {{ isset($assessment->questions) ? $assessment->questions->count() : 1 }});
+
+            function syncQuestionType(card) {
+                if (!card) return;
+                const isShort = card.querySelector('.quiz-question-type')?.value === 'short_answer';
+                card.querySelectorAll('[data-quiz-mc], [data-quiz-short]').forEach(block => {
+                    const inactive = block.hasAttribute('data-quiz-mc') ? isShort : !isShort;
+                    block.style.display = inactive ? 'none' : '';
+                    block.querySelectorAll('input,select,textarea').forEach(input => {
+                        input.disabled = @json($locked ?? false) || inactive;
+                        if (input.dataset.requiredOriginal === undefined) {
+                            input.dataset.requiredOriginal = input.required ? '1' : '0';
+                        }
+                        input.required = !inactive && input.dataset.requiredOriginal === '1';
+                    });
+                });
+                const shortInput = card.querySelector('[data-quiz-short] input');
+                if (shortInput && isShort) shortInput.required = true;
+            }
+            document.querySelectorAll('#questions-container .question-card').forEach(syncQuestionType);
 
             function addQuestion() {
                 const container = document.getElementById('questions-container');
                 const num = container.children.length + 1;
                 const html = `
                 <div class="question-card" data-index="${qIndex}">
-                    <div class="card-header">
-                        <div class="section-title">Soal #<span class="q-num-text">${num}</span></div>
-                        <button type="button" class="btn-danger-ghost" onclick="removeQuestion(this)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg></button>
-                    </div>
+                    <div class="card-header"><div class="section-title">Soal #<span class="q-num-text">${num}</span></div><button type="button" class="btn-danger-ghost" onclick="removeQuestion(this)" title="Hapus Soal"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg></button></div>
                     <div class="card-body">
-                        <div class="form-group"><label>Teks Pertanyaan</label><textarea name="questions[${qIndex}][text]" class="form-control" style="min-height: 80px;" required></textarea></div>
-                        <div class="options-grid">
+                        <div class="form-group"><label>Teks Pertanyaan</label><textarea name="questions[${qIndex}][text]" class="form-control" style="min-height:80px" required></textarea></div>
+                        <div class="form-group"><label>Jenis Soal</label><select name="questions[${qIndex}][question_type]" class="form-control quiz-question-type" onchange="syncQuestionType(this.closest('.question-card'))"><option value="multiple_choice">Pilihan Ganda</option><option value="short_answer">Isian Singkat</option></select></div>
+                        <div class="form-group" data-quiz-mc><label>Pilihan Jawaban</label><div class="options-grid">
                             <div class="option-item"><span class="option-letter">A</span><input type="text" name="questions[${qIndex}][options][0]" class="option-input" required></div>
                             <div class="option-item"><span class="option-letter">B</span><input type="text" name="questions[${qIndex}][options][1]" class="option-input" required></div>
                             <div class="option-item"><span class="option-letter">C</span><input type="text" name="questions[${qIndex}][options][2]" class="option-input" required></div>
                             <div class="option-item"><span class="option-letter">D</span><input type="text" name="questions[${qIndex}][options][3]" class="option-input" required></div>
-                        </div>
+                        </div></div>
                         <div class="settings-row">
-                            <div class="form-group"><label>Kunci Jawaban Benar</label><select name="questions[${qIndex}][correct_answer]" class="form-control"><option value="0">Opsi A</option><option value="1">Opsi B</option><option value="2">Opsi C</option><option value="3">Opsi D</option></select></div>
-                            <div class="form-group"><label>Poin Soal</label><input type="number" name="questions[${qIndex}][points]" class="form-control" value="10"></div>
+                            <div class="form-group" data-quiz-mc><label>Kunci Jawaban Benar</label><select name="questions[${qIndex}][correct_answer]" class="form-control" required><option value="0">Opsi A</option><option value="1">Opsi B</option><option value="2">Opsi C</option><option value="3">Opsi D</option></select></div>
+                            <div class="form-group" data-quiz-short><label>Kunci Jawaban Isian Singkat</label><input type="text" name="questions[${qIndex}][short_answer]" class="form-control" maxlength="1000"></div>
+                            <div class="form-group"><label>Poin Soal</label><input type="number" name="questions[${qIndex}][points]" class="form-control" value="10" min="1" required></div>
                         </div>
-                        <div class="form-group" style="margin-top:12px"><label>Materi Remedial Khusus Soal Ini</label><select class="form-control material-choice" name="questions[${qIndex}][material_id]"><option value="">-- Ikuti materi dasar kuis --</option></select></div>
-                        <div class="form-group" style="margin-top:12px"><label>Pembahasan Jawaban</label><textarea class="form-control" name="questions[${qIndex}][explanation]" maxlength="3000" rows="2"></textarea></div>
+                        <div class="form-group"><label>Gambar / Dokumen / Video Soal (Opsional, maksimal 20 MB)</label><input type="file" name="questions[${qIndex}][file]" class="form-control" accept="image/jpeg,image/png,image/webp,.pdf,.doc,.docx,.ppt,.pptx,.mp4,.webm"></div>
+                        <div class="form-group"><label>Link YouTube / Referensi Soal (Opsional)</label><input type="url" name="questions[${qIndex}][resource_url]" class="form-control" placeholder="https://youtu.be/..."></div>
+                        <div class="form-group"><label>Materi Remedial Khusus Soal Ini (Opsional)</label><select name="questions[${qIndex}][material_id]" class="form-control material-choice"><option value="">-- Ikuti materi dasar kuis --</option></select></div>
+                        <div class="form-group"><label>Pembahasan Jawaban (Opsional)</label><textarea name="questions[${qIndex}][explanation]" class="form-control" rows="2" maxlength="3000"></textarea></div>
                     </div>
                 </div>`;
                 container.insertAdjacentHTML('beforeend', html);
+                const card = container.lastElementChild;
+                syncQuestionType(card);
                 refreshMaterialSelects();
                 qIndex++;
             }

@@ -14,6 +14,7 @@ use App\Http\Controllers\StudentGradesController;
 use App\Http\Controllers\StudentDashboardController;
 use App\Http\Controllers\MaterialController;
 use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\LearningAttachmentController;
 
 /*
 |--------------------------------------------------------------------------
@@ -75,6 +76,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/kuis/{assessment}', [StudentQuizController::class, 'take'])->name('quiz.take');
         Route::post('/kuis/{assessment}/jawab', [StudentQuizController::class, 'submit'])->middleware('throttle:12,1')->name('quiz.submit');
         Route::post('/kuis/{assessment}/insiden', [ExamMonitorController::class, 'record'])->middleware('throttle:45,1')->name('quiz.incident');
+        Route::get('/kuis/soal/{question}/lampiran', [LearningAttachmentController::class, 'question'])->name('quiz.attachment');
 
         // Tugas Kelas (Branch Hakim)
         Route::get('/tugas', [ClassTaskController::class, 'index'])->name('tasks.index');
@@ -85,6 +87,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/tugas/{activity}/kumpul', [ClassTaskController::class, 'submit'])->name('tasks.submit');
         Route::patch('/tugas/pengumpulan/{submission}/nilai', [ClassTaskController::class, 'grade'])->name('tasks.grade');
         Route::get('/tugas/pengumpulan/{submission}/file', [ClassTaskController::class, 'download'])->name('tasks.download');
+        Route::get('/tugas/{activity}/lampiran', [LearningAttachmentController::class, 'task'])->name('tasks.attachment');
     });
 });
 

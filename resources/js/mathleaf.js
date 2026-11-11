@@ -9,7 +9,8 @@ const page=document.body.dataset.page;
 const menu=$('#menu-toggle'); if(menu)menu.addEventListener('click',()=>{const nav=$('#public-navigation');const open=nav.classList.toggle('open');menu.setAttribute('aria-expanded',String(open))});
 const sidebar=$('#collapse-sidebar');if(sidebar)sidebar.addEventListener('click',()=>$('#app-layout').classList.toggle('sidebar-collapsed'));
 const bell=$('#notification-button');if(bell)bell.addEventListener('click',()=>{$('#notification-panel').hidden=!$('#notification-panel').hidden});
-const name=get('name','Aurora');$$('[data-student-name]').forEach(el=>text(el,name));text($('#avatar-letter'),String(name).charAt(0).toUpperCase());
+// Nama asli Laravel untuk komponen diskusi demo; jangan menimpa label anggota atau avatar.
+const name = document.querySelector('.header-profile > span:last-child')?.textContent?.trim() || 'Siswa';
 $$('[data-stat-score]').forEach(el=>text(el,get('quizScore',85)));
 $$('[data-stat-progress]').forEach(el=>text(el,get('completed',false)?'72%':'65%'));
 $$('[data-completed-count]').forEach(el=>text(el,get('completed',false)?4:3));

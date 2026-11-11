@@ -121,7 +121,8 @@ if(bell){
         }
     });
 }
-const name=get('name','Aurora');$$('[data-student-name]').forEach(el=>text(el,name));text($('#avatar-letter'),String(name).charAt(0).toUpperCase());
+// Nama asli Laravel untuk komponen diskusi demo; jangan menimpa label anggota atau avatar.
+const name = document.querySelector('.header-profile > span:last-child')?.textContent?.trim() || 'Siswa';
 $$('[data-stat-score]').forEach(el=>text(el,get('quizScore',85)));
 $$('[data-stat-progress]').forEach(el=>text(el,get('completed',false)?'72%':'65%'));
 $$('[data-completed-count]').forEach(el=>text(el,get('completed',false)?4:3));

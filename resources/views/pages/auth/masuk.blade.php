@@ -92,10 +92,8 @@
                 ini.</p>
 
             <div id="left-kode-kelas-container" class="mt-10 pointer-events-auto transition-all duration-300">
-                <label for="class_code_visible" class="block text-emerald-900 font-bold text-base mb-2">Kode Kelas
-                    Matematika</label>
-                <p class="text-sm text-emerald-700 font-medium mb-3">Kode kelas dari guru hanya diperlukan saat pertama
-                    kali bergabung.<br>Masukkan 8 kode kelas dari guru.</p>
+                <label for="class_code_visible" class="block text-emerald-900 font-bold text-base mb-2">Kode Kelas Matematika</label>
+                <p class="text-sm text-emerald-700 font-medium mb-3">Kode kelas dari guru hanya diperlukan saat pertama kali bergabung.<br>Masukkan 8 kode kelas dari guru.</p>
                 <input id="class_code_visible" type="text" class="class-code-input" maxlength="8" minlength="8"
                     inputmode="text" pattern="[A-Za-z0-9]{8}" autocomplete="off" autocapitalize="characters"
                     spellcheck="false" placeholder="CONTOH8" aria-describedby="class-code-hint">

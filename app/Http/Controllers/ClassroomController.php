@@ -320,19 +320,50 @@ class ClassroomController extends Controller {
    'max_attempts'=>'required|integer|between:1,5',
    'material_id'=>'nullable|integer',
    'questions'=>'required|array|min:1|max:50',
+   'questions.*.id'=>'nullable|integer',
    'questions.*.text'=>'required|string|max:3000',
-   'questions.*.options'=>'required|array|size:4',
-   'questions.*.options.*'=>'required|string|max:1000',
-   'questions.*.correct_answer'=>'required|integer|between:0,3',
+   'questions.*.question_type'=>'nullable|in:multiple_choice,short_answer',
+   'questions.*.options'=>'nullable|array',
+   'questions.*.options.*'=>'nullable|string|max:1000',
+   'questions.*.correct_answer'=>'nullable|integer|between:0,3',
+   'questions.*.short_answer'=>'nullable|string|max:1000',
    'questions.*.points'=>'required|integer|min:1|max:1000',
    'questions.*.explanation'=>'nullable|string|max:3000',
    'questions.*.material_id'=>'nullable|integer',
+   'questions.*.resource_url'=>'nullable|url:http,https|max:2048',
+   'questions.*.file'=>'nullable|file|mimes:jpg,jpeg,png,webp,pdf,doc,docx,ppt,pptx,mp4,webm|max:20480',
+   'questions.*.remove_file'=>'nullable|boolean',
   ]);
   $schedule=QuizSchedule::validateDates($v);
   $class=$r->user()->role==='admin'
    ? SchoolClass::findOrFail($v['class_id'])
    : $this->owned((int)$v['class_id']);
-  // Jangan pernah kaitkan soal dengan materi kelas lain atau draft.
+  $original=$assessment->questions()->get()->keyBy('id');
+  $existingIds=[];
+  foreach($v['questions'] as $index=>$question){
+   $oldId=(int)($question['id']??0);
+   if($oldId){
+    if(!$original->has($oldId) || in_array($oldId,$existingIds,true)){
+     throw ValidationException::withMessages(['questions'=>'Soal tidak terdaftar di kuis ini.']);
+    }
+    $existingIds[]=$oldId;
+   }
+   $type=$question['question_type']??'multiple_choice';
+   if($type==='multiple_choice'){
+    $options=$question['options']??null;
+    if(!is_array($options) || count($options)!==4 || array_keys($options)!==[0,1,2,3] ||
+       count(array_filter($options,static fn($opt)=>!is_string($opt) || trim($opt)===''))){
+     throw ValidationException::withMessages(['questions.'.$index.'.options'=>'Isi keempat pilihan jawaban.']);
+    }
+    if(!isset($question['correct_answer'])){
+     throw ValidationException::withMessages(['questions.'.$index.'.correct_answer'=>'Pilih kunci jawaban.']);
+    }
+   } else {
+    if(trim((string)($question['short_answer']??''))===''){
+     throw ValidationException::withMessages(['questions.'.$index.'.short_answer'=>'Isi kunci jawaban isian singkat.']);
+    }
+   }
+  }
   $materialIds = collect([$v['material_id'] ?? null])
    ->concat(collect($v['questions'])->pluck('material_id'))
    ->filter(fn ($id) => $id !== null && $id !== '')->map(fn ($id) => (int) $id)->unique();
@@ -343,33 +374,65 @@ class ClassroomController extends Controller {
     throw ValidationException::withMessages(['material_id' => 'Materi remedial wajib terbit dan berada dalam kelas kuis.']);
    }
   }
-  DB::transaction(function()use($assessment,$v,$class,$schedule){
-   $assessment->update([
-    'title'=>$v['title'],
-    'class_id'=>$class->id,
-    'type'=>$v['type'],
-    'time_limit_minutes'=>$v['time_limit_minutes'],
-    'passing_score'=>$v['passing_score'],
-    'max_attempts'=>$v['max_attempts'],
-    'starts_at'=>$schedule['starts_at'],
-    'due_at'=>$schedule['due_at'],
-    'material_id'=>$v['material_id'] ?? null,
-    'is_published'=>true,
-   ]);
-   $assessment->questions()->delete();
-   foreach($v['questions'] as $index=>$question){
-    $assessment->questions()->create([
-     'question_text'=>$question['text'],
-     'type'=>'multiple_choice',
-     'options'=>$question['options'],
-     'correct_answer'=>(string)$question['correct_answer'],
-     'points'=>$question['points'],
-     'explanation'=>$question['explanation'] ?? null,
-     'material_id'=>$question['material_id'] ?? null,
-     'sort_order'=>$index,
+  $uploaded=[];
+  $obsolete=[];
+  try {
+   DB::transaction(function()use($assessment,$v,$r,$class,$schedule,$original,&$uploaded,&$obsolete){
+    $assessment->update([
+     'title'=>$v['title'],'class_id'=>$class->id,'type'=>$v['type'],
+     'time_limit_minutes'=>$v['time_limit_minutes'],'passing_score'=>$v['passing_score'],
+     'max_attempts'=>$v['max_attempts'],'starts_at'=>$schedule['starts_at'],
+     'due_at'=>$schedule['due_at'],'material_id'=>$v['material_id'] ?? null,'is_published'=>true,
     ]);
-   }
-  });
+    $retained=[];
+    foreach($v['questions'] as $index=>$question){
+     $type=$question['question_type']??'multiple_choice';
+     $oldId=(int)($question['id']??0);
+     $model=$oldId ? $original->get($oldId) : $assessment->questions()->make();
+     $path=$model->attachment_path;
+     $name=$model->attachment_name;
+     if($r->hasFile('questions.'.$index.'.file')){
+      $file=$r->file('questions.'.$index.'.file');
+      $newPath=$file->store('mathleaf/quiz-attachments','local');
+      $uploaded[]=$newPath;
+      if($path)$obsolete[]=$path;
+      $path=$newPath;
+      $name=Str::limit($file->getClientOriginalName(),240,'');
+     } elseif(!empty($question['remove_file'])){
+      if($path)$obsolete[]=$path;
+      $path=null;$name=null;
+     }
+     $model->fill([
+      'question_text'=>$question['text'],
+      'type'=>$type,
+      'options'=>$type==='multiple_choice'?array_values($question['options']):null,
+      'correct_answer'=>$type==='multiple_choice'?(string)$question['correct_answer']:trim($question['short_answer']),
+      'points'=>$question['points'],
+      'explanation'=>$question['explanation']??null,
+      'material_id'=>$question['material_id']??null,
+      'sort_order'=>$index,
+      'attachment_path'=>$path,
+      'attachment_name'=>$name,
+      'resource_url'=>$question['resource_url']??null,
+     ]);
+     $assessment->questions()->save($model);
+     $retained[]=$model->id;
+    }
+    foreach($original as $oldQuestion){
+     if(!in_array($oldQuestion->id,$retained,true)){
+      if($oldQuestion->attachment_path)$obsolete[]=$oldQuestion->attachment_path;
+      $oldQuestion->delete();
+     }
+    }
+   },3);
+  } catch (\Throwable $error) {
+   if($uploaded)Storage::disk('local')->delete($uploaded);
+   throw $error;
+  }
+  if($obsolete){
+   try { Storage::disk('local')->delete(array_values(array_unique($obsolete))); }
+   catch (\Throwable $exception) { report($exception); }
+  }
   return redirect()->route('teacher.quizzes')->with('success','Kuis berhasil disimpan dan dipublikasikan.');
  }
  public function quizAttempt(Request $request, AssessmentAttempt $attempt){
@@ -472,7 +535,10 @@ class ClassroomController extends Controller {
    $filePaths=array_merge(
     DB::table('materials')->where('class_id',$classId)->whereNotNull('file_path')->pluck('file_path')->all(),
     DB::table('submissions')->whereIn('activity_id',DB::table('activities')->select('id')->where('class_id',$classId))
-     ->whereNotNull('file_path')->pluck('file_path')->all()
+     ->whereNotNull('file_path')->pluck('file_path')->all(),
+    DB::table('activities')->where('class_id',$classId)->whereNotNull('attachment_path')->pluck('attachment_path')->all(),
+    DB::table('questions')->whereIn('assessment_id',DB::table('assessments')->select('id')->where('class_id',$classId))
+     ->whereNotNull('attachment_path')->pluck('attachment_path')->all()
    );
 
    // class_id pada materials dan assessments memakai nullOnDelete; hapus konten terkait

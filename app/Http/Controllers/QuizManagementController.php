@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Assessment;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 
 class QuizManagementController extends Controller
 {
@@ -23,16 +24,22 @@ class QuizManagementController extends Controller
         $this->owner($request, $assessment);
 
         // Kunci assessment juga dipakai saat siswa mengirim jawaban.
-        $result = DB::transaction(function () use ($assessment) {
+        $deletePaths = [];
+        $result = DB::transaction(function () use ($assessment, &$deletePaths) {
             $quiz = Assessment::query()->lockForUpdate()->findOrFail($assessment->id);
             if ($quiz->attempts()->exists()) {
                 $quiz->forceFill(['archived_at' => now(), 'is_published' => false])->save();
                 return 'archive';
             }
+            $deletePaths = $quiz->questions()->whereNotNull('attachment_path')->pluck('attachment_path')->all();
             $quiz->delete(); // Pertanyaan ikut terhapus via FK. Tanpa percobaan siswa.
             return 'delete';
         });
 
+        if ($deletePaths) {
+            try { Storage::disk('local')->delete($deletePaths); }
+            catch (\Throwable $exception) { report($exception); }
+        }
         return redirect()->route('teacher.quizzes')
             ->with('success', $result === 'archive'
                 ? 'Kuis telah diarsipkan. Nilai dan lembar jawaban siswa tetap disimpan.'

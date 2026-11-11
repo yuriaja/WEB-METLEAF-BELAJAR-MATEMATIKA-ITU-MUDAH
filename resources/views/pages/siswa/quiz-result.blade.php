@@ -59,8 +59,9 @@
       <h2>{{ $index + 1 }}. {{ $answer->question?->question_text ?? 'Soal tidak tersedia' }}</h2>
       @php
         $choices = $answer->question?->options ?? [];
-        $selected = is_array($choices) ? ($choices[(int) $answer->answer_text] ?? '-') : '-';
-        $correctText = is_array($choices) ? ($choices[(int) $answer->question?->correct_answer] ?? '-') : '-';
+        $isShort = $answer->question?->type === 'short_answer';
+        $selected = $isShort ? $answer->answer_text : (is_array($choices) ? ($choices[(int) $answer->answer_text] ?? '-') : '-');
+        $correctText = $isShort ? $answer->question?->correct_answer : (is_array($choices) ? ($choices[(int) $answer->question?->correct_answer] ?? '-') : '-');
       @endphp
       <p>Jawaban kamu: <strong>{{ $selected }}</strong></p>
       <p class="{{ $answer->is_correct ? 'ml-result-correct' : 'ml-result-wrong' }}">

@@ -104,7 +104,6 @@ class StudentQuizController extends Controller
 
         $request->validate([
             'answers' => ['required', 'array'],
-            'answers.*' => ['required', 'integer', 'between:0,3'],
         ]);
 
         // Kunci baris assessment untuk menghindari dua pengiriman serentak
@@ -137,6 +136,25 @@ class StudentQuizController extends Controller
                 ]);
             }
 
+            // Jangan mempercayai tipe dan kunci jawaban dari browser.
+            foreach ($questions as $question) {
+                $raw = $answers[$question->id] ?? null;
+                if (!is_string($raw) && !is_int($raw)) {
+                    throw ValidationException::withMessages(['answers' => 'Semua jawaban harus diisi.']);
+                }
+                $value = trim((string) $raw);
+                if ($value === '' || mb_strlen($value) > 1000) {
+                    throw ValidationException::withMessages(['answers' => 'Isi jawaban setiap soal (maksimal 1000 karakter).']);
+                }
+                if ($question->type === 'multiple_choice' &&
+                    (!preg_match('/^[0-3]$/', $value) || !array_key_exists((int)$value, $question->options ?? []))) {
+                    throw ValidationException::withMessages(['answers' => 'Pilihan jawaban tidak valid.']);
+                }
+                if (!in_array($question->type, ['multiple_choice', 'short_answer'], true)) {
+                    throw ValidationException::withMessages(['answers' => 'Tipe soal tidak didukung.']);
+                }
+            }
+
             $attempt = AssessmentAttempt::create([
                 'assessment_id' => $assessment->id,
                 'user_id' => $request->user()->id,
@@ -149,8 +167,13 @@ class StudentQuizController extends Controller
             $earned = 0;
             $possible = $questions->sum('points');
             foreach ($questions as $question) {
-                $answer = (string) $answers[$question->id];
-                $correct = hash_equals((string) $question->correct_answer, $answer);
+                $answer = trim((string) $answers[$question->id]);
+                $normalize = static fn (string $text): string => mb_strtolower(
+                    preg_replace('/\s+/u', ' ', trim($text)) ?? trim($text), 'UTF-8'
+                );
+                $correct = $question->type === 'short_answer'
+                    ? hash_equals($normalize((string) $question->correct_answer), $normalize($answer))
+                    : hash_equals((string) $question->correct_answer, $answer);
                 $points = $correct ? (int) $question->points : 0;
                 $earned += $points;
                 $attempt->answers()->create([

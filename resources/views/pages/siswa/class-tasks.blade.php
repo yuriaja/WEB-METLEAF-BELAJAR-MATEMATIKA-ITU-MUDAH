@@ -971,6 +971,18 @@
 
                     <h3 class="first">Instruksi guru</h3>
                     <div class="task-instructions">{{ $task->instructions }}</div>
+                    @if ($task->attachment_path)
+                        @php
+                            $fileExt = strtolower(pathinfo($task->attachment_path, PATHINFO_EXTENSION));
+                        @endphp
+                        @if (in_array($fileExt, ['jpg','jpeg','png','webp'], true))
+                            <p><img src="{{ route('classroom.tasks.attachment', $task) }}?preview=1" alt="Lampiran tugas {{ $task->title }}" style="max-width:100%;height:auto;border-radius:10px"></p>
+                        @endif
+                        <p><a href="{{ route('classroom.tasks.attachment', $task) }}" target="_blank" rel="noopener" style="color:#086534;font-weight:700">📎 {{ $task->attachment_name ?? 'Unduh lampiran tugas' }}</a></p>
+                    @endif
+                    @if ($task->resource_url)
+                        <p><a href="{{ $task->resource_url }}" target="_blank" rel="noopener noreferrer" style="color:#086534;font-weight:700">🔗 Buka video / tautan tugas</a></p>
+                    @endif
 
 
                     @if ($submission)

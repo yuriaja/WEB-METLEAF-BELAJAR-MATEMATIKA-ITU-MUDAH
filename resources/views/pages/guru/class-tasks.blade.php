@@ -898,7 +898,7 @@
                 </button>
             </div>
 
-            <form method="POST" action="{{ route('classroom.tasks.store') }}"
+            <form method="POST" action="{{ route('classroom.tasks.store') }}" enctype="multipart/form-data"
                 style="display: flex; flex-direction: column; overflow: hidden; height: 100%;">
                 @csrf
                 <div class="modal-body">
@@ -925,6 +925,14 @@
                             required>{{ old('instructions') }}</textarea>
                     </div>
 
+                    <div class="form-group">
+                        <label>Lampiran Guru (Gambar / PDF / Word / PPT / Video, maksimal 20 MB)</label>
+                        <input type="file" name="attachment" class="form-control" accept="image/jpeg,image/png,image/webp,.pdf,.doc,.docx,.ppt,.pptx,.mp4,.webm">
+                    </div>
+                    <div class="form-group">
+                        <label>Link YouTube / Referensi Tugas (Opsional)</label>
+                        <input type="url" name="resource_url" class="form-control" value="{{ old('resource_url') }}" placeholder="https://youtu.be/...">
+                    </div>
                     <div class="form-group">
                         <label>Tahap FPBL</label>
                         <select name="fpbl_stage" class="form-control" required>
@@ -1047,6 +1055,12 @@
                     <div class="instruction-box">
                         <h4>Instruksi Tugas:</h4>
                         <div style="white-space: pre-line;">{{ $task->instructions }}</div>
+                        @if ($task->attachment_path)
+                            <p><a href="{{ route('classroom.tasks.attachment', $task) }}" target="_blank" rel="noopener" style="color:#086534;font-weight:700">📎 {{ $task->attachment_name ?? 'Lampiran tugas' }}</a></p>
+                        @endif
+                        @if ($task->resource_url)
+                            <p><a href="{{ $task->resource_url }}" target="_blank" rel="noopener noreferrer" style="color:#086534;font-weight:700">🔗 Buka video / tautan tugas</a></p>
+                        @endif
                     </div>
 
                     <h4 style="margin: 0 0 1rem 0; color: #14301f; font-size: 1.05rem; font-weight:800;">Daftar Pengumpulan

@@ -66,6 +66,22 @@
     @foreach ($assessment->questions as $index => $question)
       <section class="ml-question">
         <h2>{{ $index + 1 }}. {{ $question->question_text }}</h2>
+        @if ($question->attachment_path)
+          @php
+            $ext = strtolower(pathinfo($question->attachment_path, PATHINFO_EXTENSION));
+          @endphp
+          @if (in_array($ext, ['jpg','jpeg','png','webp'], true))
+            <p><img src="{{ route('classroom.quiz.attachment', $question) }}?preview=1" alt="Gambar pendukung soal {{ $index + 1 }}" style="max-width:100%;height:auto;border-radius:10px"></p>
+          @endif
+          <p><a href="{{ route('classroom.quiz.attachment', $question) }}" style="color:#086534" target="_blank" rel="noopener">📎 {{ $question->attachment_name ?? 'Unduh lampiran soal' }}</a></p>
+        @endif
+        @if ($question->resource_url)
+          <p><a href="{{ $question->resource_url }}" target="_blank" rel="noopener noreferrer" style="color:#086534">🔗 Buka video / tautan soal</a></p>
+        @endif
+        @if ($question->type === 'short_answer')
+          <input type="text" class="ml-option" style="width:100%;box-sizing:border-box;cursor:text" name="answers[{{ $question->id }}]"
+            value="{{ old('answers.'.$question->id) }}" maxlength="1000" placeholder="Tulis jawaban singkat..." required>
+        @else
         @foreach (is_array($question->options) ? $question->options : [] as $key => $option)
           <label class="ml-option">
             <input type="radio" name="answers[{{ $question->id }}]" value="{{ $key }}" required
@@ -73,6 +89,7 @@
             <span><strong>{{ ['A', 'B', 'C', 'D'][$key] ?? ($key + 1) }}.</strong> {{ $option }}</span>
           </label>
         @endforeach
+        @endif
       </section>
     @endforeach
     <div class="ml-quiz-actions">
